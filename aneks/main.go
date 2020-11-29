@@ -12,7 +12,10 @@ func main() {
 	apiv1 := r.Group("api/v1")
 	{
 		apiv1.GET("/getRandomAnek", getRandomAnekReq)
+		apiv1.POST("/getAnekById", getAnekByIdReq)
 	}
-	a := getRandomAnek()
-	fmt.Println(a.Id, a.Text)
+	fmt.Println("Started anek server...")
+	if err := r.Run(":9090");err!=nil{
+		fmt.Println(err.Error())
+	}
 }

@@ -25,7 +25,7 @@ func getAnekById(id int) (result Anek){
 	return
 }
 
-func getRandomAnek() (result Anek){
+func getRandomAnek() (result Anek, err error){
 	rand.Seed(time.Now().UnixNano())
 	size, err := AneksCollection.Count()
 	if err != nil{
@@ -33,6 +33,10 @@ func getRandomAnek() (result Anek){
 		return
 	}
 
-	return getAnekById(rand.Intn(size-1))
+	return getAnekById(rand.Intn(size-1)), err
 }
 
+func deleteAnek(id int) (err error){
+	err = AneksCollection.Remove(obj{"_id":id})
+	return
+}
