@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"gopkg.in/night-codes/types.v1"
 )
 
 func getRandomAnekReq(c *gin.Context){
@@ -29,19 +30,19 @@ func getAnekByIdReq(c *gin.Context){
 		return
 	}
 
-	id, ok := v.(int)
+	id, ok := v.(float64)
 	if !ok{
 		c.JSON(200, obj{"err":"wrong id type (need int)"})
 		return
 	}
 
-	a := getAnekById(id)
+	a := getAnekById(types.Int(id))
 	c.JSON(200, a)
 }
 
 func deleteAnekReq(c *gin.Context){
 	var req obj
-	if err := c.Bind(req);err != nil{
+	if err := c.Bind(&req);err != nil{
 		fmt.Println(err.Error())
 		c.String(400, err.Error())
 		return
@@ -52,13 +53,13 @@ func deleteAnekReq(c *gin.Context){
 		c.String(400, "no id field")
 		return
 	}
-	id, ok := v.(int)
+	id, ok := v.(float64)
 	if !ok{
 		fmt.Println("wrong id type (need int)")
 		c.String(400, "wrong id type (need int)")
 		return
 	}
-	err := deleteAnek(id)
+	err := deleteAnek(types.Int(id))
 	if err != nil{
 		fmt.Println(err.Error())
 		c.String(400, err.Error())
@@ -69,7 +70,7 @@ func deleteAnekReq(c *gin.Context){
 func addAnekReq(c *gin.Context){
 	req := map[string]string{}
 
-	if err := c.Bind(req);err != nil{
+	if err := c.Bind(&req);err != nil{
 		c.String(400, err.Error())
 		return
 	}

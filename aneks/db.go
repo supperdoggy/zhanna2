@@ -15,7 +15,6 @@ func connectToDb() *mgo.Collection{
 	return b.DB("Zhanna2").C("Aneks")
 }
 
-
 var AneksCollection = connectToDb()
 
 func getAnekById(id int) (result Anek){
@@ -47,7 +46,7 @@ func addAnek(text string) (err error){
 		return
 	}
 	a := Anek{
-		Id:   id,
+		Id:   id+1,
 		Text: text,
 	}
 

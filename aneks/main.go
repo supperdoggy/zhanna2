@@ -5,16 +5,18 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// TODO: created admin ckeck for deleteAnekReq and addAnekReq
+
 type obj map[string]interface{}
 
 func main() {
 	r := gin.Default()
 	apiv1 := r.Group("api/v1")
 	{
-		apiv1.GET("/getRandomAnek", getRandomAnekReq)
-		apiv1.POST("/getAnekById", getAnekByIdReq)
-		apiv1.POST("/deleteAnek", deleteAnekReq)
-		apiv1.POST("/addAnek", addAnekReq)
+		apiv1.GET("/getRandomAnek", getRandomAnekReq) // checked, works fine
+		apiv1.POST("/getAnekById", getAnekByIdReq) // checked, works fine
+		apiv1.POST("/deleteAnek", deleteAnekReq) // checked, works fine
+		apiv1.POST("/addAnek", addAnekReq) // checked, works fine
 	}
 	fmt.Println("Started anek server...")
 	if err := r.Run(":9090");err!=nil{
