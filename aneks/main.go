@@ -13,6 +13,8 @@ func main() {
 	{
 		apiv1.GET("/getRandomAnek", getRandomAnekReq)
 		apiv1.POST("/getAnekById", getAnekByIdReq)
+		apiv1.POST("/deleteAnek", deleteAnekReq)
+		apiv1.POST("/addAnek", addAnekReq)
 	}
 	fmt.Println("Started anek server...")
 	if err := r.Run(":9090");err!=nil{

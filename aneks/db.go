@@ -40,3 +40,19 @@ func deleteAnek(id int) (err error){
 	err = AneksCollection.Remove(obj{"_id":id})
 	return
 }
+
+func addAnek(text string) (err error){
+	id, err := AneksCollection.Count()
+	if err != nil{
+		return
+	}
+	a := Anek{
+		Id:   id,
+		Text: text,
+	}
+
+	if err = AneksCollection.Insert(a); err != nil{
+		return
+	}
+	return
+}

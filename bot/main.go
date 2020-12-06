@@ -1,6 +1,6 @@
 package main
 
-import(
+import (
 	"fmt"
 	"gopkg.in/tucnak/telebot.v2"
 	"time"
@@ -23,7 +23,7 @@ func main(){
 	})
 
 	bot.Handle(telebot.OnText, func(m *telebot.Message){
-		fmt.Println("User sent", m.Text)
+
 	})
 
 	fmt.Println("Bot running...")

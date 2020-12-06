@@ -1,6 +1,9 @@
 package main
 
-import "github.com/gin-gonic/gin"
+import (
+	"fmt"
+	"github.com/gin-gonic/gin"
+)
 
 func getRandomAnekReq(c *gin.Context){
 	a, err := getRandomAnek()
@@ -34,4 +37,52 @@ func getAnekByIdReq(c *gin.Context){
 
 	a := getAnekById(id)
 	c.JSON(200, a)
+}
+
+func deleteAnekReq(c *gin.Context){
+	var req obj
+	if err := c.Bind(req);err != nil{
+		fmt.Println(err.Error())
+		c.String(400, err.Error())
+		return
+	}
+	v, ok := req["id"]
+	if !ok{
+		fmt.Println("no id field")
+		c.String(400, "no id field")
+		return
+	}
+	id, ok := v.(int)
+	if !ok{
+		fmt.Println("wrong id type (need int)")
+		c.String(400, "wrong id type (need int)")
+		return
+	}
+	err := deleteAnek(id)
+	if err != nil{
+		fmt.Println(err.Error())
+		c.String(400, err.Error())
+		return
+	}
+}
+
+func addAnekReq(c *gin.Context){
+	req := map[string]string{}
+
+	if err := c.Bind(req);err != nil{
+		c.String(400, err.Error())
+		return
+	}
+
+	if v, ok := req["text"];!ok || v ==""{
+		c.String(400, "not text field")
+		return
+	}
+
+	err := addAnek(req["text"])
+	if err != nil{
+		c.String(400, err.Error())
+		return
+	}
+
 }
