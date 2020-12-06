@@ -5,7 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// TODO: created admin ckeck for deleteAnekReq and addAnekReq
+// TODO: created admin check for deleteAnekReq and addAnekReq
 
 type obj map[string]interface{}
 
