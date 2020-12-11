@@ -5,6 +5,6 @@ import (
 	"gopkg.in/tucnak/telebot.v2"
 )
 
-func addOrUpdateUserReq(c *gin.Context){
+func addOrUpdateUserReq(c *gin.Context) {
 	var user telebot.User
 }

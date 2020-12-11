@@ -3,9 +3,9 @@ package main
 import "gopkg.in/mgo.v2"
 
 type DbStruct struct {
-	DbSession          *mgo.Session
+	DbSession       *mgo.Session
 	UsersCollection *mgo.Collection
-	AdminCollection      *mgo.Collection
+	AdminCollection *mgo.Collection
 }
 
 func connectToDB() *mgo.Session {

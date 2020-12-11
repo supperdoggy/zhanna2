@@ -9,7 +9,7 @@ var (
 	}
 )
 
-func main(){
+func main() {
 	r := gin.Default()
 
 	apiv1 := r.Group("/api/v1")
