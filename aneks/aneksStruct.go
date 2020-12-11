@@ -5,7 +5,7 @@ type Aneks struct {
 }
 
 type Anek struct {
-	Id   int    `json:"_id" bson:"_id"`
+	Id   int    `json:"id" bson:"_id"`
 	Text string `json:"text" bson:"text"`
 }
 

@@ -14,7 +14,7 @@ func getRandomAnekReq(c *gin.Context){
 		return
 	}
 
-	c.JSON(200, obj{"resp":a})
+	c.JSON(200, obj{"text":a.Text, "id":a.Id})
 	return
 }
 
