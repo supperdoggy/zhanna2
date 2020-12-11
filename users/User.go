@@ -18,6 +18,8 @@ type Statuses struct {
 	// writes last time user changed prime status
 	LastPrimeStatusChange uint64 `json:"lastPrimeStatusChange" bson:"lastPrimeStatusChange"`
 	LastPrimeStatusChangeTime time.Time `json:"lastPrimeStatusChangeTime" bson:"lastPrimeStatusChangeTime"`
+
+	IsDeleted bool `json:"isDeleted" bson:"isDeleted"`
 }
 
 type User struct {
