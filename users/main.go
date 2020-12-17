@@ -1,6 +1,9 @@
 package main
 
-import "github.com/gin-gonic/gin"
+import (
+	"fmt"
+	"github.com/gin-gonic/gin"
+)
 
 // db itself
 var (
@@ -9,7 +12,10 @@ var (
 	}
 )
 
+
 func main() {
+	DB.AdminCollection = connectToAdminCollection()
+	DB.UsersCollection = connectToUsersCollection()
 	r := gin.Default()
 
 	apiv1 := r.Group("/api/v1")
@@ -17,4 +23,7 @@ func main() {
 		apiv1.POST("/addOrUpdateUser", addOrUpdateUserReq)
 	}
 
+	if err := r.Run(":1488"); err != nil{
+		fmt.Println(err.Error())
+	}
 }

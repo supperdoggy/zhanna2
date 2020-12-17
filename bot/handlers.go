@@ -11,10 +11,12 @@ func start(m *telebot.Message) {
 	var response string
 	// todo: create id checker and answer variations for different users
 	response = "Привет, я пока что очень сырая, будь нежен со мной..."
-	if _, err := bot.Send(m.Sender, response); err != nil {
+	botmsg, err := bot.Send(m.Sender, response)
+	if err != nil {
 		fmt.Println("handlers.go -> start() -> error:", err.Error(), ", user id:", m.Sender.ID)
 		return
 	}
+	go UpdateUser(m, botmsg)
 }
 
 // TODO:
