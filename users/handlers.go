@@ -6,5 +6,5 @@ import (
 )
 
 func addOrUpdateUserReq(c *gin.Context) {
-	var user telebot.User
+	var _ telebot.User
 }

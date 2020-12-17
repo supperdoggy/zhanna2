@@ -42,6 +42,7 @@ type User struct {
 	LastTimeGotFortuneCookie     uint64          `json:"lastTimeGotFortuneCookie" bson:"lastTimeGotFortuneCookie"`
 	LastTimeGotFortuneCookieTime time.Time       `json:"lastTimeGotFortuneCookieTime" bson:"lastTimeGotFortuneCookieTime"`
 	// todo flowers struct
+	Balance uint64 `json:"balance" bson:"balance"`
 }
 
 type Chat struct {
