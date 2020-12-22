@@ -12,7 +12,6 @@ var (
 	}
 )
 
-
 func main() {
 	DB.AdminCollection = connectToAdminCollection()
 	DB.UsersCollection = connectToUsersCollection()
@@ -21,9 +20,10 @@ func main() {
 	apiv1 := r.Group("/api/v1")
 	{
 		apiv1.POST("/addOrUpdateUser", addOrUpdateUserReq)
+		apiv1.POST("/getFortune", getFortune)
 	}
 
-	if err := r.Run(":1488"); err != nil{
+	if err := r.Run(":1488"); err != nil {
 		fmt.Println(err.Error())
 	}
 }

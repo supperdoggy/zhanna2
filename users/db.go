@@ -1,6 +1,9 @@
 package main
 
-import "gopkg.in/mgo.v2"
+import (
+	"gopkg.in/mgo.v2"
+	"time"
+)
 
 type DbStruct struct {
 	DbSession       *mgo.Session
@@ -27,17 +30,21 @@ func connectToAdminCollection() *mgo.Collection {
 }
 
 func (d *DbStruct) getUserFromDbById(id int) (result User, err error) {
-	err = DB.UsersCollection.Find(obj{"id": id}).One(&result)
+	err = DB.UsersCollection.Find(obj{"telebot.id": id}).One(&result)
 	return
 }
 
-func (d *DbStruct) userExists(id int) (bool, error){
+func (d *DbStruct) userExists(id int) (bool, error) {
 	var u User
-	if err := d.UsersCollection.Find(obj{"telebot.id":id}).One(&u);err != nil{
-		if err.Error() == "not found"{
+	if err := d.UsersCollection.Find(obj{"telebot.id": id}).One(&u); err != nil {
+		if err.Error() == "not found" {
 			return false, nil
 		}
 		return false, err
 	}
 	return true, nil
+}
+
+func (d *DbStruct) updateLastTimeFortune(id int) error{
+	return d.UsersCollection.Update(obj{"telebot.id":id}, obj{"$set":obj{"lastTimeGotFortuneCookie":time.Now().Unix(), "lastTimeGotFortuneCookieTime":time.Now()}})
 }

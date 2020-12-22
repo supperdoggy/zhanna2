@@ -24,7 +24,7 @@ func main() {
 	fmt.Println("Handlers init start")
 
 	bot.Handle("/start", start)
-	bot.Handle("/fortuneCookie", fortuneCookie)
+	bot.Handle("/fortune", fortuneCookie)
 	bot.Handle("/anek", anek)
 
 	fmt.Println("Bot running...")

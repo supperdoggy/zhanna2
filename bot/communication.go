@@ -49,7 +49,7 @@ func UpdateUser(usermsg, botmsg *telebot.Message){
 	}
 	err = json.Unmarshal(resp, &respStruct)
 	if err != nil || respStruct != nil{
-		fmt.Println("communication -> UpdateUser() -> unmarshal error:", err)
+		fmt.Println("communication -> UpdateUser() -> unmarshal error:", err, respStruct)
 		return
 	}
 }

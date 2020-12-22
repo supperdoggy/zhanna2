@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"gopkg.in/tucnak/telebot.v2"
 )
@@ -21,7 +22,37 @@ func start(m *telebot.Message) {
 
 // TODO:
 func fortuneCookie(m *telebot.Message) {
+	var resp struct{
+		FortuneCookie
+		Err string `json:"err"`
+	}
+	data := obj{"id":m.Sender.ID}
+	readyData, err := json.Marshal(data)
+	if err != nil{
+		fmt.Println("error unmarshalling")
+		return
+	}
+	r, err := MakeHttpReq(userUrl+"/api/v1/getFortune", "POST", readyData)
+	if err != nil{
+		fmt.Println("error making request")
+		return
+	}
+	err = json.Unmarshal(r, &resp)
+	if err != nil{
+		fmt.Println("error unmarshalling")
+		return
+	}
+	msg := resp.Text
+	if resp.Err != ""{
+		msg = resp.Err
+	}
 
+	botmsg, err := bot.Reply(m, msg)
+	if err != nil{
+		fmt.Println("error sending answer, FortuneCookie:", err.Error())
+		return
+	}
+	go UpdateUser(m, botmsg)
 }
 
 // anek() - handles /anek command and sends anek text response
@@ -31,9 +62,10 @@ func anek(m *telebot.Message) {
 		fmt.Println("handlers.go -> anek() -> make req error:", err.Error())
 		return
 	}
-	if _, err := bot.Reply(m, anekAnswer.Text);err != nil{
+	botmsg, err := bot.Reply(m, anekAnswer.Text)
+	if err != nil{
 		fmt.Println("handlers.go -> anek() -> reply error:", err.Error())
 		return
 	}
-
+	go UpdateUser(m, botmsg)
 }
