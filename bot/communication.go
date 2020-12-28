@@ -4,21 +4,29 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"gopkg.in/tucnak/telebot.v2"
 	"io/ioutil"
 	"net/http"
 	"time"
+
+	"gopkg.in/tucnak/telebot.v2"
 )
 
 // MakeRandomAnekHttpReq - sends http req to anek server and unmarshals it to RandomAnekAnswer struct
-func MakeRandomAnekHttpReq()(response RandomAnekAnswer, err error){
-	resp, err := MakeHttpReq(anekUrl+"/api/v1/getRandomAnek", "GET", nil)
+func MakeRandomAnekHttpReq(id int) (response RandomAnekAnswer, err error) {
+	req := struct {
+		ID int `json:"id" bson:"id"`
+	}{ID: id}
+	data, err := json.Marshal(req)
+	if err != nil {
+		return response, err
+	}
+	resp, err := MakeHttpReq(userUrl+"/getRandomAnek", "POST", data)
 	if err != nil {
 		fmt.Println("handlers.go -> MakeRandomAnekHttpReq() -> MakeHttpReq ->", err.Error())
 		return
 	}
 
-	if err = json.Unmarshal(resp, &response);err!=nil{
+	if err = json.Unmarshal(resp, &response); err != nil {
 		fmt.Println("communication.go -> MakeRandomAnekHttpReq() -> error ->", err.Error())
 		return
 	}
@@ -26,29 +34,29 @@ func MakeRandomAnekHttpReq()(response RandomAnekAnswer, err error){
 	return
 }
 
-func UpdateUser(usermsg, botmsg *telebot.Message){
+func UpdateUser(usermsg, botmsg *telebot.Message) {
 	var user User = User{
-		Telebot:                      *usermsg.Sender,
-		Chats:                        []Chat{{
+		Telebot: *usermsg.Sender,
+		Chats: []Chat{{
 			Telebot:    *usermsg.Chat,
 			LastOnline: time.Now().Unix(),
 		}},
-		MessagesUserSent:             []telebot.Message{*usermsg},
-		MessagesZhannaSent:           []telebot.Message{*botmsg},
+		MessagesUserSent:   []telebot.Message{*usermsg},
+		MessagesZhannaSent: []telebot.Message{*botmsg},
 	}
 	data, err := json.Marshal(user)
-	if err != nil{
+	if err != nil {
 		fmt.Println("communication -> UpdateUser() -> marshal error:", err.Error())
 		return
 	}
 	respStruct := obj{}
-	resp, err := MakeHttpReq(userUrl+"/api/v1/addOrUpdateUser", "POST", data)
-	if err != nil{
+	resp, err := MakeHttpReq(userUrl+"/addOrUpdateUser", "POST", data)
+	if err != nil {
 		fmt.Println("communication -> UpdateUser() -> req error:", err.Error())
 		return
 	}
 	err = json.Unmarshal(resp, &respStruct)
-	if err != nil || respStruct != nil{
+	if err != nil || respStruct != nil {
 		fmt.Println("communication -> UpdateUser() -> unmarshal error:", err, respStruct)
 		return
 	}

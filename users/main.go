@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -21,6 +22,7 @@ func main() {
 	{
 		apiv1.POST("/addOrUpdateUser", addOrUpdateUserReq)
 		apiv1.POST("/getFortune", getFortune)
+		apiv1.POST("/getRandomAnek", getRandomAnek)
 	}
 
 	if err := r.Run(":1488"); err != nil {

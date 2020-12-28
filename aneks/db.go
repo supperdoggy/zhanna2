@@ -7,9 +7,9 @@ import (
 	"time"
 )
 
-func connectToDb() *mgo.Collection{
+func connectToDb() *mgo.Collection {
 	b, err := mgo.Dial("")
-	if err != nil{
+	if err != nil {
 		panic(err.Error())
 	}
 	return b.DB("Zhanna2").C("Aneks")
@@ -17,40 +17,40 @@ func connectToDb() *mgo.Collection{
 
 var AneksCollection = connectToDb()
 
-func getAnekById(id int) (result Anek){
-	if err := AneksCollection.Find(obj{"_id":id}).One(&result); err != nil{
+func getAnekById(id int) (result Anek) {
+	if err := AneksCollection.Find(obj{"_id": id}).One(&result); err != nil {
 		fmt.Println(err.Error())
 	}
 	return
 }
 
-func getRandomAnek() (result Anek, err error){
+func getRandomAnek() (result Anek, err error) {
 	rand.Seed(time.Now().UnixNano())
 	size, err := AneksCollection.Count()
-	if err != nil{
+	if err != nil {
 		fmt.Println(err.Error())
 		return
 	}
 
-	return getAnekById(rand.Intn(size-1)), err
+	return getAnekById(rand.Intn(size - 1)), err
 }
 
-func deleteAnek(id int) (err error){
-	err = AneksCollection.Remove(obj{"_id":id})
+func deleteAnek(id int) (err error) {
+	err = AneksCollection.Remove(obj{"_id": id})
 	return
 }
 
-func addAnek(text string) (err error){
+func addAnek(text string) (err error) {
 	id, err := AneksCollection.Count()
-	if err != nil{
+	if err != nil {
 		return
 	}
 	a := Anek{
-		Id:   id+1,
+		Id:   id + 1,
 		Text: text,
 	}
 
-	if err = AneksCollection.Insert(a); err != nil{
+	if err = AneksCollection.Insert(a); err != nil {
 		return
 	}
 	return

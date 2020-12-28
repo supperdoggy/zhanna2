@@ -3,8 +3,9 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"time"
+
+	"github.com/gin-gonic/gin"
 )
 
 func addOrUpdateUserReq(c *gin.Context) {
@@ -45,12 +46,12 @@ func addOrUpdateUserReq(c *gin.Context) {
 	}
 	// checks if chat already in user struct
 	var in bool
-	for _, v := range old.Chats{
-		if v.Telebot.ID == newUser.Chats[0].Telebot.ID{
+	for _, v := range old.Chats {
+		if v.Telebot.ID == newUser.Chats[0].Telebot.ID {
 			in = true
 		}
 	}
-	if !in{
+	if !in {
 		newUser.Chats = append(old.Chats, newUser.Chats...)
 	}
 
@@ -89,14 +90,14 @@ func getFortune(c *gin.Context) {
 		c.JSON(400, obj{"err": "cant find user"})
 		return
 	}
-	fmt.Println((u.LastTimeGotFortuneCookie-24*60*60)-time.Now().Unix() )
+	fmt.Println((u.LastTimeGotFortuneCookie - 24*60*60) - time.Now().Unix())
 	if (u.LastTimeGotFortuneCookie+24*60*60)-time.Now().Unix() > 0 {
 		fmt.Println("Day didnt passed")
 		c.JSON(400, obj{"err": "day didn`t pass"})
 		return
 	}
 
-	resp, err := MakeHttpReq(fortuneCookieUrl+"/api/v1/getRandomFortuneCookie", "GET", nil)
+	resp, err := MakeHttpReq(fortuneCookieUrl+"/getRandomFortuneCookie", "GET", nil)
 	if err != nil {
 		fmt.Println("error making req:", err.Error())
 		c.JSON(400, obj{"err": err.Error()})
@@ -108,11 +109,45 @@ func getFortune(c *gin.Context) {
 		c.JSON(400, obj{"err": "unmarshal error"})
 		return
 	}
-	if err := DB.updateLastTimeFortune(req.ID); err != nil{
+	if err := DB.updateLastTimeFortune(req.ID); err != nil {
 		fmt.Println("error updating last time fortune:", err.Error())
-		c.JSON(400, obj{"err":err.Error()})
+		c.JSON(400, obj{"err": err.Error()})
 		return
 	}
 
 	c.JSON(200, result)
+	if ok := saveFortune(req.ID, result); !ok {
+		fmt.Println("Failed to save fortune for user", req.ID)
+	}
+}
+
+func getRandomAnek(c *gin.Context) {
+	var req struct {
+		ID int `json:"id" bson:"id"`
+	}
+	if err := c.Bind(&req); err != nil {
+		fmt.Println("binding error -> getRandomAnek():", err.Error())
+		c.JSON(400, obj{"err": err.Error()})
+		return
+	}
+	if req.ID == 0 {
+		c.JSON(400, obj{"err": "id cannot be 0"})
+		return
+	}
+	data, err := MakeReqToAnek("getRandomAnek", nil)
+	if err != nil {
+		fmt.Println("handlers.go -> getRandomAnek()-> req error", err.Error())
+		c.JSON(400, obj{"err": "something went wrong, contact @supperdoggy"})
+		return
+	}
+	var result Anek
+	if err = json.Unmarshal(data, &result); err != nil {
+		fmt.Println("handlers.go -> getRandomAnek() -> unmarshal error:", err.Error())
+		c.JSON(400, obj{"err": "Something went wrong, contact @supperdoggy"})
+		return
+	}
+	c.JSON(200, result)
+	if ok := saveAnek(req.ID, result); !ok {
+		fmt.Println("Not ok saving anek")
+	}
 }

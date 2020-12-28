@@ -1,8 +1,10 @@
 package main
 
 import (
-	"gopkg.in/tucnak/telebot.v2"
+	"fmt"
 	"time"
+
+	"gopkg.in/tucnak/telebot.v2"
 )
 
 type Statuses struct {
@@ -50,4 +52,37 @@ type Chat struct {
 	Users      []User       `json:"users" bson:"users"`
 	LastOnline int64        `json:"lastOnline" bson:"lastOnline"`
 	Deleted    bool         `json:"deleted" bson:"deleted"`
+}
+
+// appends anek to anek slice and saves user
+func saveAnek(id int, a Anek) bool {
+	u, err := DB.getUserFromDbById(id)
+	if err != nil {
+		fmt.Println("Failed to get user")
+		return false
+	}
+	u.Aneks = append(u.Aneks, a)
+	u.LastTimeGotAnek = time.Now().Unix()
+	u.LastTimeGotAnekTime = time.Now()
+	err = DB.updateUser(u)
+	if err != nil {
+		fmt.Println("Failed to save anek to user")
+		return false
+	}
+	return true
+}
+
+func saveFortune(id int, a FortuneCookie) bool {
+	u, err := DB.getUserFromDbById(id)
+	if err != nil {
+		fmt.Println("failed to get user in saveFortune")
+		return false
+	}
+	u.FortuneCookies = append(u.FortuneCookies, a)
+	err = DB.updateUser(u)
+	if err != nil {
+		fmt.Println("error updating user saving fortune")
+		return false
+	}
+	return true
 }

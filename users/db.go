@@ -1,8 +1,9 @@
 package main
 
 import (
-	"gopkg.in/mgo.v2"
 	"time"
+
+	"gopkg.in/mgo.v2"
 )
 
 type DbStruct struct {
@@ -45,6 +46,10 @@ func (d *DbStruct) userExists(id int) (bool, error) {
 	return true, nil
 }
 
-func (d *DbStruct) updateLastTimeFortune(id int) error{
-	return d.UsersCollection.Update(obj{"telebot.id":id}, obj{"$set":obj{"lastTimeGotFortuneCookie":time.Now().Unix(), "lastTimeGotFortuneCookieTime":time.Now()}})
+func (d *DbStruct) updateLastTimeFortune(id int) error {
+	return d.UsersCollection.Update(obj{"telebot.id": id}, obj{"$set": obj{"lastTimeGotFortuneCookie": time.Now().Unix(), "lastTimeGotFortuneCookieTime": time.Now()}})
+}
+
+func (d *DbStruct) updateUser(u User) error {
+	return d.UsersCollection.Update(obj{"telebot.id": u.Telebot.ID}, u)
 }

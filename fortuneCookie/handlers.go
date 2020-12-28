@@ -16,7 +16,7 @@ func getRandomFortuneCookieReq(c *gin.Context) {
 		c.JSON(400, obj{"err": err.Error()})
 		return
 	}
-	randomId := rand.Intn(size-1)
+	randomId := rand.Intn(size - 1)
 	if err := DB.CookieCollection.Find(obj{"_id": randomId}).One(&result); err != nil {
 		c.JSON(400, obj{"err": err.Error()})
 		return
