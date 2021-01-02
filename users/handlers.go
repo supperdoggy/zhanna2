@@ -5,9 +5,12 @@ import (
 	"fmt"
 	"time"
 
+	"gopkg.in/tucnak/telebot.v2"
+
 	"github.com/gin-gonic/gin"
 )
 
+// todo simplify
 func addOrUpdateUserReq(c *gin.Context) {
 	var newUser User
 	if err := c.Bind(&newUser); err != nil {
@@ -16,7 +19,6 @@ func addOrUpdateUserReq(c *gin.Context) {
 		return
 	}
 
-	fmt.Println(newUser.Telebot.ID)
 	exists, err := DB.userExists(newUser.Telebot.ID)
 	if err != nil {
 		fmt.Println("handlers.go -> addOrUpdateUserReq() -> userExists() error:", err.Error())
@@ -74,26 +76,44 @@ func addOrUpdateUserReq(c *gin.Context) {
 	c.JSON(200, obj{"err": nil})
 }
 
+// todo simplify
 func getFortune(c *gin.Context) {
 	var req struct {
 		ID int `json:"id" bson:"id" form:"id"`
 	}
 
 	if err := c.Bind(&req); err != nil {
-		fmt.Println("handlers.go -> canGrowFlower() -> binding error:", err.Error())
+		fmt.Println("handlers.go -> getFortune() -> binding error:", err.Error())
 		c.JSON(400, obj{"err": err.Error()})
 		return
 	}
+
+	// checking if user exists if not then just create one
+	exists, err := DB.userExists(req.ID)
+	if err != nil {
+		fmt.Println("handlers.go -> getFortune() -> userExists() error:", err.Error())
+		c.JSON(400, obj{"err": "error making req"})
+		return
+	}
+	if !exists {
+		err := DB.UsersCollection.Insert(User{Telebot: telebot.User{ID: req.ID}})
+		if err != nil {
+			fmt.Println("handlers.go -> addOrUpdateUserReq() -> insert error:", err.Error())
+			c.JSON(400, obj{"err": err.Error()})
+			return
+		}
+	}
+
 	u, err := DB.getUserFromDbById(req.ID)
 	if err != nil {
-		fmt.Println("handlers.go -> canGrowFlower() -> cant find user:", err.Error())
+		fmt.Println("handlers.go -> getFortune() -> cant find user:", err.Error())
 		c.JSON(400, obj{"err": "cant find user"})
 		return
 	}
-	fmt.Println((u.LastTimeGotFortuneCookie - 24*60*60) - time.Now().Unix())
-	if (u.LastTimeGotFortuneCookie+24*60*60)-time.Now().Unix() > 0 {
-		fmt.Println("Day didnt passed")
-		c.JSON(400, obj{"err": "day didn`t pass"})
+	// check if day passed to get new fortune
+	if !CanGetFortune(u.LastTimeGotFortuneCookieTime) {
+		fmt.Println("Day didnt pass")
+		c.JSON(400, obj{"err": cantGetFortune})
 		return
 	}
 
@@ -121,6 +141,7 @@ func getFortune(c *gin.Context) {
 	}
 }
 
+// thats ok i guess
 func getRandomAnek(c *gin.Context) {
 	var req struct {
 		ID int `json:"id" bson:"id"`
