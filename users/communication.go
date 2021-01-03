@@ -19,6 +19,18 @@ func MakeReqToAnek(method string, data []byte) (answer []byte, err error) {
 	return
 }
 
+// MakeReqToTost - makes req to tost service
+func MakeReqToTost(method string, data []byte) (answer []byte, err error) {
+	path := fmt.Sprintf("%s/%s", tostUrl, method)
+	switch method {
+	case "getRandomTost":
+		answer, err = MakeHttpReq(path, "GET", data)
+	default:
+		err = fmt.Errorf("no such method")
+	}
+	return
+}
+
 // MakeHttpReq - func for sending http req with given path, method(get or post!) and data
 func MakeHttpReq(path, method string, data []byte) (answer []byte, err error) {
 	var resp *http.Response

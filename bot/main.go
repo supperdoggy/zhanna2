@@ -26,6 +26,7 @@ func main() {
 	bot.Handle("/start", start)
 	bot.Handle("/fortune", fortuneCookie)
 	bot.Handle("/anek", anek)
+	bot.Handle("/tost", tost)
 
 	fmt.Println("Bot running...")
 	bot.Start()

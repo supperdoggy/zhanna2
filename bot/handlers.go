@@ -13,7 +13,7 @@ func start(m *telebot.Message) {
 	var response string
 	// todo: create id checker and answer variations for different users
 	response = "Привет, я пока что очень сырая, будь нежен со мной..."
-	botmsg, err := bot.Send(m.Sender, response)
+	botmsg, err := bot.Reply(m, response)
 	if err != nil {
 		fmt.Println("handlers.go -> start() -> error:", err.Error(), ", user id:", m.Sender.ID)
 		return
@@ -66,6 +66,20 @@ func anek(m *telebot.Message) {
 	botmsg, err := bot.Reply(m, anekAnswer.Text)
 	if err != nil {
 		fmt.Println("handlers.go -> anek() -> reply error:", err.Error())
+		return
+	}
+	go UpdateUser(m, botmsg)
+}
+
+func tost(m *telebot.Message) {
+	answerTost, err := MakeRandomTostHttpReq(m.Sender.ID)
+	if err != nil {
+		fmt.Println("handlers.go -> tost() -> make req error:", err.Error())
+		return
+	}
+	botmsg, err := bot.Reply(m, answerTost.Text)
+	if err != nil {
+		fmt.Println("handlers.go -> tost() -> reply error:", err.Error())
 		return
 	}
 	go UpdateUser(m, botmsg)

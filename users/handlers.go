@@ -58,17 +58,17 @@ func addOrUpdateUserReq(c *gin.Context) {
 	}
 
 	newUser.MessagesUserSent = append(old.MessagesUserSent, newUser.MessagesUserSent...)
-	newUser.Aneks = append(old.Aneks, newUser.Aneks...)
-	newUser.FortuneCookies = append(old.FortuneCookies, newUser.FortuneCookies...)
-	newUser.Balance = old.Balance
-	newUser.Statuses = old.Statuses
-	newUser.LastTimeGotAnek = old.LastTimeGotAnek
-	newUser.LastTimeGotAnekTime = old.LastTimeGotAnekTime
 	newUser.MessagesZhannaSent = append(old.MessagesZhannaSent, newUser.MessagesZhannaSent...)
-	newUser.LastTimeGotFortuneCookie = old.LastTimeGotFortuneCookie
-	newUser.LastTimeGotFortuneCookieTime = old.LastTimeGotFortuneCookieTime
 
-	if err := DB.UsersCollection.Update(obj{"telebot.id": newUser.Telebot.ID}, newUser); err != nil {
+	fieldsToSet := obj{
+		"messagesUserSent":   newUser.MessagesUserSent,
+		"messagesZhannaSent": newUser.MessagesZhannaSent,
+		"lastOnlineTime":     newUser.LastOnlineTime,
+		"lastOnline":         newUser.LastOnline,
+		"chats":              newUser.Chats,
+	}
+
+	if err := DB.UsersCollection.Update(obj{"telebot.id": newUser.Telebot.ID}, obj{"$set": fieldsToSet}); err != nil {
 		fmt.Println("handlers.go -> addOrUpdateUserReq() -> update error:", err.Error())
 		c.JSON(400, obj{"err": err})
 		return
@@ -169,6 +169,39 @@ func getRandomAnek(c *gin.Context) {
 	}
 	c.JSON(200, result)
 	if ok := saveAnek(req.ID, result); !ok {
-		fmt.Println("Not ok saving anek")
+		fmt.Println("Not ok saving anek", req.ID)
+	}
+}
+
+func getRandomTost(c *gin.Context) {
+	var req struct {
+		ID int `json:"id" bson:"_id"`
+	}
+	if err := c.Bind(&req); err != nil {
+		fmt.Println("handlers.go -> getRandomTost() -> c.Bind() error:", err.Error())
+		c.JSON(400, obj{"err": err.Error()})
+		return
+	}
+
+	if req.ID == 0 {
+		c.JSON(400, obj{"err": "binding error"})
+		return
+	}
+
+	data, err := MakeReqToTost("getRandomTost", nil)
+	if err != nil {
+		fmt.Println("handlers.go -> getRandomTost() -> MakeReqToTost(\"getRandomTost\") error:", err.Error())
+		return
+	}
+	var result Tost
+	if err = json.Unmarshal(data, &result); err != nil {
+		fmt.Println("handlers.go -> getRandomTost() -> json.Unmarshal error:", err.Error())
+		c.JSON(400, obj{"err": "unmarshal error"})
+		return
+	}
+
+	c.JSON(200, result)
+	if ok := saveTost(req.ID, result); !ok {
+		fmt.Println("not ok saving tost", req.ID)
 	}
 }

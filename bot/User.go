@@ -1,8 +1,9 @@
 package main
 
 import (
-	"gopkg.in/tucnak/telebot.v2"
 	"time"
+
+	"gopkg.in/tucnak/telebot.v2"
 )
 
 type Statuses struct {
@@ -41,6 +42,10 @@ type User struct {
 	FortuneCookies               []FortuneCookie `json:"fortuneCookies" bson:"fortuneCookies"`
 	LastTimeGotFortuneCookie     int64           `json:"lastTimeGotFortuneCookie" bson:"lastTimeGotFortuneCookie"`
 	LastTimeGotFortuneCookieTime time.Time       `json:"lastTimeGotFortuneCookieTime" bson:"lastTimeGotFortuneCookieTime"`
+	// tosts
+	Tosts               []Tost    `json:"tosts" bson:"tosts"`
+	LastTimeGotTost     int64     `json:"lastTimeGotTost" bson:"lastTimeGotTost"`
+	LastTimeGotTostTime time.Time `json:"lastTimeGotTostTime" bson:"lastTimeGotTostTime"`
 	// todo flowers struct
 	Balance uint64 `json:"balance" bson:"balance"`
 }

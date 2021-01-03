@@ -23,6 +23,7 @@ func main() {
 		apiv1.POST("/addOrUpdateUser", addOrUpdateUserReq)
 		apiv1.POST("/getFortune", getFortune)
 		apiv1.POST("/getRandomAnek", getRandomAnek)
+		apiv1.POST("/getRandomTost", getRandomTost)
 	}
 
 	if err := r.Run(":1488"); err != nil {

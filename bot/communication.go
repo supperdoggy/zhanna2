@@ -34,6 +34,28 @@ func MakeRandomAnekHttpReq(id int) (response RandomAnekAnswer, err error) {
 	return
 }
 
+func MakeRandomTostHttpReq(id int) (response Tost, err error) {
+	req := struct {
+		ID int `json:"id" bson:"id"`
+	}{ID: id}
+	data, err := json.Marshal(req)
+	if err != nil {
+		return response, err
+	}
+	resp, err := MakeHttpReq(userUrl+"/getRandomTost", "POST", data)
+	if err != nil {
+		fmt.Println("comunication.go -> MakeRandomTostHttpReq() -> MakeHttpReq ->", err.Error())
+		return
+	}
+
+	if err = json.Unmarshal(resp, &response); err != nil {
+		fmt.Println("communication.go -> MakeRandomTostHttpReq() -> error ->", err.Error())
+		return
+	}
+
+	return
+}
+
 func UpdateUser(usermsg, botmsg *telebot.Message) {
 	var user User = User{
 		Telebot: *usermsg.Sender,
@@ -56,7 +78,7 @@ func UpdateUser(usermsg, botmsg *telebot.Message) {
 		return
 	}
 	err = json.Unmarshal(resp, &respStruct)
-	if err != nil || respStruct != nil {
+	if err != nil {
 		fmt.Println("communication -> UpdateUser() -> unmarshal error:", err, respStruct)
 		return
 	}

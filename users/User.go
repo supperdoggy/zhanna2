@@ -43,6 +43,10 @@ type User struct {
 	FortuneCookies               []FortuneCookie `json:"fortuneCookies" bson:"fortuneCookies"`
 	LastTimeGotFortuneCookie     int64           `json:"lastTimeGotFortuneCookie" bson:"lastTimeGotFortuneCookie"`
 	LastTimeGotFortuneCookieTime time.Time       `json:"lastTimeGotFortuneCookieTime" bson:"lastTimeGotFortuneCookieTime"`
+	// tosts
+	Tosts               []Tost    `json:"tosts" bson:"tosts"`
+	LastTimeGotTost     int64     `json:"lastTimeGotTost" bson:"lastTimeGotTost"`
+	LastTimeGotTostTime time.Time `json:"lastTimeGotTostTime" bson:"lastTimeGotTostTime"`
 	// todo flowers struct
 	Balance uint64 `json:"balance" bson:"balance"`
 }
@@ -58,7 +62,7 @@ type Chat struct {
 func saveAnek(id int, a Anek) bool {
 	u, err := DB.getUserFromDbById(id)
 	if err != nil {
-		fmt.Println("Failed to get user")
+		fmt.Println("Failed to get user", err.Error())
 		return false
 	}
 	u.Aneks = append(u.Aneks, a)
@@ -75,13 +79,28 @@ func saveAnek(id int, a Anek) bool {
 func saveFortune(id int, a FortuneCookie) bool {
 	u, err := DB.getUserFromDbById(id)
 	if err != nil {
-		fmt.Println("failed to get user in saveFortune")
+		fmt.Println("failed to get user in saveFortune", err.Error())
 		return false
 	}
 	u.FortuneCookies = append(u.FortuneCookies, a)
 	err = DB.updateUser(u)
 	if err != nil {
 		fmt.Println("error updating user saving fortune")
+		return false
+	}
+	return true
+}
+
+func saveTost(id int, a Tost) bool {
+	u, err := DB.getUserFromDbById(id)
+	if err != nil {
+		fmt.Println("failed to get user in saveTost", err.Error())
+		return false
+	}
+	u.Tosts = append(u.Tosts, a)
+	err = DB.updateUser(u)
+	if err != nil {
+		fmt.Println("error updating user saving tost", err.Error())
 		return false
 	}
 	return true
