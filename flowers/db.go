@@ -20,7 +20,7 @@ type DbStruct struct {
 func initDb() DbStruct {
 	s, err := mgo.Dial("")
 	if err != nil {
-		panic(err.Error())
+		panic("Init error:" + err.Error())
 	}
 	return DbStruct{
 		DbSession:                s,
