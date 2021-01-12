@@ -10,7 +10,8 @@ type Flower struct {
 	Icon string `json:"icon" bson:"icon"`
 	Type string `json:"type" bson:"type"`
 	// owner id
-	Owner int `json:"owner" bson:"owner,omitempty"`
+	Owner int `json:"owner" bson:"owner"`
 
 	CreationTime time.Time `json:"creationTime" bson:"creationTime"`
+	LastTimeGrow time.Time `json:"lastTimeGrow" bson:"lastTimeGrow"`
 }
