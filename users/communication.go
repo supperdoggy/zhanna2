@@ -19,6 +19,19 @@ func MakeReqToAnek(method string, data []byte) (answer []byte, err error) {
 	return
 }
 
+// MakeReqToFlowers - makes req to flowers service
+// TODO: implement all the methods
+func MakeReqToFlowers(method string, data []byte) (answer []byte, err error) {
+	path := fmt.Sprintf("%s/%s", flowerUrl, method)
+	switch method {
+	case "addFlower":
+		answer, err = MakeHttpReq(path, "POST", data)
+	default:
+		err = fmt.Errorf("no such method")
+	}
+	return
+}
+
 // MakeReqToTost - makes req to tost service
 func MakeReqToTost(method string, data []byte) (answer []byte, err error) {
 	path := fmt.Sprintf("%s/%s", tostUrl, method)

@@ -56,6 +56,17 @@ func MakeRandomTostHttpReq(id int) (response Tost, err error) {
 	return
 }
 
+func MakeUserHttpReq(method string, data []byte) (answer []byte, err error) {
+	path := fmt.Sprintf("%s/%s", userUrl, method)
+	switch method {
+	case "addFlower":
+		answer, err = MakeHttpReq(path, "POST", data)
+	default:
+		err = fmt.Errorf("no such method")
+	}
+	return
+}
+
 func UpdateUser(usermsg, botmsg *telebot.Message) {
 	var user User = User{
 		Telebot: *usermsg.Sender,

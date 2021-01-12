@@ -205,3 +205,39 @@ func getRandomTost(c *gin.Context) {
 		fmt.Println("not ok saving tost", req.ID)
 	}
 }
+
+func addFlower(c *gin.Context) {
+	var req struct {
+		Icon string `json:"icon" bson:"icon"`
+		Name string `json:"name" bson:"name"`
+		Type string `json:"type" bson:"type"`
+	}
+	if err := c.Bind(&req); err != nil {
+		fmt.Println("handlers.go -> addFlower() -> binding error:", err.Error())
+		c.JSON(400, obj{"err": "binding error"})
+		return
+	}
+	marshaled, err := json.Marshal(req)
+	if err != nil {
+		fmt.Println("handlers.go -> addFlower() -> marshal error:", err.Error())
+		c.JSON(400, obj{"err": "marshal error"})
+		return
+	}
+	data, err := MakeReqToFlowers("addFlower", marshaled)
+	if err != nil {
+		fmt.Println("handlers.go -> addFlower() -> MakeReqToFlowers error:", err.Error())
+		c.JSON(400, obj{"err": "communication error"})
+		return
+	}
+
+	var answer struct {
+		Err string `json:"err"`
+	}
+	if err := json.Unmarshal(data, &answer); err != nil {
+		fmt.Println("handlers.go -> addFlower() -> unmarshal error:", err.Error())
+		c.JSON(400, obj{"err": "communication error"})
+		return
+	}
+	fmt.Println("err:", answer.Err)
+	c.JSON(200, obj{"err": nil})
+}

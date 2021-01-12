@@ -84,3 +84,30 @@ func tost(m *telebot.Message) {
 	}
 	go UpdateUser(m, botmsg)
 }
+
+func addFlower(m *telebot.Message) {
+	text := split(m.Text[11:], "-")
+
+	if len(text) != 3 {
+		bmsg, _ := bot.Reply(m, "wrong format, need text-text-text")
+		go UpdateUser(m, bmsg)
+		return
+	}
+	data := obj{"icon": text[0], "name": text[1], "type": text[2]}
+	marhshaled, err := json.Marshal(data)
+	if err != nil {
+		fmt.Println("handlers.go -> addFlower() -> marshal error:", err.Error())
+		botmsg, _ := bot.Reply(m, "unmarshal error")
+		go UpdateUser(m, botmsg)
+		return
+	}
+	_, err = MakeUserHttpReq("addFlower", marhshaled)
+	if err != nil {
+		fmt.Println("handlers.go -> addFlower() -> MakeUserHttpReq error:", err.Error())
+		botmsg, _ := bot.Reply(m, "communication error")
+		go UpdateUser(m, botmsg)
+		return
+	}
+	botmsg, _ := bot.Reply(m, "Done!")
+	go UpdateUser(m, botmsg)
+}

@@ -21,12 +21,11 @@ func main() {
 	DB.PhrasesCollection = connectToPhrasesCollection()
 
 	// handlers
-	fmt.Println("Handlers init start")
-
 	bot.Handle("/start", start)
 	bot.Handle("/fortune", fortuneCookie)
 	bot.Handle("/anek", anek)
 	bot.Handle("/tost", tost)
+	bot.Handle("/addFlower", addFlower)
 
 	fmt.Println("Bot running...")
 	bot.Start()

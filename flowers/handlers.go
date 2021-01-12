@@ -21,7 +21,7 @@ func addNewFlower(c *gin.Context) {
 	}
 
 	id, _ := DB.FlowerCollection.Count()
-	req.ID = uint64(id) + 1
+	req.ID = uint64(id) + 3
 	req.CreationTime = time.Now()
 	if err := DB.addFlower(req); err != nil {
 		fmt.Println("handlers.go -> addNewFlower() -> addFlower(req) error:", err.Error())
