@@ -77,7 +77,12 @@ func growFlowerReq(c *gin.Context) {
 			c.JSON(400, obj{"err": err.Error()})
 			return
 		}
-		id, _ := DB.UserFlowerDataCollection.Count()
+		id, err := DB.UserFlowerDataCollection.Count()
+		if err != nil {
+			fmt.Println("handlers.go -> growFlowerReq) -> Count() error:", err.Error())
+			c.JSON(400, obj{"err": err.Error()})
+			return
+		}
 		flower.ID = uint64(id + 1)
 		flower.Owner = req.ID
 	}
@@ -85,6 +90,7 @@ func growFlowerReq(c *gin.Context) {
 	if flower.HP > 100 {
 		flower.HP = 100
 	}
+	flower.LastTimeGrow = time.Now()
 	if _, err := DB.UserFlowerDataCollection.Upsert(obj{"_id": flower.ID}, flower); err != nil {
 		fmt.Println("handlers.go -> growFlowerReq) -> Upsert() error:", err.Error())
 		c.JSON(400, obj{"err": err.Error()})
@@ -109,4 +115,29 @@ func getUserFlowers(c *gin.Context) {
 		c.JSON(400, obj{"err": "error getting flowers"})
 	}
 	c.JSON(200, obj{"flowers": flowers})
+}
+
+func canGrowFlower(c *gin.Context) {
+	var req struct {
+		ID int `json:"id" bson:"own"`
+	}
+	if err := c.Bind(&req); err != nil {
+		fmt.Println("handlers.go -> canGrowFlower() -> binding error:", err.Error())
+		c.JSON(400, obj{"answer": false, "err": "binding error"})
+		return
+	}
+	flower, err := DB.getUserFlower(req.ID)
+	if err != nil {
+		// if we cant find flower in the collection we return true
+		if err.Error() == "not found" {
+			c.JSON(200, obj{"answer": true})
+			return
+		}
+		// if we cant find due to mongo error then return error
+		fmt.Println("handlers.go -> canGrowFlower() -> getUserFlower() error:", err.Error())
+		c.JSON(400, obj{"answer": false, "err": "get flower error"})
+		return
+	}
+	canGrow := int(time.Now().Sub(flower.LastTimeGrow).Hours())/growTimeout >= 1
+	c.JSON(200, obj{"answer": canGrow})
 }
