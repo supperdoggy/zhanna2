@@ -238,6 +238,5 @@ func addFlower(c *gin.Context) {
 		c.JSON(400, obj{"err": "communication error"})
 		return
 	}
-	fmt.Println("err:", answer.Err)
 	c.JSON(200, obj{"err": nil})
 }
