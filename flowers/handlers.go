@@ -5,6 +5,8 @@ import (
 	"math/rand"
 	"time"
 
+	ai "github.com/night-codes/mgo-ai"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -20,8 +22,7 @@ func addNewFlower(c *gin.Context) {
 		return
 	}
 
-	id, _ := DB.FlowerCollection.Count()
-	req.ID = uint64(id) + 3
+	req.ID = ai.Next(DB.FlowerCollection.Name)
 	req.CreationTime = time.Now()
 	if err := DB.addFlower(req); err != nil {
 		fmt.Println("handlers.go -> addNewFlower() -> addFlower(req) error:", err.Error())
@@ -61,9 +62,7 @@ func growFlowerReq(c *gin.Context) {
 		c.JSON(400, obj{"err": "binding error"})
 		return
 	}
-	fmt.Println("bind ok")
 	flower, err := DB.getUserFlower(req.ID)
-	fmt.Println(flower, err)
 	if err != nil && err.Error() != "not found" {
 		fmt.Println("handlers.go -> growFlowerReq) -> getUserFlower() error:", err.Error())
 		c.JSON(400, obj{"err": "error getting flower"})
@@ -77,13 +76,7 @@ func growFlowerReq(c *gin.Context) {
 			c.JSON(400, obj{"err": err.Error()})
 			return
 		}
-		id, err := DB.UserFlowerDataCollection.Count()
-		if err != nil {
-			fmt.Println("handlers.go -> growFlowerReq) -> Count() error:", err.Error())
-			c.JSON(400, obj{"err": err.Error()})
-			return
-		}
-		flower.ID = uint64(id + 1)
+		flower.ID = ai.Next(DB.UserFlowerDataCollection.Name)
 		flower.Owner = req.ID
 	}
 	flower.HP += uint8(rand.Intn(31))
