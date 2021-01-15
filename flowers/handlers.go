@@ -79,7 +79,8 @@ func growFlowerReq(c *gin.Context) {
 		flower.ID = ai.Next(DB.UserFlowerDataCollection.Name)
 		flower.Owner = req.ID
 	}
-	flower.HP += uint8(rand.Intn(31))
+	flower.Grew = uint8(rand.Intn(31))
+	flower.HP += flower.Grew
 	if flower.HP > 100 {
 		flower.HP = 100
 	}

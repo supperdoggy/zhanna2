@@ -240,3 +240,41 @@ func addFlower(c *gin.Context) {
 	}
 	c.JSON(200, obj{"err": nil})
 }
+
+func flowerReq(c *gin.Context) {
+	var req struct {
+		ID int `json:"id"`
+	}
+	if err := c.Bind(&req); err != nil {
+		fmt.Println("handlers.go -> flowerReq() -> binding error:", err.Error())
+		c.JSON(400, obj{"err": "binding error"})
+		return
+	}
+	marshaledReq, err := json.Marshal(req)
+	if err != nil {
+		fmt.Println("handlers.go -> flowerReq() -> marshal error:", err.Error())
+		c.JSON(400, obj{"err": "marshal error"})
+		return
+	}
+	data, err := MakeReqToFlowers("growFlower", marshaledReq)
+	if err != nil {
+		fmt.Println("handlers.go -> flowerReq() -> req error:", err.Error())
+		c.JSON(400, obj{"err": "err req to flowers"})
+		return
+	}
+	var answer Flower
+	if err := json.Unmarshal(data, &answer); err != nil {
+		fmt.Println("handlers.go -> flowerReq() -> unmarshal error:", err.Error())
+		c.JSON(400, obj{"err": "communication error"})
+		return
+	}
+	var resp struct {
+		Flower
+		Up   uint8 `json:"up"`
+		Grew bool  `json:"grew"`
+	}
+	resp.Flower = answer
+	resp.Up = answer.Grew
+	resp.Grew = true
+	c.JSON(200, resp)
+}

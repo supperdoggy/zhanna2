@@ -25,6 +25,7 @@ func main() {
 		apiv1.POST("/getRandomAnek", getRandomAnek)
 		apiv1.POST("/getRandomTost", getRandomTost)
 		apiv1.POST("/addFlower", addFlower)
+		apiv1.POST("/flower", flowerReq)
 	}
 
 	if err := r.Run(":1488"); err != nil {

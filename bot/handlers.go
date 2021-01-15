@@ -87,7 +87,6 @@ func tost(m *telebot.Message) {
 
 func addFlower(m *telebot.Message) {
 	text := split(m.Text[11:], "-")
-
 	if len(text) != 3 {
 		bmsg, _ := bot.Reply(m, "wrong format, need text-text-text")
 		go UpdateUser(m, bmsg)
@@ -109,5 +108,20 @@ func addFlower(m *telebot.Message) {
 		return
 	}
 	botmsg, _ := bot.Reply(m, "Done!")
+	go UpdateUser(m, botmsg)
+}
+
+func flower(m *telebot.Message) {
+	resp, err := MakeFlowerReq(m.Sender.ID)
+	if err != nil {
+		fmt.Println("handlers.go -> flower() -> MakeFlowerReq() error", err.Error(), m.Sender.ID)
+		_, _ = bot.Reply(m, "error occured, contact owner")
+		return
+	}
+	botmsg, err := bot.Reply(m, resp)
+	if err != nil {
+		fmt.Println("handlers.go -> flower() -> bot.Reply() error", err.Error())
+		return
+	}
 	go UpdateUser(m, botmsg)
 }

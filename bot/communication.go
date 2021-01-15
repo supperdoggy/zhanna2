@@ -117,3 +117,42 @@ func MakeHttpReq(path, method string, data []byte) (answer []byte, err error) {
 
 	return
 }
+
+// grow flower
+func MakeFlowerReq(id int) (msg string, err error) {
+	var data = struct {
+		ID int `json:"id"`
+	}{ID: id}
+
+	marshaled, err := json.Marshal(data)
+	if err != nil {
+		fmt.Printf("communication.go -> flowerReq() -> json.Marshal() error: %v user %v\n", err.Error(), data.ID)
+		return "communication error", err
+	}
+	resp, err := MakeHttpReq(userUrl+"/flower", "POST", marshaled)
+	if err != nil {
+		fmt.Println("communication.go -> flowerReq() -> json.MakeHttpReq() error", err.Error())
+		return "communication error", err
+	}
+	var answer struct {
+		Flower
+		Up   uint8  `json:"up"`
+		Grew bool   `json:"grew"`
+		Err  string `json:"err"`
+	}
+	if err := json.Unmarshal(resp, &answer); err != nil {
+		fmt.Printf("communication.go -> flowerReq() -> json.Unmarshal() error: %v body %v\n", err.Error(), string(resp))
+		return "communication error", err
+	}
+	if answer.Err != "" {
+		fmt.Println("communication.go -> flowerReq() -> answer.Err != '', err:", answer.Err)
+		return "communication error", err
+	}
+	if answer.HP == 100 {
+		return fmt.Sprintf("Поздравляю! Твой %v вырос!", answer.Icon), err
+	}
+	if answer.Grew {
+		return fmt.Sprintf("Твой цветок вырос на %v единиц, теперь его размер %v единиц!", answer.Up, answer.HP), err
+	}
+	return "its not time, try again later...", err
+}
