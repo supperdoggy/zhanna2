@@ -135,3 +135,33 @@ func canGrowFlower(c *gin.Context) {
 	canGrow := int(time.Now().Sub(flower.LastTimeGrow).Hours())/growTimeout >= 1
 	c.JSON(200, obj{"answer": canGrow})
 }
+
+// removeUserFlower - removes current user flower
+func removeUserFlower(c *gin.Context) {
+	var req struct {
+		ID      int  `json:"id" bson:"owner"`
+		Current bool `json:"current"`
+	}
+
+	if err := c.Bind(&req); err != nil {
+		fmt.Println("handlers.go -> removeUserFlower() -> c.Bind() error:", err.Error())
+		c.JSON(400, obj{"err": "binding error"})
+		return
+	}
+
+	if req.ID == 0 {
+		c.JSON(400, obj{"err": "no id field"})
+		return
+	}
+	if req.Current {
+		err := DB.UserFlowerDataCollection.Remove(obj{"owner": req.ID, "hp": obj{"$ne": 100}})
+		if err != nil {
+			fmt.Println("handlers.go -> removeUserFlower() -> Remove() error:", err.Error())
+			c.JSON(400, obj{"err": "error removing"})
+			return
+		}
+		c.JSON(200, obj{"ok": true})
+		return
+	}
+	// todo: remove random flower
+}
