@@ -1,6 +1,10 @@
 package main
 
-import "time"
+import (
+	"encoding/json"
+	"fmt"
+	"time"
+)
 
 // Flower - struct of flower
 type Flower struct {
@@ -15,4 +19,34 @@ type Flower struct {
 
 	CreationTime time.Time `json:"creationTime" bson:"creationTime"`
 	LastTimeGrow time.Time `json:"lastTimeGrow" bson:"lastTimeGrow"`
+}
+
+func canGrowFlower(id int) (bool, error) {
+	data, err := json.Marshal(obj{"id": id})
+	if err != nil {
+		fmt.Println("canGrowFlower() -> marshal() error:", err.Error())
+		return false, err
+	}
+
+	answer, err := MakeReqToFlowers("canGrowFlower", data)
+	if err != nil {
+		fmt.Println("canGrowFlower() -> MakeReqToFlower(canGrowFlower) error:", err.Error())
+		return false, err
+	}
+
+	var answerStruct struct {
+		Answer bool   `json:"answer"`
+		Err    string `json:"err"`
+	}
+	if err := json.Unmarshal(answer, &answerStruct); err != nil {
+		fmt.Println("canGrowFlower() -> Unmarshal error:", err.Error(), string(answer))
+		return false, err
+	}
+
+	if answerStruct.Err != "" {
+		fmt.Println("canGrowFlower() -> got error from flower:", answerStruct.Err)
+		return false, fmt.Errorf(answerStruct.Err)
+	}
+	return answerStruct.Answer, nil
+
 }

@@ -29,6 +29,8 @@ func MakeReqToFlowers(method string, data []byte) (answer []byte, err error) {
 		answer, err = MakeHttpReq(path, "POST", data)
 	case "growFlower":
 		answer, err = MakeHttpReq(path, "POST", data)
+	case "canGrowFlower":
+		answer, err = MakeHttpReq(path, "POST", data)
 	default:
 		err = fmt.Errorf("no such method")
 	}

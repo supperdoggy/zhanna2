@@ -250,6 +250,19 @@ func flowerReq(c *gin.Context) {
 		c.JSON(400, obj{"err": "binding error"})
 		return
 	}
+
+	canGrow, err := canGrowFlower(req.ID)
+	if err != nil {
+		fmt.Println("handlers.go -> flowerReq() -> canGrowFlower() error:", err.Error())
+		c.JSON(400, obj{"err": "cant grow flower"})
+		return
+	}
+
+	if !canGrow {
+		c.JSON(400, obj{"err": "cant grow flower"})
+		return
+	}
+
 	marshaledReq, err := json.Marshal(req)
 	if err != nil {
 		fmt.Println("handlers.go -> flowerReq() -> marshal error:", err.Error())

@@ -146,6 +146,10 @@ func MakeFlowerReq(id int) (msg string, err error) {
 		fmt.Printf("communication.go -> flowerReq() -> json.Unmarshal() error: %v body %v\n", err.Error(), string(resp))
 		return "communication error", err
 	}
+	if answer.Err == "cant grow flower" {
+		return "Попробуй позже!", nil
+	}
+
 	if answer.Err != "" {
 		fmt.Println("communication.go -> flowerReq() -> answer.Err != '', err:", answer.Err)
 		return "communication error", err

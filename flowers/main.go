@@ -18,7 +18,7 @@ func main() {
 		apiv1.POST("/removeFlower", removeFlower)
 		apiv1.POST("/growFlower", growFlowerReq)
 		apiv1.POST("/getUserFlowers", getUserFlowers)
-		apiv1.POST("/canGrow", canGrowFlower)
+		apiv1.POST("/canGrowFlower", canGrowFlower)
 		apiv1.POST("/removeUserFlower", removeUserFlower)
 	}
 	// handlers
