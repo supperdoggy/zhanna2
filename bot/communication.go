@@ -61,6 +61,8 @@ func MakeUserHttpReq(method string, data []byte) (answer []byte, err error) {
 	switch method {
 	case "addFlower":
 		answer, err = MakeHttpReq(path, "POST", data)
+	case "getAnswer":
+		answer, err = MakeHttpReq(path, "POST", data)
 	default:
 		err = fmt.Errorf("no such method")
 	}

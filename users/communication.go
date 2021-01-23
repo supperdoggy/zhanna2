@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -32,6 +33,37 @@ func MakeReqToFlowers(method string, data []byte) (answer []byte, err error) {
 		err = fmt.Errorf("no such method")
 	}
 	return
+}
+
+// returns string
+func MakeReqToDialogFlow(message string) (answer string, err error) {
+	req, err := json.Marshal(obj{"message": message})
+	if err != nil {
+		fmt.Println("MakeReqToDialogFlow() -> json.Marshal error:", err.Error())
+		return
+	}
+
+	resp, err := MakeHttpReq(dialogFlowerUrl+"/getAnswer", "POST", req)
+	if err != nil {
+		fmt.Println("MakeReqToDialogFlow() -> makeHttpReq(/getAnswer) error:", err.Error())
+		return
+	}
+
+	var respStruct struct {
+		Answer string `json:"answer"`
+		Err    string `json:"err"`
+	}
+
+	if err := json.Unmarshal(resp, &respStruct); err != nil {
+		fmt.Println("MakeReqToDialogFlow() -> unmarshal error:", err.Error())
+		return "", err
+	}
+
+	if respStruct.Err != "" {
+		fmt.Println("MakeReqToDialogFlow() -> got an error from dialogflow:", err.Error())
+		return "", fmt.Errorf(respStruct.Err)
+	}
+	return respStruct.Answer, nil
 }
 
 // MakeReqToTost - makes req to tost service

@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+
+	"gopkg.in/tucnak/telebot.v2"
 )
 
 type obj map[string]interface{}
@@ -27,6 +29,7 @@ func main() {
 	bot.Handle("/tost", tost)
 	// bot.Handle("/addFlower", addFlower)
 	bot.Handle("/flower", flower)
+	bot.Handle(telebot.OnText, onTextHandler)
 
 	fmt.Println("Bot running...")
 	bot.Start()

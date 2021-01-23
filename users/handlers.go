@@ -278,3 +278,29 @@ func flowerReq(c *gin.Context) {
 	resp.Grew = true
 	c.JSON(200, resp)
 }
+
+func dialogFlowReq(c *gin.Context) {
+	var req struct {
+		Text string `json:"text"`
+		ID   int    `json:"id"`
+	}
+
+	if err := c.Bind(&req); err != nil {
+		fmt.Println("dialogFlowReq() -> c.Bind() error", err.Error())
+		c.JSON(400, obj{"err": "binding error"})
+		return
+	}
+
+	if req.Text == "" || req.ID == 0 {
+		c.JSON(400, obj{"err": "fill all the fields"})
+		return
+	}
+
+	answer, err := MakeReqToDialogFlow(req.Text)
+	if err != nil {
+		fmt.Println("dialogFlowReq() -> MakeReqToDialogFlow() error:", err.Error())
+		c.JSON(400, obj{"err": err.Error()})
+		return
+	}
+	c.JSON(200, obj{"answer": answer})
+}

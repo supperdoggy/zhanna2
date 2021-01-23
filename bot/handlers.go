@@ -125,3 +125,36 @@ func flower(m *telebot.Message) {
 	}
 	go UpdateUser(m, botmsg)
 }
+
+func onTextHandler(m *telebot.Message) {
+	data, err := json.Marshal(obj{"id": m.Sender.ID, "text": m.Text})
+	if err != nil {
+		fmt.Println("onTextHandler() -> Marshal error:", err.Error())
+		bot.Reply(m, "Error getting answer")
+		return
+	}
+
+	answer, err := MakeUserHttpReq("getAnswer", data)
+	if err != nil {
+		fmt.Println("onTextHandler() -> req error:", err.Error())
+		bot.Reply(m, "Error getting answer")
+		return
+	}
+
+	var resp struct {
+		Answer string `json:"answer"`
+		Err    string `json:"err"`
+	}
+	if err := json.Unmarshal(answer, &resp); err != nil {
+		fmt.Println("onTextHandler() -> Unmarshal error:", err.Error())
+		bot.Reply(m, "Error unmarhsal")
+		return
+	}
+	if resp.Err != "" {
+		fmt.Println("onTextHandler() -> got error in response:", resp.Err)
+		bot.Reply(m, resp.Err)
+		return
+	}
+	botmsg, _ := bot.Reply(m, resp.Answer)
+	go UpdateUser(m, botmsg)
+}
