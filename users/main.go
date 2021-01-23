@@ -27,6 +27,7 @@ func main() {
 		apiv1.POST("/addFlower", addFlower)
 		apiv1.POST("/flower", flowerReq)
 		apiv1.POST("/getAnswer", dialogFlowReq)
+		apiv1.POST("/myflowers", myflowers)
 	}
 
 	if err := r.Run(":1488"); err != nil {

@@ -108,7 +108,19 @@ func getUserFlowers(c *gin.Context) {
 		fmt.Println("handlers.go -> getUserFlowers() -> getAllUserFlowers() error:", err.Error())
 		c.JSON(400, obj{"err": "error getting flowers"})
 	}
-	c.JSON(200, obj{"flowers": flowers})
+
+	var total int
+	for _, v := range flowers {
+		total += v
+	}
+	var last uint8
+	flower, err := DB.getUserFlower(req.ID)
+	if err != nil {
+		fmt.Println("handlers.go -> getUserFlowers() -> getUserFlower() error:", err.Error())
+	}
+	last = flower.HP
+
+	c.JSON(200, obj{"flowers": flowers, "total": total, "last": last})
 }
 
 func canGrowFlower(c *gin.Context) {

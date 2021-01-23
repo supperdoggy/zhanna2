@@ -63,6 +63,8 @@ func MakeUserHttpReq(method string, data []byte) (answer []byte, err error) {
 		answer, err = MakeHttpReq(path, "POST", data)
 	case "getAnswer":
 		answer, err = MakeHttpReq(path, "POST", data)
+	case "myflowers":
+		answer, err = MakeHttpReq(path, "POST", data)
 	default:
 		err = fmt.Errorf("no such method")
 	}
@@ -147,7 +149,7 @@ func MakeFlowerReq(id int) (msg string, err error) {
 		return "communication error", err
 	}
 	if answer.Err == "cant grow flower" {
-		return "Попробуй позже!", nil
+		return "Ты уже сегодня поливал цветочки!\nПопробуй позже", nil
 	}
 
 	if answer.Err != "" {

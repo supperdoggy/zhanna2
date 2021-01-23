@@ -317,3 +317,49 @@ func dialogFlowReq(c *gin.Context) {
 	}
 	c.JSON(200, obj{"answer": answer})
 }
+
+func myflowers(c *gin.Context) {
+	var req struct {
+		ID int `json:"id"`
+	}
+
+	if err := c.Bind(&req); err != nil {
+		fmt.Println("myflowers() -> c.Bind() error", err.Error())
+		c.JSON(400, obj{"err": "binding error"})
+		return
+	}
+	if req.ID == 0 {
+		fmt.Println("myflowers() -> id is 0")
+		c.JSON(400, obj{"err": "no id field"})
+		return
+	}
+	data, err := json.Marshal(req)
+	if err != nil {
+		fmt.Println("myflowers() -> marshal error:", err.Error())
+		c.JSON(400, obj{"err": "marshal error"})
+		return
+	}
+	answer, err := MakeReqToFlowers("getUserFlowers", data)
+	if err != nil {
+		fmt.Println("myflowers() -> MakeHttpReq(getUserFlowers) error:", err.Error())
+		c.JSON(400, obj{"err": "req error"})
+		return
+	}
+	var resp struct {
+		Flowers map[string]int `json:"flowers"`
+		Last    uint8          `json:"last"`
+		Total   int            `json:"total"`
+		Err     string         `json:"err"`
+	}
+	if err := json.Unmarshal(answer, &resp); err != nil {
+		fmt.Println("myflowers() -> unmarshal error:", err.Error(), string(answer))
+		c.JSON(400, obj{"err": "unmarshal error"})
+		return
+	}
+	if resp.Err != "" {
+		fmt.Println("myflowers() -> response error:", resp.Err)
+		c.JSON(400, obj{"err": resp.Err})
+		return
+	}
+	c.JSON(200, resp)
+}

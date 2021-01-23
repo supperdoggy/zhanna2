@@ -158,3 +158,40 @@ func onTextHandler(m *telebot.Message) {
 	botmsg, _ := bot.Reply(m, resp.Answer)
 	go UpdateUser(m, botmsg)
 }
+
+func myflowers(m *telebot.Message) {
+	data, err := json.Marshal(obj{"id": m.Sender.ID})
+	if err != nil {
+		fmt.Println("myflowers() -> Marshal error:", err.Error())
+		return
+	}
+	answer, err := MakeUserHttpReq("myflowers", data)
+	if err != nil {
+		fmt.Println("myflowers() -> MakeUserHttpReq(myflowers) err:", err.Error())
+		return
+	}
+	var resp struct {
+		Flowers map[string]int `json:"flowers"`
+		Last    uint8          `json:"last"`
+		Total   int            `json:"total"`
+		Err     string         `json:"err"`
+	}
+
+	if err := json.Unmarshal(answer, &resp); err != nil {
+		fmt.Println("myflowers() -> unmarshal error:", err.Error(), string(answer))
+		return
+	}
+
+	if resp.Err != "" {
+		fmt.Println("myflowers() -> got error resp from service:", resp.Err)
+		bot.Reply(m, resp.Err)
+		return
+	}
+
+	var answerstr string = fmt.Sprintf("Вот твои цветочки!\nУ тебя уже %v 🌷 %v 🌱\n\n", resp.Total, resp.Last)
+	for k, v := range resp.Flowers {
+		answerstr += fmt.Sprintf("%v - %v\n", k, v)
+	}
+	botmsg, _ := bot.Reply(m, answerstr)
+	go UpdateUser(m, botmsg)
+}
