@@ -82,3 +82,14 @@ func (d *DbStruct) getAllUserFlowers(owner int) (map[string]int, error) {
 	}
 	return resultMap, nil
 }
+
+func (d *DbStruct) countFlowers(owner int) (total int, err error) {
+	flowers, err := DB.getAllUserFlowers(owner)
+	if err != nil {
+		return
+	}
+	for _, v := range flowers {
+		total += v
+	}
+	return
+}

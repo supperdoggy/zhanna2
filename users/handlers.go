@@ -217,13 +217,8 @@ func addFlower(c *gin.Context) {
 		c.JSON(400, obj{"err": "binding error"})
 		return
 	}
-	marshaled, err := json.Marshal(req)
-	if err != nil {
-		fmt.Println("handlers.go -> addFlower() -> marshal error:", err.Error())
-		c.JSON(400, obj{"err": "marshal error"})
-		return
-	}
-	data, err := MakeReqToFlowers("addFlower", marshaled)
+
+	data, err := MakeReqToFlowers("addFlower", req)
 	if err != nil {
 		fmt.Println("handlers.go -> addFlower() -> MakeReqToFlowers error:", err.Error())
 		c.JSON(400, obj{"err": "communication error"})
@@ -263,13 +258,7 @@ func flowerReq(c *gin.Context) {
 		return
 	}
 
-	marshaledReq, err := json.Marshal(req)
-	if err != nil {
-		fmt.Println("handlers.go -> flowerReq() -> marshal error:", err.Error())
-		c.JSON(400, obj{"err": "marshal error"})
-		return
-	}
-	data, err := MakeReqToFlowers("growFlower", marshaledReq)
+	data, err := MakeReqToFlowers("growFlower", req)
 	if err != nil {
 		fmt.Println("handlers.go -> flowerReq() -> req error:", err.Error())
 		c.JSON(400, obj{"err": "err req to flowers"})
@@ -333,13 +322,8 @@ func myflowers(c *gin.Context) {
 		c.JSON(400, obj{"err": "no id field"})
 		return
 	}
-	data, err := json.Marshal(req)
-	if err != nil {
-		fmt.Println("myflowers() -> marshal error:", err.Error())
-		c.JSON(400, obj{"err": "marshal error"})
-		return
-	}
-	answer, err := MakeReqToFlowers("getUserFlowers", data)
+
+	answer, err := MakeReqToFlowers("getUserFlowers", req)
 	if err != nil {
 		fmt.Println("myflowers() -> MakeHttpReq(getUserFlowers) error:", err.Error())
 		c.JSON(400, obj{"err": "req error"})
@@ -359,6 +343,51 @@ func myflowers(c *gin.Context) {
 	if resp.Err != "" {
 		fmt.Println("myflowers() -> response error:", resp.Err)
 		c.JSON(400, obj{"err": resp.Err})
+		return
+	}
+	c.JSON(200, resp)
+}
+
+func flowertop(c *gin.Context) {
+	var req struct {
+		ChatId int `json:"chatid"`
+	}
+
+	if err := c.Bind(&req); err != nil {
+		fmt.Println("flowertop() -> c.Bind() error", err.Error())
+		c.JSON(400, obj{"err": "binding error"})
+		return
+	}
+
+	if req.ChatId == 0 {
+		fmt.Println("flowertop() -> ChatId is 0")
+		c.JSON(400, obj{"err": "no id field"})
+		return
+	}
+	// getting chat users
+	users, err := DB.getChatUsers(req.ChatId)
+	if err != nil {
+		fmt.Println("flowertop() -> getChatUsers() error:", err.Error(), req.ChatId)
+		c.JSON(400, obj{"err": "error getting users from chat"})
+		return
+	}
+	if len(users) == 0 {
+		c.JSON(400, obj{"err": "no users in chat"})
+		return
+	}
+
+	answer, err := MakeReqToFlowers("userFlowerSlice", obj{"id": users})
+	if err != nil {
+		fmt.Println("flowertop() -> MakeReqToFlowers(\"userFlowerSlice\") error:", err.Error())
+		c.JSON(400, obj{"err": "err making req"})
+		return
+	}
+	var resp struct {
+		Result map[int]int `json:"result"`
+	}
+	if err := json.Unmarshal(answer, &resp); err != nil {
+		fmt.Println("flowertop() -> unmarshal error:", err.Error(), string(answer))
+		c.JSON(400, obj{"err": "err making req"})
 		return
 	}
 	c.JSON(200, resp)

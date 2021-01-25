@@ -20,6 +20,7 @@ func main() {
 		apiv1.POST("/getUserFlowers", getUserFlowers)
 		apiv1.POST("/canGrowFlower", canGrowFlower)
 		apiv1.POST("/removeUserFlower", removeUserFlower)
+		apiv1.POST("/userFlowerSlice", userFlowerSlice)
 	}
 	// handlers
 	fmt.Println("Handlers init start")
