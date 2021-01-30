@@ -10,6 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// adds new flower type
 func addNewFlower(c *gin.Context) {
 	var req Flower
 	if err := c.Bind(&req); err != nil {
@@ -32,6 +33,7 @@ func addNewFlower(c *gin.Context) {
 	c.JSON(200, obj{"err": nil})
 }
 
+// removes flower type
 func removeFlower(c *gin.Context) {
 	var req map[string]uint64
 
@@ -53,6 +55,7 @@ func removeFlower(c *gin.Context) {
 	c.JSON(200, obj{"err": nil})
 }
 
+// grows user flower
 func growFlowerReq(c *gin.Context) {
 	var req struct {
 		ID int `json:"id"`
@@ -94,6 +97,7 @@ func growFlowerReq(c *gin.Context) {
 
 }
 
+// returns map of user flowers and quantity of different type
 func getUserFlowers(c *gin.Context) {
 	var req struct {
 		ID int `json:"id" bson:"owner"`
@@ -103,7 +107,7 @@ func getUserFlowers(c *gin.Context) {
 		c.JSON(400, obj{"err": "binding error"})
 		return
 	}
-	flowers, err := DB.getAllUserFlowers(req.ID)
+	flowers, err := DB.getAllUserFlowersMap(req.ID)
 	if err != nil {
 		fmt.Println("handlers.go -> getUserFlowers() -> getAllUserFlowers() error:", err.Error())
 		c.JSON(400, obj{"err": "error getting flowers"})
@@ -123,6 +127,7 @@ func getUserFlowers(c *gin.Context) {
 	c.JSON(200, obj{"flowers": flowers, "total": total, "last": last})
 }
 
+// returns bool value if user can grow flower
 func canGrowFlower(c *gin.Context) {
 	var req struct {
 		ID int `json:"id" bson:"own"`
@@ -176,4 +181,119 @@ func removeUserFlower(c *gin.Context) {
 		return
 	}
 	// todo: remove random flower
+}
+
+// returns int quantity of user grown flowers
+func getUserFlowerTotal(c *gin.Context) {
+	var req struct {
+		ID int `json:"id" bson:"owner"`
+	}
+	if err := c.Bind(&req); err != nil {
+		fmt.Println("handlers.go -> getUserFlowerTotal() -> binding error:", err.Error())
+		c.JSON(400, obj{"err": "binding error"})
+		return
+	}
+	total, err := DB.countFlowers(req.ID)
+	if err != nil {
+		fmt.Println("handlers.go -> getUserFlowerTotal() -> getAllUserFlowers() error:", err.Error())
+		c.JSON(400, obj{"err": "error getting flowers"})
+	}
+
+	c.JSON(200, obj{"total": total})
+}
+
+// returns user last flower
+func getLastFlower(c *gin.Context) {
+	var req struct {
+		ID int `json:"id" bson:"owner"`
+	}
+	if err := c.Bind(&req); err != nil {
+		fmt.Println("handlers.go -> getUserFlowerTotal() -> binding error:", err.Error())
+		c.JSON(400, obj{"err": "binding error"})
+		return
+	}
+	flower, err := DB.getUserFlower(req.ID)
+	if err != nil {
+		fmt.Println("handlers.go -> getLastFlower() -> getUserFlower() error:", err.Error())
+		c.JSON(400, obj{"err": "error getting flowers"})
+	}
+	c.JSON(200, obj{"flower": flower})
+}
+
+// returns slice of users flowers
+func userFlowerSlice(c *gin.Context) {
+	var req struct {
+		ID []int `json:"id" bson:"owner"`
+	}
+	if err := c.Bind(&req); err != nil {
+		fmt.Println("handlers.go -> getUserFlowerTotal() -> binding error:", err.Error())
+		c.JSON(400, obj{"err": "binding error"})
+		return
+	}
+	if len(req.ID) == 0 {
+		c.JSON(400, obj{"err": "empty id slice"})
+		return
+	}
+	var result map[int]int = make(map[int]int)
+	for _, v := range req.ID {
+		total, err := DB.countFlowers(v)
+		if err != nil {
+			fmt.Println("handlers.go -> userFlowerSlice() -> getUserFlower() error:", err.Error(), req.ID)
+			continue
+		}
+		if total == 0 {
+			continue
+		}
+		result[v] = total
+	}
+	c.JSON(200, obj{"result": result})
+}
+
+// gives flower to other user
+func giveFlower(c *gin.Context) {
+	var req struct {
+		Owner    int    `json:"owner"`
+		Reciever int    `json:"reciever"`
+		Random   bool   `json:"random"`
+		ID       uint64 `json:"id"`
+	}
+	if err := c.Bind(&req); err != nil {
+		fmt.Println("handlers.go -> giveRandomFlower() -> binding error:", err.Error())
+		c.JSON(400, obj{"err": "binding error"})
+		return
+	}
+	if req.Owner == 0 || req.Reciever == 0 {
+		c.JSON(400, obj{"err": "empty id"})
+		return
+	}
+
+	var f Flower
+	if req.Random {
+		// getting flowers
+		flowers, err := DB.getAllUserFlowers(req.Owner)
+		if err != nil { // if has no flower
+			c.JSON(400, obj{"err": "user has no flowers"})
+			return
+		}
+		rand.Seed(time.Now().UnixNano())
+		if len(flowers) != 0 {
+			i := rand.Intn(len(flowers))
+			f = flowers[i]
+		}
+	} else {
+		f, _ = DB.getUserFlowerById(req.ID)
+	}
+	if f.ID == 0 {
+		c.JSON(400, obj{"err": "user has no flowers"})
+		return
+	}
+	f.Owner = req.Reciever
+	fmt.Println(f)
+
+	if err := DB.editUserFlower(f.ID, f); err != nil {
+		fmt.Println("handlers.go -> giveRandomFlower() -> editFlower() error:", err.Error())
+		c.JSON(400, obj{"err": err.Error()})
+		return
+	}
+	c.JSON(200, obj{"err": ""})
 }

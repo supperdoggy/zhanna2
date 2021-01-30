@@ -38,7 +38,7 @@ func (d *DbStruct) removeFlower(id uint64) (err error) {
 }
 
 func (d *DbStruct) editFlower(id uint64, f Flower) (err error) {
-	return d.FlowerCollection.Update(obj{"_id": id}, f)
+	return d.FlowerCollection.Update(obj{"_id": id}, obj{"$set": f})
 }
 
 func (d *DbStruct) getFlower(id uint64, f Flower) (result Flower, err error) {
@@ -60,13 +60,14 @@ func (d *DbStruct) getRandomFlower() (result Flower, err error) {
 	return
 }
 
+// returns growing user flower
 func (d *DbStruct) getUserFlower(owner int) (result Flower, err error) {
 	err = d.UserFlowerDataCollection.Find(obj{"owner": owner, "hp": obj{"$ne": 100}}).One(&result)
 	return
 }
 
 // returns map of flower name and count
-func (d *DbStruct) getAllUserFlowers(owner int) (map[string]int, error) {
+func (d *DbStruct) getAllUserFlowersMap(owner int) (map[string]int, error) {
 	resultMap := make(map[string]int)
 	resultSlice := []Flower{}
 	if err := d.UserFlowerDataCollection.Find(obj{"owner": owner, "hp": 100}).All(&resultSlice); err != nil {
@@ -81,4 +82,37 @@ func (d *DbStruct) getAllUserFlowers(owner int) (map[string]int, error) {
 		resultMap[v.Icon+" "+v.Name]++
 	}
 	return resultMap, nil
+}
+
+func (d *DbStruct) countFlowers(owner int) (total int, err error) {
+	flowers, err := DB.getAllUserFlowersMap(owner)
+	if err != nil {
+		return
+	}
+	for _, v := range flowers {
+		total += v
+	}
+	return
+}
+
+func (d *DbStruct) getUserFlowerById(id uint64) (Flower, error) {
+	var f Flower
+	err := d.UserFlowerDataCollection.Find(obj{"id": id}).One(&f)
+	return f, err
+}
+
+func (d *DbStruct) countUserFlowers(owner int) (int, error) {
+	i, err := d.UserFlowerDataCollection.Find(obj{"owner": owner, "hp": 100}).Count()
+	return i, err
+}
+
+func (d *DbStruct) getAllUserFlowers(owner int) ([]Flower, error) {
+	var result []Flower
+	err := d.UserFlowerDataCollection.Find(obj{"owner": owner, "hp": 100}).All(&result)
+	return result, err
+}
+
+// edit user flower
+func (d *DbStruct) editUserFlower(id uint64, f Flower) (err error) {
+	return d.UserFlowerDataCollection.Update(obj{"_id": id}, obj{"$set": f})
 }
