@@ -379,7 +379,7 @@ func give(c *gin.Context) {
 		c.JSON(400, obj{"err": "binding error"})
 		return
 	}
-	if req.Owner == 0 || req.Reciever == 0 || req.Last && req.ID == 0 {
+	if req.Owner == 0 || req.Reciever == 0 || !req.Last && req.ID == 0 {
 		c.JSON(400, obj{"err": "fill all the fields"})
 		return
 	}
@@ -406,4 +406,5 @@ func give(c *gin.Context) {
 		return
 	}
 
+	c.JSON(200, obj{"err": ""})
 }

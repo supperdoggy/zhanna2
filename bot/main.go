@@ -31,6 +31,8 @@ func main() {
 	bot.Handle("/flower", flower)
 	bot.Handle(telebot.OnText, onTextHandler)
 	bot.Handle("/myflowers", myflowers)
+	bot.Handle("/giveoneflower", giveOneFlower)
+	bot.Handle("/testMessage", testMessage)
 
 	fmt.Println("Bot running...")
 	bot.Start()

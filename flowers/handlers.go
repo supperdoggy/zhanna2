@@ -286,8 +286,12 @@ func giveFlower(c *gin.Context) {
 		c.JSON(400, obj{"err": "user has no flowers"})
 		return
 	}
-	f.Owner = req.Reciever
-	fmt.Println(f)
+
+	if req.Reciever == testId || req.Reciever == prodId {
+		f.Owner = zhannaId
+	} else {
+		f.Owner = req.Reciever
+	}
 
 	if err := DB.editUserFlower(f.ID, f); err != nil {
 		fmt.Println("handlers.go -> giveRandomFlower() -> editFlower() error:", err.Error())

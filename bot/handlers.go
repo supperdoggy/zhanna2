@@ -3,9 +3,17 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 
 	"gopkg.in/tucnak/telebot.v2"
 )
+
+func testMessage(m *telebot.Message) {
+	resp := fmt.Sprintf("%v", m.IsReply())
+
+	b, _ := bot.Reply(m, resp)
+	log.Println(b.Sender.ID)
+}
 
 // start() - handles /start command and sends text response
 // todo below
@@ -15,7 +23,7 @@ func start(m *telebot.Message) {
 	response = "Привет, я пока что очень сырая, будь нежен со мной..."
 	botmsg, err := bot.Reply(m, response)
 	if err != nil {
-		fmt.Println("handlers.go -> start() -> error:", err.Error(), ", user id:", m.Sender.ID)
+		log.Println("handlers.go -> start() -> error:", err.Error(), ", user id:", m.Sender.ID)
 		return
 	}
 	go UpdateUser(m, botmsg)
@@ -30,17 +38,17 @@ func fortuneCookie(m *telebot.Message) {
 	data := obj{"id": m.Sender.ID}
 	readyData, err := json.Marshal(data)
 	if err != nil {
-		fmt.Println("error unmarshalling")
+		log.Println("error unmarshalling")
 		return
 	}
 	r, err := MakeHttpReq(userUrl+"/getFortune", "POST", readyData)
 	if err != nil {
-		fmt.Println("error making request")
+		log.Println("error making request")
 		return
 	}
 	err = json.Unmarshal(r, &resp)
 	if err != nil {
-		fmt.Println("error unmarshalling")
+		log.Println("error unmarshalling")
 		return
 	}
 	msg := resp.Text
@@ -50,7 +58,7 @@ func fortuneCookie(m *telebot.Message) {
 
 	botmsg, err := bot.Reply(m, msg)
 	if err != nil {
-		fmt.Println("error sending answer, FortuneCookie:", err.Error())
+		log.Println("error sending answer, FortuneCookie:", err.Error())
 		return
 	}
 	go UpdateUser(m, botmsg)
@@ -60,12 +68,12 @@ func fortuneCookie(m *telebot.Message) {
 func anek(m *telebot.Message) {
 	anekAnswer, err := MakeRandomAnekHttpReq(m.Sender.ID)
 	if err != nil {
-		fmt.Println("handlers.go -> anek() -> make req error:", err.Error())
+		log.Println("handlers.go -> anek() -> make req error:", err.Error())
 		return
 	}
 	botmsg, err := bot.Reply(m, anekAnswer.Text)
 	if err != nil {
-		fmt.Println("handlers.go -> anek() -> reply error:", err.Error())
+		log.Println("handlers.go -> anek() -> reply error:", err.Error())
 		return
 	}
 	go UpdateUser(m, botmsg)
@@ -74,12 +82,12 @@ func anek(m *telebot.Message) {
 func tost(m *telebot.Message) {
 	answerTost, err := MakeRandomTostHttpReq(m.Sender.ID)
 	if err != nil {
-		fmt.Println("handlers.go -> tost() -> make req error:", err.Error())
+		log.Println("handlers.go -> tost() -> make req error:", err.Error())
 		return
 	}
 	botmsg, err := bot.Reply(m, answerTost.Text)
 	if err != nil {
-		fmt.Println("handlers.go -> tost() -> reply error:", err.Error())
+		log.Println("handlers.go -> tost() -> reply error:", err.Error())
 		return
 	}
 	go UpdateUser(m, botmsg)
@@ -93,16 +101,9 @@ func addFlower(m *telebot.Message) {
 		return
 	}
 	data := obj{"icon": text[0], "name": text[1], "type": text[2]}
-	marhshaled, err := json.Marshal(data)
+	_, err := MakeUserHttpReq("addFlower", data)
 	if err != nil {
-		fmt.Println("handlers.go -> addFlower() -> marshal error:", err.Error())
-		botmsg, _ := bot.Reply(m, "unmarshal error")
-		go UpdateUser(m, botmsg)
-		return
-	}
-	_, err = MakeUserHttpReq("addFlower", marhshaled)
-	if err != nil {
-		fmt.Println("handlers.go -> addFlower() -> MakeUserHttpReq error:", err.Error())
+		log.Println("handlers.go -> addFlower() -> MakeUserHttpReq error:", err.Error())
 		botmsg, _ := bot.Reply(m, "communication error")
 		go UpdateUser(m, botmsg)
 		return
@@ -114,29 +115,22 @@ func addFlower(m *telebot.Message) {
 func flower(m *telebot.Message) {
 	resp, err := MakeFlowerReq(m.Sender.ID)
 	if err != nil {
-		fmt.Println("handlers.go -> flower() -> MakeFlowerReq() error", err.Error(), m.Sender.ID)
+		log.Println("handlers.go -> flower() -> MakeFlowerReq() error", err.Error(), m.Sender.ID)
 		_, _ = bot.Reply(m, "error occured, contact owner")
 		return
 	}
 	botmsg, err := bot.Reply(m, resp)
 	if err != nil {
-		fmt.Println("handlers.go -> flower() -> bot.Reply() error", err.Error())
+		log.Println("handlers.go -> flower() -> bot.Reply() error", err.Error())
 		return
 	}
 	go UpdateUser(m, botmsg)
 }
 
 func onTextHandler(m *telebot.Message) {
-	data, err := json.Marshal(obj{"id": m.Sender.ID, "text": m.Text})
+	answer, err := MakeUserHttpReq("getAnswer", obj{"id": m.Sender.ID, "text": m.Text})
 	if err != nil {
-		fmt.Println("onTextHandler() -> Marshal error:", err.Error())
-		bot.Reply(m, "Error getting answer")
-		return
-	}
-
-	answer, err := MakeUserHttpReq("getAnswer", data)
-	if err != nil {
-		fmt.Println("onTextHandler() -> req error:", err.Error())
+		log.Println("onTextHandler() -> req error:", err.Error())
 		bot.Reply(m, "Error getting answer")
 		return
 	}
@@ -146,12 +140,12 @@ func onTextHandler(m *telebot.Message) {
 		Err    string `json:"err"`
 	}
 	if err := json.Unmarshal(answer, &resp); err != nil {
-		fmt.Println("onTextHandler() -> Unmarshal error:", err.Error())
+		log.Println("onTextHandler() -> Unmarshal error:", err.Error())
 		bot.Reply(m, "Error unmarhsal")
 		return
 	}
 	if resp.Err != "" {
-		fmt.Println("onTextHandler() -> got error in response:", resp.Err)
+		log.Println("onTextHandler() -> got error in response:", resp.Err)
 		bot.Reply(m, resp.Err)
 		return
 	}
@@ -160,14 +154,9 @@ func onTextHandler(m *telebot.Message) {
 }
 
 func myflowers(m *telebot.Message) {
-	data, err := json.Marshal(obj{"id": m.Sender.ID})
+	answer, err := MakeUserHttpReq("myflowers", obj{"id": m.Sender.ID})
 	if err != nil {
-		fmt.Println("myflowers() -> Marshal error:", err.Error())
-		return
-	}
-	answer, err := MakeUserHttpReq("myflowers", data)
-	if err != nil {
-		fmt.Println("myflowers() -> MakeUserHttpReq(myflowers) err:", err.Error())
+		log.Println("myflowers() -> MakeUserHttpReq(myflowers) err:", err.Error())
 		return
 	}
 	var resp struct {
@@ -178,12 +167,12 @@ func myflowers(m *telebot.Message) {
 	}
 
 	if err := json.Unmarshal(answer, &resp); err != nil {
-		fmt.Println("myflowers() -> unmarshal error:", err.Error(), string(answer))
+		log.Println("myflowers() -> unmarshal error:", err.Error(), string(answer))
 		return
 	}
 
 	if resp.Err != "" {
-		fmt.Println("myflowers() -> got error resp from service:", resp.Err)
+		log.Println("myflowers() -> got error resp from service:", resp.Err)
 		bot.Reply(m, resp.Err)
 		return
 	}
@@ -194,4 +183,31 @@ func myflowers(m *telebot.Message) {
 	}
 	botmsg, _ := bot.Reply(m, answerstr)
 	go UpdateUser(m, botmsg)
+}
+
+func giveOneFlower(m *telebot.Message) {
+	if !m.IsReply() {
+		b, _ := bot.Reply(m, "Тебе нужно ответить на сообщение человека которому ты хочешь подарить цветок!")
+		UpdateUser(m, b)
+		return
+	}
+
+	data := obj{"last": true, "owner": m.Sender.ID, "reciever": m.ReplyTo.Sender.ID}
+	answer, err := MakeUserHttpReq("give", data)
+	if err != nil {
+		log.Printf("handlers.go -> user give req error: %v, data:%v\n", err.Error(), data)
+		return
+	}
+	var resp struct {
+		Err string `json:"err"`
+	}
+	if err := json.Unmarshal(answer, &resp); err != nil {
+		log.Printf("handlers.go -> unmarshal error: %v, body: %v\n", err.Error(), string(answer))
+		return
+	}
+	if resp.Err != "" {
+		log.Println(resp.Err)
+	}
+	b, _ := bot.Reply(m, "Ты успешно подарил цветок!")
+	go UpdateUser(m, b)
 }

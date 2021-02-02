@@ -56,7 +56,11 @@ func MakeRandomTostHttpReq(id int) (response Tost, err error) {
 	return
 }
 
-func MakeUserHttpReq(method string, data []byte) (answer []byte, err error) {
+func MakeUserHttpReq(method string, req interface{}) (answer []byte, err error) {
+	data, err := json.Marshal(req)
+	if err != nil {
+		return
+	}
 	path := fmt.Sprintf("%s/%s", userUrl, method)
 	switch method {
 	case "addFlower":
@@ -64,6 +68,8 @@ func MakeUserHttpReq(method string, data []byte) (answer []byte, err error) {
 	case "getAnswer":
 		answer, err = MakeHttpReq(path, "POST", data)
 	case "myflowers":
+		answer, err = MakeHttpReq(path, "POST", data)
+	case "give":
 		answer, err = MakeHttpReq(path, "POST", data)
 	default:
 		err = fmt.Errorf("no such method")
