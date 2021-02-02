@@ -363,3 +363,47 @@ func myflowers(c *gin.Context) {
 	}
 	c.JSON(200, resp)
 }
+
+// path for giving flower
+func give(c *gin.Context) {
+	var req struct {
+		Owner    int    `json:"owner"`
+		Count    int    `json:"count"`
+		Reciever int    `json:"reciever"`
+		Last     bool   `json:"last"`
+		ID       uint64 `json:"id"`
+	}
+
+	if err := c.Bind(&req); err != nil {
+		fmt.Println("handlers.go -> give() -> binding error:", err.Error())
+		c.JSON(400, obj{"err": "binding error"})
+		return
+	}
+	if req.Owner == 0 || req.Reciever == 0 || req.Last && req.ID == 0 {
+		c.JSON(400, obj{"err": "fill all the fields"})
+		return
+	}
+
+	data, err := json.Marshal(req)
+	if err != nil {
+		fmt.Println("handlers.go -> give() -> Marshal error:", err.Error(), req)
+		c.JSON(400, obj{"err": "marshal error"})
+		return
+	}
+	answer, err := MakeReqToFlowers("giveFlower", data)
+	if err != nil {
+		fmt.Println("handlers.go -> give() -> MakeReqToFlowers error:", err.Error())
+		c.JSON(400, obj{"err": "err making req"})
+		return
+	}
+
+	var resp struct {
+		Err string `json:"err"`
+	}
+	if err := json.Unmarshal(answer, &resp); err != nil || resp.Err != "" {
+		fmt.Println("handlers.go -> give() -> Unmarshal error:", err.Error(), string(answer))
+		c.JSON(400, obj{"err": "flower error"})
+		return
+	}
+
+}

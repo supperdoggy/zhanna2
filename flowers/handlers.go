@@ -254,7 +254,7 @@ func giveFlower(c *gin.Context) {
 	var req struct {
 		Owner    int    `json:"owner"`
 		Reciever int    `json:"reciever"`
-		Random   bool   `json:"random"`
+		Last     bool   `json:"last"`
 		ID       uint64 `json:"id"`
 	}
 	if err := c.Bind(&req); err != nil {
@@ -268,7 +268,7 @@ func giveFlower(c *gin.Context) {
 	}
 
 	var f Flower
-	if req.Random {
+	if req.Last {
 		// getting flowers
 		flowers, err := DB.getAllUserFlowers(req.Owner)
 		if err != nil { // if has no flower
@@ -277,8 +277,7 @@ func giveFlower(c *gin.Context) {
 		}
 		rand.Seed(time.Now().UnixNano())
 		if len(flowers) != 0 {
-			i := rand.Intn(len(flowers))
-			f = flowers[i]
+			f = flowers[len(flowers)-1]
 		}
 	} else {
 		f, _ = DB.getUserFlowerById(req.ID)
