@@ -54,7 +54,8 @@ func (d *DbStruct) updateUser(u User) error {
 	return d.UsersCollection.Update(obj{"telebot.id": u.Telebot.ID}, u)
 }
 
-func (d *DbStruct) getChatUsers(chatid int) (ids []int, err error) {
+// getChatUsersIDs - returns all users ids which are in given chat
+func (d *DbStruct) getChatUsersIDs(chatid int) (ids []int, err error) {
 	users := []User{}
 	err = d.UsersCollection.Find(obj{"chats.telebot.id": chatid}).Select(obj{"telebot.id": 1}).All(&users)
 	if err != nil {
@@ -63,5 +64,11 @@ func (d *DbStruct) getChatUsers(chatid int) (ids []int, err error) {
 	for _, v := range users {
 		ids = append(ids, v.Telebot.ID)
 	}
+	return
+}
+
+// getChatUsers - returns all users which are in given chat
+func (d *DbStruct) getChatUsers(chatid int) (users []User, err error) {
+	err = d.UsersCollection.Find(obj{"chats.telebot.id": chatid}).All(&users)
 	return
 }

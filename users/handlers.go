@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"sync"
 	"time"
 
 	"gopkg.in/tucnak/telebot.v2"
@@ -348,6 +349,7 @@ func myflowers(c *gin.Context) {
 	c.JSON(200, resp)
 }
 
+// flowertop - finds all users in chat and forms top users by total flowers
 func flowertop(c *gin.Context) {
 	var req struct {
 		ChatId int `json:"chatid"`
@@ -366,6 +368,7 @@ func flowertop(c *gin.Context) {
 	}
 	// getting chat users
 	users, err := DB.getChatUsers(req.ChatId)
+	fmt.Println(len(users))
 	if err != nil {
 		fmt.Println("flowertop() -> getChatUsers() error:", err.Error(), req.ChatId)
 		c.JSON(400, obj{"err": "error getting users from chat"})
@@ -376,19 +379,53 @@ func flowertop(c *gin.Context) {
 		return
 	}
 
-	answer, err := MakeReqToFlowers("userFlowerSlice", obj{"id": users})
+	// creating map of users and slice of ids
+	m := struct { // map
+		m   map[int]User
+		mut sync.Mutex
+	}{m: map[int]User{}, mut: sync.Mutex{}}
+	ids := []int{} // ids
+
+	m.mut.Lock()
+	for _, v := range users {
+		m.m[v.Telebot.ID] = v
+		ids = append(ids, v.Telebot.ID)
+	}
+	m.mut.Unlock()
+
+	answer, err := MakeReqToFlowers("userFlowerSlice", obj{"id": ids})
 	if err != nil {
 		fmt.Println("flowertop() -> MakeReqToFlowers(\"userFlowerSlice\") error:", err.Error())
 		c.JSON(400, obj{"err": "err making req"})
 		return
 	}
 	var resp struct {
-		Result map[int]int `json:"result"`
+		Result []struct {
+			ID       int    `json:"id"`
+			Total    int    `json:"total"`
+			Username string `json:"username"`
+		} `json:"result"`
 	}
 	if err := json.Unmarshal(answer, &resp); err != nil {
 		fmt.Println("flowertop() -> unmarshal error:", err.Error(), string(answer))
 		c.JSON(400, obj{"err": "err making req"})
 		return
 	}
-	c.JSON(200, resp)
+
+	// so fucking bad
+	result := []struct {
+		Username string `json:"username"`
+		Total    int    `json:"total"`
+	}{}
+	m.mut.Lock()
+	for i := range resp.Result {
+		if user, ok := m.m[resp.Result[i].ID]; ok {
+			result = append(result, struct {
+				Username string `json:"username"`
+				Total    int    `json:"total"`
+			}{Username: user.Telebot.Username, Total: resp.Result[i].Total})
+		}
+	}
+	m.mut.Unlock()
+	c.JSON(200, result)
 }
