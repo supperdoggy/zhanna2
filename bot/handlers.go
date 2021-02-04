@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 
 	"gopkg.in/tucnak/telebot.v2"
 )
@@ -93,13 +94,6 @@ func addFlower(m *telebot.Message) {
 		return
 	}
 	data := obj{"icon": text[0], "name": text[1], "type": text[2]}
-	marhshaled, err := json.Marshal(data)
-	if err != nil {
-		fmt.Println("handlers.go -> addFlower() -> marshal error:", err.Error())
-		botmsg, _ := bot.Reply(m, "unmarshal error")
-		go UpdateUser(m, botmsg)
-		return
-	}
 	_, err = MakeUserHttpReq("addFlower", marhshaled)
 	if err != nil {
 		fmt.Println("handlers.go -> addFlower() -> MakeUserHttpReq error:", err.Error())
@@ -127,14 +121,7 @@ func flower(m *telebot.Message) {
 }
 
 func onTextHandler(m *telebot.Message) {
-	data, err := json.Marshal(obj{"id": m.Sender.ID, "text": m.Text})
-	if err != nil {
-		fmt.Println("onTextHandler() -> Marshal error:", err.Error())
-		bot.Reply(m, "Error getting answer")
-		return
-	}
-
-	answer, err := MakeUserHttpReq("getAnswer", data)
+	answer, err := MakeUserHttpReq("getAnswer", obj{"id": m.Sender.ID, "text": m.Text})
 	if err != nil {
 		fmt.Println("onTextHandler() -> req error:", err.Error())
 		bot.Reply(m, "Error getting answer")
@@ -160,12 +147,7 @@ func onTextHandler(m *telebot.Message) {
 }
 
 func myflowers(m *telebot.Message) {
-	data, err := json.Marshal(obj{"id": m.Sender.ID})
-	if err != nil {
-		fmt.Println("myflowers() -> Marshal error:", err.Error())
-		return
-	}
-	answer, err := MakeUserHttpReq("myflowers", data)
+	answer, err := MakeUserHttpReq("myflowers", obj{"id": m.Sender.ID})
 	if err != nil {
 		fmt.Println("myflowers() -> MakeUserHttpReq(myflowers) err:", err.Error())
 		return
@@ -194,4 +176,35 @@ func myflowers(m *telebot.Message) {
 	}
 	botmsg, _ := bot.Reply(m, answerstr)
 	go UpdateUser(m, botmsg)
+}
+
+// forms user top by total amount of flowers
+// works only in group chats and supergroups
+func flowertop(m *telebot.Message) {
+	// check for private chat
+	if m.Chat.Type == telebot.ChatPrivate {
+		botmsg, _ := bot.Reply(m, "Функция доступна только в груповых чатах")
+		UpdateUser(m, botmsg)
+		return
+	}
+	answer, err := MakeUserHttpReq("flowertop", obj{"chatid": m.Chat.ID})
+	if err != nil {
+		log.Printf("handlers.go -> flowertop() -> MakeUserHttpReq('flowertop') error: %v, chatid: %v\n", err.Error(), m.Chat.ID)
+		botmsg, _ := bot.Reply(m, "Что-то пошло по пизде сори")
+		UpdateUser(m, botmsg)
+		return
+	}
+	var resp struct {
+		Top []struct {
+			Username string `json:"username"`
+			Total    int    `json:"total"`
+		} `json:"result"`
+	}
+	err := json.Unmarshal(answer, &resp)
+	if err != nil {
+		log.Printf("handlers.go -> flowertop() -> Unmarshal error:%v, body: %v\n", err.Error(), string(answer))
+		botmsg, _ := bot.Reply(m, "Что-то пошло по пизде, а именно анмаршал(напиши максу он скажет что не так])")
+		UpdateUser(m, botmsg)
+		return
+	}
 }

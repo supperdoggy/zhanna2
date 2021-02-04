@@ -427,5 +427,5 @@ func flowertop(c *gin.Context) {
 		}
 	}
 	m.mut.Unlock()
-	c.JSON(200, result)
+	c.JSON(200, obj{"result": result})
 }
