@@ -201,10 +201,16 @@ func flowertop(m *telebot.Message) {
 		} `json:"result"`
 	}
 	err := json.Unmarshal(answer, &resp)
-	if err != nil {
+	if err != nil || len(resp.Top) == 0 {
 		log.Printf("handlers.go -> flowertop() -> Unmarshal error:%v, body: %v\n", err.Error(), string(answer))
 		botmsg, _ := bot.Reply(m, "Что-то пошло по пизде, а именно анмаршал(напиши максу он скажет что не так])")
 		UpdateUser(m, botmsg)
 		return
 	}
+	var msg string = fmt.Sprintf("Вот топ чатика: %v\n", m.Chat.FirstName)
+	for k, v := range resp.Top {
+		msg += fmt.Sprintf("%v. %v - %v 🌷", k+1, v.Username, v.Total)
+	}
+	botmsg, _ := bot.Reply(m, msg)
+	UpdateUser(m, botmsg)
 }
