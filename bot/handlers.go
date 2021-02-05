@@ -94,7 +94,7 @@ func addFlower(m *telebot.Message) {
 		return
 	}
 	data := obj{"icon": text[0], "name": text[1], "type": text[2]}
-	_, err = MakeUserHttpReq("addFlower", marhshaled)
+	_, err := MakeUserHttpReq("addFlower", data)
 	if err != nil {
 		fmt.Println("handlers.go -> addFlower() -> MakeUserHttpReq error:", err.Error())
 		botmsg, _ := bot.Reply(m, "communication error")
@@ -200,16 +200,16 @@ func flowertop(m *telebot.Message) {
 			Total    int    `json:"total"`
 		} `json:"result"`
 	}
-	err := json.Unmarshal(answer, &resp)
+	err = json.Unmarshal(answer, &resp)
 	if err != nil || len(resp.Top) == 0 {
 		log.Printf("handlers.go -> flowertop() -> Unmarshal error:%v, body: %v\n", err.Error(), string(answer))
 		botmsg, _ := bot.Reply(m, "Что-то пошло по пизде, а именно анмаршал(напиши максу он скажет что не так])")
 		UpdateUser(m, botmsg)
 		return
 	}
-	var msg string = fmt.Sprintf("Вот топ чатика: %v\n", m.Chat.FirstName)
+	var msg string = fmt.Sprintf("Вот топ чатика: %v\n\n", m.Chat.FirstName+""+m.Chat.LastName)
 	for k, v := range resp.Top {
-		msg += fmt.Sprintf("%v. %v - %v 🌷", k+1, v.Username, v.Total)
+		msg += fmt.Sprintf("%v. %v - %v 🌷\n", k+1, v.Username, v.Total)
 	}
 	botmsg, _ := bot.Reply(m, msg)
 	UpdateUser(m, botmsg)
