@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"math/rand"
+	"sort"
 	"time"
 
 	ai "github.com/night-codes/mgo-ai"
@@ -193,16 +194,15 @@ func getUserFlowerTotal(c *gin.Context) {
 		c.JSON(400, obj{"err": "binding error"})
 		return
 	}
-	total, err := DB.countFlowers(req.ID)
+	flowers, err := DB.countFlowers(req.ID)
 	if err != nil {
 		fmt.Println("handlers.go -> getUserFlowerTotal() -> getAllUserFlowers() error:", err.Error())
 		c.JSON(400, obj{"err": "error getting flowers"})
 	}
 
-	c.JSON(200, obj{"total": total})
+	c.JSON(200, obj{"total": flowers})
 }
 
-// returns user last flower
 func getLastFlower(c *gin.Context) {
 	var req struct {
 		ID int `json:"id" bson:"owner"`
@@ -234,19 +234,38 @@ func userFlowerSlice(c *gin.Context) {
 		c.JSON(400, obj{"err": "empty id slice"})
 		return
 	}
-	var result map[int]int = make(map[int]int)
+	query := []obj{}
 	for _, v := range req.ID {
-		total, err := DB.countFlowers(v)
-		if err != nil {
-			fmt.Println("handlers.go -> userFlowerSlice() -> getUserFlower() error:", err.Error(), req.ID)
-			continue
-		}
-		if total == 0 {
-			continue
-		}
-		result[v] = total
+		query = append(query, obj{"owner": v})
 	}
-	c.JSON(200, obj{"result": result})
+
+	var result []struct {
+		Owner int   `json:"owner" bson:"owner"`
+		Hp    uint8 `json:"hp" bson:"hp"`
+	}
+	if err := DB.UserFlowerDataCollection.Find(obj{"$or": query}).All(&result); err != nil {
+		fmt.Println("handlers.go -> userFlowerSlice() -> flower find error:", err.Error())
+		c.JSON(400, obj{"err": err.Error()})
+		return
+	}
+
+	var scores map[int]int = make(map[int]int)
+	for _, v := range result {
+		scores[v.Owner]++
+	}
+	type forSort struct {
+		Key   int `json:"id"`
+		Value int `json:"total"`
+	}
+	var ss []forSort
+	for k, v := range scores {
+		ss = append(ss, forSort{k, v})
+	}
+
+	sort.Slice(ss, func(i, j int) bool {
+		return ss[i].Value > ss[j].Value
+	})
+	c.JSON(200, obj{"result": ss})
 }
 
 // gives flower to other user
@@ -299,4 +318,5 @@ func giveFlower(c *gin.Context) {
 		return
 	}
 	c.JSON(200, obj{"err": ""})
+
 }

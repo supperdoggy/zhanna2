@@ -3,6 +3,8 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
+	"sync"
 	"time"
 
 	"gopkg.in/tucnak/telebot.v2"
@@ -217,13 +219,8 @@ func addFlower(c *gin.Context) {
 		c.JSON(400, obj{"err": "binding error"})
 		return
 	}
-	marshaled, err := json.Marshal(req)
-	if err != nil {
-		fmt.Println("handlers.go -> addFlower() -> marshal error:", err.Error())
-		c.JSON(400, obj{"err": "marshal error"})
-		return
-	}
-	data, err := MakeReqToFlowers("addFlower", marshaled)
+
+	data, err := MakeReqToFlowers("addFlower", req)
 	if err != nil {
 		fmt.Println("handlers.go -> addFlower() -> MakeReqToFlowers error:", err.Error())
 		c.JSON(400, obj{"err": "communication error"})
@@ -263,13 +260,7 @@ func flowerReq(c *gin.Context) {
 		return
 	}
 
-	marshaledReq, err := json.Marshal(req)
-	if err != nil {
-		fmt.Println("handlers.go -> flowerReq() -> marshal error:", err.Error())
-		c.JSON(400, obj{"err": "marshal error"})
-		return
-	}
-	data, err := MakeReqToFlowers("growFlower", marshaledReq)
+	data, err := MakeReqToFlowers("growFlower", req)
 	if err != nil {
 		fmt.Println("handlers.go -> flowerReq() -> req error:", err.Error())
 		c.JSON(400, obj{"err": "err req to flowers"})
@@ -333,13 +324,8 @@ func myflowers(c *gin.Context) {
 		c.JSON(400, obj{"err": "no id field"})
 		return
 	}
-	data, err := json.Marshal(req)
-	if err != nil {
-		fmt.Println("myflowers() -> marshal error:", err.Error())
-		c.JSON(400, obj{"err": "marshal error"})
-		return
-	}
-	answer, err := MakeReqToFlowers("getUserFlowers", data)
+
+	answer, err := MakeReqToFlowers("getUserFlowers", req)
 	if err != nil {
 		fmt.Println("myflowers() -> MakeHttpReq(getUserFlowers) error:", err.Error())
 		c.JSON(400, obj{"err": "req error"})
@@ -384,13 +370,7 @@ func give(c *gin.Context) {
 		return
 	}
 
-	data, err := json.Marshal(req)
-	if err != nil {
-		fmt.Println("handlers.go -> give() -> Marshal error:", err.Error(), req)
-		c.JSON(400, obj{"err": "marshal error"})
-		return
-	}
-	answer, err := MakeReqToFlowers("giveFlower", data)
+	answer, err := MakeReqToFlowers("giveFlower", req)
 	if err != nil {
 		fmt.Println("handlers.go -> give() -> MakeReqToFlowers error:", err.Error())
 		c.JSON(400, obj{"err": "err making req"})
@@ -407,4 +387,92 @@ func give(c *gin.Context) {
 	}
 
 	c.JSON(200, obj{"err": ""})
+}
+
+// flowertop - finds all users in chat and forms top users by total flowers
+func flowertop(c *gin.Context) {
+	var req struct {
+		ChatId int `json:"chatid"`
+	}
+
+	if err := c.Bind(&req); err != nil {
+		fmt.Println("flowertop() -> c.Bind() error", err.Error())
+		c.JSON(400, obj{"err": "binding error"})
+		return
+	}
+
+	if req.ChatId == 0 {
+		fmt.Println("flowertop() -> ChatId is 0")
+		c.JSON(400, obj{"err": "no id field"})
+		return
+	}
+	// getting chat users
+	users, err := DB.getChatUsers(req.ChatId)
+	fmt.Println(len(users))
+	if err != nil {
+		fmt.Println("flowertop() -> getChatUsers() error:", err.Error(), req.ChatId)
+		c.JSON(400, obj{"err": "error getting users from chat"})
+		return
+	}
+	if len(users) == 0 {
+		c.JSON(400, obj{"err": "no users in chat"})
+		return
+	}
+
+	// creating map of users and slice of ids
+	m := struct { // map
+		m   map[int]User
+		mut sync.Mutex
+	}{m: map[int]User{}, mut: sync.Mutex{}}
+	ids := []int{} // ids
+
+	m.mut.Lock()
+	for _, v := range users {
+		m.m[v.Telebot.ID] = v
+		ids = append(ids, v.Telebot.ID)
+	}
+	m.mut.Unlock()
+
+	answer, err := MakeReqToFlowers("userFlowerSlice", obj{"id": ids})
+	if err != nil {
+		fmt.Println("flowertop() -> MakeReqToFlowers(\"userFlowerSlice\") error:", err.Error())
+		c.JSON(400, obj{"err": "err making req"})
+		return
+	}
+	var resp struct {
+		Result []struct {
+			ID       int    `json:"id"`
+			Total    int    `json:"total"`
+			Username string `json:"username"`
+		} `json:"result"`
+	}
+	if err := json.Unmarshal(answer, &resp); err != nil {
+		fmt.Println("flowertop() -> unmarshal error:", err.Error(), string(answer))
+		c.JSON(400, obj{"err": "err making req"})
+		return
+	}
+
+	// so fucking bad
+	result := []struct {
+		Username string `json:"username"`
+		Total    int    `json:"total"`
+	}{}
+	m.mut.Lock()
+	for i := range resp.Result {
+		if user, ok := m.m[resp.Result[i].ID]; ok {
+			data := struct {
+				Username string `json:"username"`
+				Total    int    `json:"total"`
+			}{Username: user.Telebot.Username, Total: resp.Result[i].Total}
+			if data.Username == "" {
+				data.Username = fmt.Sprintf("%v %v", user.Telebot.FirstName, user.Telebot.LastName)
+			}
+			log.Println(resp.Result[i].ID)
+
+			result = append(result, data)
+		}
+	}
+	m.mut.Unlock()
+	c.JSON(200, obj{"result": result})
+
 }

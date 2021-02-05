@@ -22,19 +22,25 @@ func MakeReqToAnek(method string, data []byte) (answer []byte, err error) {
 
 // MakeReqToFlowers - makes req to flowers service
 // TODO: implement all the methods
-func MakeReqToFlowers(method string, data []byte) (answer []byte, err error) {
+func MakeReqToFlowers(method string, data interface{}) (answer []byte, err error) {
 	path := fmt.Sprintf("%s/%s", flowerUrl, method)
+	reqData, err := json.Marshal(data)
+	if err != nil {
+		return
+	}
 	switch method {
 	case "addFlower":
-		answer, err = MakeHttpReq(path, "POST", data)
+		answer, err = MakeHttpReq(path, "POST", reqData)
 	case "growFlower":
-		answer, err = MakeHttpReq(path, "POST", data)
+		answer, err = MakeHttpReq(path, "POST", reqData)
 	case "canGrowFlower":
-		answer, err = MakeHttpReq(path, "POST", data)
+		answer, err = MakeHttpReq(path, "POST", reqData)
 	case "getUserFlowers":
-		answer, err = MakeHttpReq(path, "POST", data)
+		answer, err = MakeHttpReq(path, "POST", reqData)
 	case "giveFlower":
-		answer, err = MakeHttpReq(path, "POST", data)
+		answer, err = MakeHttpReq(path, "POST", reqData)
+	case "userFlowerSlice":
+		answer, err = MakeHttpReq(path, "POST", reqData)
 	default:
 		err = fmt.Errorf("no such method")
 	}

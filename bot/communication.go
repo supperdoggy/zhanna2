@@ -56,6 +56,8 @@ func MakeRandomTostHttpReq(id int) (response Tost, err error) {
 	return
 }
 
+// MakeUserHttpReq - method handler for users req
+// TODO: refactor it!!!
 func MakeUserHttpReq(method string, req interface{}) (answer []byte, err error) {
 	data, err := json.Marshal(req)
 	if err != nil {
@@ -70,6 +72,8 @@ func MakeUserHttpReq(method string, req interface{}) (answer []byte, err error) 
 	case "myflowers":
 		answer, err = MakeHttpReq(path, "POST", data)
 	case "give":
+		answer, err = MakeHttpReq(path, "POST", data)
+	case "flowertop":
 		answer, err = MakeHttpReq(path, "POST", data)
 	default:
 		err = fmt.Errorf("no such method")

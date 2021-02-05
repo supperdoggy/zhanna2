@@ -33,6 +33,7 @@ func main() {
 	bot.Handle("/myflowers", myflowers)
 	bot.Handle("/giveoneflower", giveOneFlower)
 	bot.Handle("/testMessage", testMessage)
+	bot.Handle("/flowertop", flowertop)
 
 	fmt.Println("Bot running...")
 	bot.Start()

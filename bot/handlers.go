@@ -211,3 +211,40 @@ func giveOneFlower(m *telebot.Message) {
 	b, _ := bot.Reply(m, "Ты успешно подарил цветок!")
 	go UpdateUser(m, b)
 }
+
+// forms user top by total amount of flowers
+// works only in group chats and supergroups
+func flowertop(m *telebot.Message) {
+	// check for private chat
+	if m.Chat.Type == telebot.ChatPrivate {
+		botmsg, _ := bot.Reply(m, "Функция доступна только в груповых чатах")
+		UpdateUser(m, botmsg)
+		return
+	}
+	answer, err := MakeUserHttpReq("flowertop", obj{"chatid": m.Chat.ID})
+	if err != nil {
+		log.Printf("handlers.go -> flowertop() -> MakeUserHttpReq('flowertop') error: %v, chatid: %v\n", err.Error(), m.Chat.ID)
+		botmsg, _ := bot.Reply(m, "Что-то пошло по пизде сори")
+		UpdateUser(m, botmsg)
+		return
+	}
+	var resp struct {
+		Top []struct {
+			Username string `json:"username"`
+			Total    int    `json:"total"`
+		} `json:"result"`
+	}
+	err = json.Unmarshal(answer, &resp)
+	if err != nil || len(resp.Top) == 0 {
+		log.Printf("handlers.go -> flowertop() -> Unmarshal error:%v, body: %v\n", err.Error(), string(answer))
+		botmsg, _ := bot.Reply(m, "Что-то пошло по пизде, а именно анмаршал(напиши максу он скажет что не так])")
+		UpdateUser(m, botmsg)
+		return
+	}
+	var msg string = fmt.Sprintf("Вот топ чатика: %v\n\n", m.Chat.FirstName+""+m.Chat.LastName)
+	for k, v := range resp.Top {
+		msg += fmt.Sprintf("%v. %v - %v 🌷\n", k+1, v.Username, v.Total)
+	}
+	botmsg, _ := bot.Reply(m, msg)
+	UpdateUser(m, botmsg)
+}
