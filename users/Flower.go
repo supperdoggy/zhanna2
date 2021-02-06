@@ -22,13 +22,7 @@ type Flower struct {
 }
 
 func canGrowFlower(id int) (bool, error) {
-	data, err := json.Marshal(obj{"id": id})
-	if err != nil {
-		fmt.Println("canGrowFlower() -> marshal() error:", err.Error())
-		return false, err
-	}
-
-	answer, err := MakeReqToFlowers("canGrowFlower", data)
+	answer, err := MakeReqToFlowers("canGrowFlower", obj{"id": id})
 	if err != nil {
 		fmt.Println("canGrowFlower() -> MakeReqToFlower(canGrowFlower) error:", err.Error())
 		return false, err

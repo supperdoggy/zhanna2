@@ -127,7 +127,16 @@ func flower(m *telebot.Message) {
 	go UpdateUser(m, botmsg)
 }
 
+// onTextHandler - makes req to python service and gets message from apiai
 func onTextHandler(m *telebot.Message) {
+
+	// if chat is not private then user must reply bot to get answer
+	if m.Chat.Type != telebot.ChatPrivate {
+		if !m.IsReply() || m.IsReply() && !(m.ReplyTo.Sender.ID == prodBotID || m.ReplyTo.Sender.ID == testbotId) {
+			return
+		}
+	}
+
 	answer, err := MakeUserHttpReq("getAnswer", obj{"id": m.Sender.ID, "text": m.Text})
 	if err != nil {
 		log.Println("onTextHandler() -> req error:", err.Error())

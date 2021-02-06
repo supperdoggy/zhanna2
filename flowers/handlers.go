@@ -131,7 +131,7 @@ func getUserFlowers(c *gin.Context) {
 // returns bool value if user can grow flower
 func canGrowFlower(c *gin.Context) {
 	var req struct {
-		ID int `json:"id" bson:"own"`
+		ID int `json:"id" bson:"owner"`
 	}
 	if err := c.Bind(&req); err != nil {
 		fmt.Println("handlers.go -> canGrowFlower() -> binding error:", err.Error())
