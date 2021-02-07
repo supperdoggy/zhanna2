@@ -34,6 +34,7 @@ func main() {
 	bot.Handle("/giveoneflower", giveOneFlower)
 	bot.Handle("/testMessage", testMessage)
 	bot.Handle("/flowertop", flowertop)
+	bot.Handle("/danet", danet)
 
 	fmt.Println("Bot running...")
 	bot.Start()

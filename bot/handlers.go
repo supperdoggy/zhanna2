@@ -255,3 +255,13 @@ func flowertop(m *telebot.Message) {
 	botmsg, _ := bot.Reply(m, msg)
 	UpdateUser(m, botmsg)
 }
+
+// handler for danet, returns agree or disagree message to user
+func danet(m *telebot.Message) {
+	answer := getRandomDanet()
+	botmsg, err := bot.Reply(m, answer)
+	if err != nil {
+		log.Printf("handlers.go -> danet() -> Reply() error: %v, id: %v\n", err.Error(), m.Sender.ID)
+	}
+	UpdateUser(m, botmsg)
+}
