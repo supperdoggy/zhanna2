@@ -104,7 +104,6 @@ func addFlower(m *telebot.Message) {
 	_, err := MakeUserHttpReq("addFlower", data)
 	if err != nil {
 		log.Println("handlers.go -> addFlower() -> MakeUserHttpReq error:", err.Error())
-		go UpdateUser(m, botmsg)
 		return
 	}
 	botmsg, _ := bot.Reply(m, "Done!")
