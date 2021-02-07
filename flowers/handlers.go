@@ -220,7 +220,7 @@ func getLastFlower(c *gin.Context) {
 	c.JSON(200, obj{"flower": flower})
 }
 
-// returns slice of users flowers
+// userFlowerSlice - returns slice of users flowers
 func userFlowerSlice(c *gin.Context) {
 	var req struct {
 		ID []int `json:"id" bson:"owner"`

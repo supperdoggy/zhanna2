@@ -20,7 +20,7 @@ func testMessage(m *telebot.Message) {
 func start(m *telebot.Message) {
 	var response string
 	// todo: create id checker and answer variations for different users
-	response = "Привет, я пока что очень сырая, будь нежен со мной..."
+	response = getLoc("dev_welcome")
 	botmsg, err := bot.Reply(m, response)
 	if err != nil {
 		log.Println("handlers.go -> start() -> error:", err.Error(), ", user id:", m.Sender.ID)
@@ -96,7 +96,7 @@ func tost(m *telebot.Message) {
 func addFlower(m *telebot.Message) {
 	text := split(m.Text[11:], "-")
 	if len(text) != 3 {
-		bmsg, _ := bot.Reply(m, "wrong format, need text-text-text")
+		bmsg, _ := bot.Reply(m, getLoc("add_flower"))
 		go UpdateUser(m, bmsg)
 		return
 	}
@@ -104,7 +104,6 @@ func addFlower(m *telebot.Message) {
 	_, err := MakeUserHttpReq("addFlower", data)
 	if err != nil {
 		log.Println("handlers.go -> addFlower() -> MakeUserHttpReq error:", err.Error())
-		botmsg, _ := bot.Reply(m, "communication error")
 		go UpdateUser(m, botmsg)
 		return
 	}
@@ -140,7 +139,6 @@ func onTextHandler(m *telebot.Message) {
 	answer, err := MakeUserHttpReq("getAnswer", obj{"id": m.Sender.ID, "text": m.Text})
 	if err != nil {
 		log.Println("onTextHandler() -> req error:", err.Error())
-		bot.Reply(m, "Error getting answer")
 		return
 	}
 
@@ -186,7 +184,7 @@ func myflowers(m *telebot.Message) {
 		return
 	}
 
-	var answerstr string = fmt.Sprintf("Вот твои цветочки!\nУ тебя уже %v 🌷 %v 🌱\n\n", resp.Total, resp.Last)
+	var answerstr string = fmt.Sprintf(getLoc("my_flower"), resp.Total, resp.Last)
 	for k, v := range resp.Flowers {
 		answerstr += fmt.Sprintf("%v - %v\n", k, v)
 	}
@@ -196,7 +194,7 @@ func myflowers(m *telebot.Message) {
 
 func giveOneFlower(m *telebot.Message) {
 	if !m.IsReply() {
-		b, _ := bot.Reply(m, "Тебе нужно ответить на сообщение человека которому ты хочешь подарить цветок!")
+		b, _ := bot.Reply(m, getLoc("give_flower_need_reply"))
 		UpdateUser(m, b)
 		return
 	}
@@ -217,7 +215,7 @@ func giveOneFlower(m *telebot.Message) {
 	if resp.Err != "" {
 		log.Println(resp.Err)
 	}
-	b, _ := bot.Reply(m, "Ты успешно подарил цветок!")
+	b, _ := bot.Reply(m, getLoc("give_flower_good"))
 	go UpdateUser(m, b)
 }
 
@@ -226,14 +224,14 @@ func giveOneFlower(m *telebot.Message) {
 func flowertop(m *telebot.Message) {
 	// check for private chat
 	if m.Chat.Type == telebot.ChatPrivate {
-		botmsg, _ := bot.Reply(m, "Функция доступна только в груповых чатах")
+		botmsg, _ := bot.Reply(m, getLoc("command_only_in_group"))
 		UpdateUser(m, botmsg)
 		return
 	}
 	answer, err := MakeUserHttpReq("flowertop", obj{"chatid": m.Chat.ID})
 	if err != nil {
 		log.Printf("handlers.go -> flowertop() -> MakeUserHttpReq('flowertop') error: %v, chatid: %v\n", err.Error(), m.Chat.ID)
-		botmsg, _ := bot.Reply(m, "Что-то пошло по пизде сори")
+		botmsg, _ := bot.Reply(m, getLoc("error"))
 		UpdateUser(m, botmsg)
 		return
 	}
@@ -246,11 +244,11 @@ func flowertop(m *telebot.Message) {
 	err = json.Unmarshal(answer, &resp)
 	if err != nil || len(resp.Top) == 0 {
 		log.Printf("handlers.go -> flowertop() -> Unmarshal error:%v, body: %v\n", err.Error(), string(answer))
-		botmsg, _ := bot.Reply(m, "Что-то пошло по пизде, а именно анмаршал(напиши максу он скажет что не так])")
+		botmsg, _ := bot.Reply(m, getLoc("error"))
 		UpdateUser(m, botmsg)
 		return
 	}
-	var msg string = fmt.Sprintf("Вот топ чатика: %v\n\n", m.Chat.FirstName+""+m.Chat.LastName)
+	var msg string = fmt.Sprintf(getLoc("chat_top"), m.Chat.FirstName+""+m.Chat.LastName)
 	for k, v := range resp.Top {
 		msg += fmt.Sprintf("%v. %v - %v 🌷\n", k+1, v.Username, v.Total)
 	}
