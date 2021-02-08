@@ -147,12 +147,10 @@ func onTextHandler(m *telebot.Message) {
 	}
 	if err := json.Unmarshal(answer, &resp); err != nil {
 		log.Println("onTextHandler() -> Unmarshal error:", err.Error())
-		bot.Reply(m, "Error unmarhsal")
 		return
 	}
 	if resp.Err != "" {
 		log.Println("onTextHandler() -> got error in response:", resp.Err)
-		bot.Reply(m, resp.Err)
 		return
 	}
 	botmsg, _ := bot.Reply(m, resp.Answer)
