@@ -159,7 +159,7 @@ func MakeFlowerReq(id int) (msg string, err error) {
 		return "communication error", err
 	}
 	if answer.Err == "cant grow flower" {
-		return "Ты уже сегодня поливал цветочки!\nПопробуй позже", nil
+		return getLoc("already_grew_flowers"), nil
 	}
 
 	if answer.Err != "" {
@@ -167,10 +167,10 @@ func MakeFlowerReq(id int) (msg string, err error) {
 		return "communication error", err
 	}
 	if answer.HP == 100 {
-		return fmt.Sprintf("Поздравляю! Твой %v вырос!", answer.Icon), err
+		return fmt.Sprintf(getLoc("flower_grew"), answer.Icon), err
 	}
 	if answer.Grew {
-		return fmt.Sprintf("Твой цветок вырос на %v единиц, теперь его размер %v единиц!", answer.Up, answer.HP), err
+		return fmt.Sprintf(getLoc("flower_grew_not_fully"), answer.Up), err
 	}
 	return "its not time, try again later...", err
 }
