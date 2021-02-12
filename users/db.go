@@ -31,7 +31,7 @@ func connectToAdminCollection() *mgo.Collection {
 }
 
 func (d *DbStruct) getUserFromDbById(id int) (result User, err error) {
-	err = DB.UsersCollection.Find(obj{"telebot.id": id}).One(&result)
+	err = DB.UsersCollection.Find(obj{"telebot.id": id, "statuses.isBanned": false}).One(&result)
 	return
 }
 
@@ -51,7 +51,7 @@ func (d *DbStruct) updateLastTimeFortune(id int) error {
 }
 
 func (d *DbStruct) updateUser(u User) error {
-	return d.UsersCollection.Update(obj{"telebot.id": u.Telebot.ID}, u)
+	return d.UsersCollection.Update(obj{"telebot.id": u.Telebot.ID, "statuses.isBanned": false}, u)
 }
 
 // getChatUsersIDs - returns all users ids which are in given chat

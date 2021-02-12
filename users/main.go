@@ -32,6 +32,12 @@ func main() {
 		apiv1.POST("/flowertop", flowertop)
 	}
 
+	apiv1_admin := r.Group("/api/v1/admin")
+	{
+		apiv1_admin.POST("/isAdmin", isAdminReq)
+		apiv1_admin.POST("/admin", adminReq)
+	}
+
 	if err := r.Run(":1488"); err != nil {
 		fmt.Println(err.Error())
 	}
