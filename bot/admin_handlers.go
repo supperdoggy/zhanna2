@@ -64,7 +64,9 @@ func admin(m *telebot.Message) {
 		return
 	}
 
-	botmsg, _ := bot.Reply(m, fmt.Fprintf("Пользователь %v admin: %v\n", m.ReplyTo.Sender.ID, resp.Admin))
+	botmsg, _ := bot.Reply(m, fmt.Sprintf("Пользователь %v admin: %v\n", m.ReplyTo.Sender.ID, resp.Admin))
 	UpdateUsere(m, botmsg)
+
+	bot.Reply(m, fmt.Sprintf("Пользователь %v admin: %v\n", m.ReplyTo.Sender.ID, resp.Admin))
 	return
 }
