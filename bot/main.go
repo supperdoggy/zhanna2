@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"log"
 
 	"gopkg.in/tucnak/telebot.v2"
 )
@@ -27,7 +27,6 @@ func main() {
 	bot.Handle("/fortune", fortuneCookie)
 	bot.Handle("/anek", anek)
 	bot.Handle("/tost", tost)
-	// bot.Handle("/addFlower", addFlower)
 	bot.Handle("/flower", flower)
 	bot.Handle(telebot.OnText, onTextHandler)
 	bot.Handle("/myflowers", myflowers)
@@ -40,6 +39,6 @@ func main() {
 	bot.Handle("/addFlower", addFlower)
 	bot.Handle("/admin", admin)
 
-	fmt.Println("Bot running...")
+	log.Println("Bot is running...")
 	bot.Start()
 }
