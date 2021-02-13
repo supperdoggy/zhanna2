@@ -32,6 +32,7 @@ func main() {
 		apiv1.POST("/flowertop", flowertop)
 	}
 
+	// admin command handlers
 	apiv1_admin := r.Group("/api/v1/admin")
 	{
 		apiv1_admin.POST("/isAdmin", isAdminReq)
