@@ -279,6 +279,7 @@ func flowerReq(c *gin.Context) {
 	}
 	resp.Flower = answer
 	resp.Up = answer.Grew
+	// grew successful
 	resp.Grew = true
 	c.JSON(200, resp)
 }

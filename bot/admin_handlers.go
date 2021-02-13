@@ -10,7 +10,7 @@ import (
 
 // addFlower - adds new flower type
 func addFlower(m *telebot.Message) {
-	if admin, err := !checkAdmin(m.Sender.ID); !admin || err != nil {
+	if admin, err := checkAdmin(m.Sender.ID); !admin || err != nil {
 		botmsg, _ := bot.Reply(m, getLoc("not_admin"))
 		UpdateUser(m, botmsg)
 		return
@@ -38,7 +38,7 @@ func admin(m *telebot.Message) {
 		UpdateUser(m, botmsg)
 		return
 	}
-	if !m.IsReply() {
+	if !m.IsReply() || m.ReplyTo.Sender.ID == m.Sender.ID {
 		botmsg, _ := bot.Reply(m, getLoc("need_reply"))
 		UpdateUser(m, botmsg)
 		return
@@ -56,7 +56,7 @@ func admin(m *telebot.Message) {
 		Err   string `json:"err"`
 		Admin bool   `json:"admin"`
 	}
-	err = json.Marshal(data, &resp)
+	err = json.Unmarshal(data, &resp)
 	if err != nil || resp.Err != "" {
 		log.Printf("admin_handlers.go -> admin() -> Marshal error: %v body: %v, resp error: %v\n", err.Error(), string(data), resp.Err)
 		botmsg, _ := bot.Reply(m, getLoc("error"))
@@ -65,8 +65,8 @@ func admin(m *telebot.Message) {
 	}
 
 	botmsg, _ := bot.Reply(m, fmt.Sprintf("Пользователь %v admin: %v\n", m.ReplyTo.Sender.ID, resp.Admin))
-	UpdateUsere(m, botmsg)
+	go UpdateUser(m, botmsg)
 
-	bot.Reply(m, fmt.Sprintf("Пользователь %v admin: %v\n", m.ReplyTo.Sender.ID, resp.Admin))
+	bot.Send(m.Sender, fmt.Sprintf("Пользователь %v admin: %v\n", m.ReplyTo.Sender.ID, resp.Admin))
 	return
 }
