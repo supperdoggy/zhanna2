@@ -1,7 +1,6 @@
 package main
 
 import (
-	"cloud.google.com/go/analytics/data/apiv1alpha"
 	"bytes"
 	"encoding/json"
 	"fmt"
@@ -176,19 +175,19 @@ func MakeFlowerReq(id int) (msg string, err error) {
 	return "its not time, try again later...", err
 }
 
-func MakeAdminHTTPReq(method string, data interface) (resp []data, err error){
+func MakeAdminHTTPReq(method string, data interface{}) (dataresp []byte, err error) {
 	path := fmt.Sprintf("%v/%v", userAdminUrl, method)
 	marshaled, err := json.Marshal(data)
 	if err != nil {
-		retunr []data{}, err
+		return []byte{}, err
 	}
 	switch method {
 	case "isAdmin":
-		resp, err = http.Post(path, "POST", marshaled)
+		dataresp, err = MakeHttpReq(path, "POST", marshaled)
 	case "admin":
-		resp, err = http.Post(path, "POST", marshaled)
+		dataresp, err = MakeHttpReq(path, "POST", marshaled)
 	default:
-		return []data{}, fmt.Errorf("no such method")
+		return []byte{}, fmt.Errorf("no such method")
 	}
-	return 
+	return
 }
