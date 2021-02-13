@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"log"
 	"math/rand"
 	"sort"
@@ -37,24 +38,24 @@ func addNewFlower(c *gin.Context) {
 
 // removes flower type
 func removeFlower(c *gin.Context) {
-	var req map[string]uint64
+	var req struct {
+		ID uint64 `json:"id"`
+	}
 
 	if err := c.Bind(&req); err != nil {
-		fmt.Println("handlers.go -> removeFlower() -> bind error:", err.Error())
+		data, _ := ioutil.ReadAll(c.Request.Body)
+		fmt.Println("handlers.go -> removeFlower() -> bind error:", err.Error(), string(data))
 		c.JSON(400, obj{"err": err.Error()})
 		return
 	}
-	if _, ok := req["id"]; !ok {
-		c.JSON(400, obj{"err": "no id field"})
-		return
-	}
-	err := DB.removeFlower(req["id"])
+
+	err := DB.removeFlower(req.ID)
 	if err != nil {
 		fmt.Println("handlers.go -> removeFlower() -> removeFlower() error:", err.Error())
 		c.JSON(400, obj{"err": err.Error()})
 		return
 	}
-	c.JSON(200, obj{"err": nil})
+	c.JSON(200, obj{"err": ""})
 }
 
 // grows user flower
