@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"math/rand"
 	"sort"
 	"time"
@@ -319,4 +320,15 @@ func giveFlower(c *gin.Context) {
 	}
 	c.JSON(200, obj{"err": ""})
 
+}
+
+// getFlowerTypes - for admin, returns all flower types
+func getFlowerTypes(c *gin.Context) {
+	flowers, err := DB.getAllFlowers()
+	if err != nil {
+		log.Println("handlers.go -> getFlowerTypes() error:", err.Error())
+		c.JSON(400, obj{"err": err.Error()})
+		return
+	}
+	c.JSON(200, obj{"result": flowers})
 }

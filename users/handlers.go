@@ -391,6 +391,7 @@ func give(c *gin.Context) {
 }
 
 // flowertop - finds all users in chat and forms top users by total flowers
+// todo: fimplify
 func flowertop(c *gin.Context) {
 	var req struct {
 		ChatId int `json:"chatid"`

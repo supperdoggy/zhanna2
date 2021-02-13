@@ -46,6 +46,12 @@ func (d *DbStruct) getFlower(id uint64, f Flower) (result Flower, err error) {
 	return f, err
 }
 
+// getAllFlowers - returns all flower types in db
+func (d *DbStruct) getAllFlowers() (result []Flower, err error) {
+	err = d.FlowerCollection.Find(nil).All(&result)
+	return
+}
+
 func (d *DbStruct) getRandomFlower() (result Flower, err error) {
 	rand.Seed(time.Now().Unix())
 	count, err := d.FlowerCollection.Count()

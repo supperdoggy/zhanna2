@@ -1,6 +1,9 @@
 package main
 
 import (
+	"encoding/json"
+	"log"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -46,4 +49,24 @@ func adminReq(c *gin.Context) {
 		return
 	}
 	c.JSON(200, obj{"err": "", "admin": u.Statuses.IsAdmin})
+}
+
+func getAllFlowerTypes(c *gin.Context) {
+	data, err := MakeReqToFlowers("getFlowerTypes", nil)
+	if err != nil {
+		log.Println("handlers_admin.go -> getAllFlowerTypes() error:", err.Error())
+		c.JSON(400, obj{"err": err.Error()})
+		return
+	}
+	var resp struct {
+		Result []Flower `json:"result"`
+		Err    string   `json:"err"`
+	}
+
+	if err := json.Unmarshal(data, &resp); err != nil {
+		log.Printf("handlers_admin.go -> getAllFlowerTypes() -> unmarshal error:%v body: %v\n", err.Error(), string(data))
+		c.JSON(400, obj{"err": "unmarhsal error"})
+		return
+	}
+	c.JSON(200, resp)
 }
