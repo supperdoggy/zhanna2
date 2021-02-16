@@ -4,9 +4,25 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"strconv"
+	"strings"
 
 	"gopkg.in/tucnak/telebot.v2"
 )
+
+func adminHelp(m *telebot.Message) {
+	if admin, err := checkAdmin(m.Sender.ID); !admin || err != nil {
+		botmsg, _ := bot.Reply(m, getLoc("not_admin"))
+		UpdateUser(m, botmsg)
+		return
+	}
+
+	text := "/admin - set/unset admin\n" +
+		"/addFlower - add new flower type\n" +
+		"/removeFlower - remove flower type\n" +
+		"/allFlowers - returns flower types list\n"
+	bot.Reply(m, text)
+}
 
 // addFlower - adds new flower type
 func addFlower(m *telebot.Message) {
@@ -95,9 +111,48 @@ func allFlowers(m *telebot.Message) {
 
 	var text string
 	for _, v := range resp.Result {
-		text += fmt.Sprintf("%v - %v\n", v.Icon, v.Name)
+		text += fmt.Sprintf("%v:%v - %v\n", v.ID, v.Icon, v.Name)
 	}
 	text += fmt.Sprintf("len %v", len(resp.Result))
 	botmsg, _ := bot.Reply(m, text)
 	UpdateUser(m, botmsg)
+}
+
+func removeFlower(m *telebot.Message) {
+	if admin, err := checkAdmin(m.Sender.ID); !admin || err != nil {
+		botmsg, _ := bot.Reply(m, getLoc("not_admin"))
+		UpdateUser(m, botmsg)
+		return
+	}
+
+	splitted := strings.Split(m.Text, " ")
+	if len(splitted) != 2 {
+		return
+	}
+	id, err := strconv.Atoi(splitted[1])
+	if err != nil {
+		log.Println("admin_handlers.go -> removeFlower() -> Atoi err:", err.Error())
+		bot.Reply(m, "error get id, need /removeFlower <id>")
+		return
+	}
+
+	data, err := MakeAdminHTTPReq("removeFlower", obj{"id": id})
+	if err != nil {
+		log.Println("admin_handlers.go -> removeFlower() -> removeFlower err:", err.Error())
+		bot.Reply(m, getLoc("error"))
+		return
+	}
+	var resp struct {
+		Err string `json:"err"`
+	}
+	if err := json.Unmarshal(data, &resp); err != nil {
+		log.Println("admin_handlers.go -> removeFlower() -> Unmarshal err:", err.Error(), string(data))
+		bot.Reply(m, getLoc("error"))
+		return
+	}
+	if resp.Err != "" {
+		log.Println("admin_handlers.go -> removeFlower() -> resp err:", resp)
+		return
+	}
+	bot.Reply(m, "ok")
 }

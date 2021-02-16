@@ -36,9 +36,11 @@ func main() {
 	bot.Handle("/danet", danet)
 
 	// admin handlers
+	bot.Handle("/adminHelp", adminHelp)
 	bot.Handle("/addFlower", addFlower)
 	bot.Handle("/admin", admin)
 	bot.Handle("/allFlowers", allFlowers)
+	bot.Handle("/removeFlower", removeFlower)
 
 	log.Println("Bot is running...")
 	bot.Start()
