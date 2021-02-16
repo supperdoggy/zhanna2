@@ -70,3 +70,34 @@ func admin(m *telebot.Message) {
 	bot.Send(m.Sender, fmt.Sprintf("Пользователь %v admin: %v\n", m.ReplyTo.Sender.ID, resp.Admin))
 	return
 }
+
+func allFlowers(m *telebot.Message) {
+	if admin, err := checkAdmin(m.Sender.ID); !admin || err != nil {
+		botmsg, _ := bot.Reply(m, getLoc("not_admin"))
+		UpdateUser(m, botmsg)
+		return
+	}
+
+	data, err := MakeAdminHTTPReq("getAllFlowerTypes", obj{})
+	if err != nil {
+		log.Println("admin_handlers.go -> allFlowers() -> error makin req err:", err.Error())
+		return
+	}
+
+	var resp struct {
+		Result []Flower `json:"result"`
+		Err    string   `json:"err"`
+	}
+	if err := json.Unmarshal(data, &resp); err != nil {
+		log.Println("admin_handlers.go -> allFlowers() -> Unmarshal err:", err.Error(), string(data))
+		return
+	}
+
+	var text string
+	for _, v := range resp.Result {
+		text += fmt.Sprintf("%v - %v\n", v.Icon, v.Name)
+	}
+	text += fmt.Sprintf("len %v", len(resp.Result))
+	botmsg, _ := bot.Reply(m, text)
+	UpdateUser(m, botmsg)
+}
