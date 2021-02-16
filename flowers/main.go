@@ -15,6 +15,7 @@ func main() {
 	apiv1 := r.Group("/api/v1")
 	{
 		apiv1.POST("/addFlower", addNewFlower)
+		apiv1.GET("/getFlowerTypes", getFlowerTypes)
 		apiv1.POST("/removeFlower", removeFlower)
 		apiv1.POST("/growFlower", growFlowerReq)
 		apiv1.POST("/getUserFlowers", getUserFlowers)

@@ -37,6 +37,8 @@ func main() {
 	{
 		apiv1_admin.POST("/isAdmin", isAdminReq)
 		apiv1_admin.POST("/admin", adminReq)
+		apiv1_admin.GET("/getAllFlowerTypes", getAllFlowerTypes)
+		apiv1_admin.POST("/removeFlower", removeFlower)
 	}
 
 	if err := r.Run(":1488"); err != nil {

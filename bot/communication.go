@@ -186,6 +186,10 @@ func MakeAdminHTTPReq(method string, data interface{}) (dataresp []byte, err err
 		dataresp, err = MakeHttpReq(path, "POST", marshaled)
 	case "admin":
 		dataresp, err = MakeHttpReq(path, "POST", marshaled)
+	case "getAllFlowerTypes":
+		dataresp, err = MakeHttpReq(path, "GET", nil)
+	case "removeFlower":
+		dataresp, err = MakeHttpReq(path, "POST", marshaled)
 	default:
 		return []byte{}, fmt.Errorf("no such method")
 	}
