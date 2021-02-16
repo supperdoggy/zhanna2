@@ -93,23 +93,6 @@ func tost(m *telebot.Message) {
 	go UpdateUser(m, botmsg)
 }
 
-func addFlower(m *telebot.Message) {
-	text := split(m.Text[11:], "-")
-	if len(text) != 3 {
-		bmsg, _ := bot.Reply(m, getLoc("add_flower"))
-		go UpdateUser(m, bmsg)
-		return
-	}
-	data := obj{"icon": text[0], "name": text[1], "type": text[2]}
-	_, err := MakeUserHttpReq("addFlower", data)
-	if err != nil {
-		log.Println("handlers.go -> addFlower() -> MakeUserHttpReq error:", err.Error())
-		return
-	}
-	botmsg, _ := bot.Reply(m, "Done!")
-	go UpdateUser(m, botmsg)
-}
-
 func flower(m *telebot.Message) {
 	resp, err := MakeFlowerReq(m.Sender.ID)
 	if err != nil {

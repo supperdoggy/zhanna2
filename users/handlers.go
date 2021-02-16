@@ -279,6 +279,7 @@ func flowerReq(c *gin.Context) {
 	}
 	resp.Flower = answer
 	resp.Up = answer.Grew
+	// grew successful
 	resp.Grew = true
 	c.JSON(200, resp)
 }
@@ -390,6 +391,7 @@ func give(c *gin.Context) {
 }
 
 // flowertop - finds all users in chat and forms top users by total flowers
+// todo: fimplify
 func flowertop(c *gin.Context) {
 	var req struct {
 		ChatId int `json:"chatid"`

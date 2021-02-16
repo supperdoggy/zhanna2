@@ -41,6 +41,10 @@ func MakeReqToFlowers(method string, data interface{}) (answer []byte, err error
 		answer, err = MakeHttpReq(path, "POST", reqData)
 	case "userFlowerSlice":
 		answer, err = MakeHttpReq(path, "POST", reqData)
+	case "getFlowerTypes":
+		answer, err = MakeHttpReq(path, "GET", nil)
+	case "removeFlower":
+		answer, err = MakeHttpReq(path, "POST", reqData)
 	default:
 		err = fmt.Errorf("no such method")
 	}

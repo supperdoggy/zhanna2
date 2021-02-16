@@ -174,3 +174,24 @@ func MakeFlowerReq(id int) (msg string, err error) {
 	}
 	return "its not time, try again later...", err
 }
+
+func MakeAdminHTTPReq(method string, data interface{}) (dataresp []byte, err error) {
+	path := fmt.Sprintf("%v/%v", userAdminUrl, method)
+	marshaled, err := json.Marshal(data)
+	if err != nil {
+		return []byte{}, err
+	}
+	switch method {
+	case "isAdmin":
+		dataresp, err = MakeHttpReq(path, "POST", marshaled)
+	case "admin":
+		dataresp, err = MakeHttpReq(path, "POST", marshaled)
+	case "getAllFlowerTypes":
+		dataresp, err = MakeHttpReq(path, "GET", nil)
+	case "removeFlower":
+		dataresp, err = MakeHttpReq(path, "POST", marshaled)
+	default:
+		return []byte{}, fmt.Errorf("no such method")
+	}
+	return
+}
