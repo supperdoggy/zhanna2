@@ -14,8 +14,11 @@ var (
 )
 
 func main() {
+	// remake it
 	DB.AdminCollection = connectToAdminCollection()
 	DB.UsersCollection = connectToUsersCollection()
+	DB.MessageCollection = connectToMessageCollection()
+
 	r := gin.Default()
 
 	apiv1 := r.Group("/api/v1")

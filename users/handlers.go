@@ -59,15 +59,16 @@ func addOrUpdateUserReq(c *gin.Context) {
 		newUser.Chats = append(old.Chats, newUser.Chats...)
 	}
 
-	newUser.MessagesUserSent = append(old.MessagesUserSent, newUser.MessagesUserSent...)
-	newUser.MessagesZhannaSent = append(old.MessagesZhannaSent, newUser.MessagesZhannaSent...)
+	// add message
+	err = DB.writeMessage(newUser.MessagesUserSent[0], newUser.MessagesZhannaSent[0])
+	if err != nil {
+		log.Println("handlers.go -> addOrUpdateUserReq() -> DB.writeMessage() error:", err.Error())
+	}
 
 	fieldsToSet := obj{
-		"messagesUserSent":   newUser.MessagesUserSent,
-		"messagesZhannaSent": newUser.MessagesZhannaSent,
-		"lastOnlineTime":     newUser.LastOnlineTime,
-		"lastOnline":         newUser.LastOnline,
-		"chats":              newUser.Chats,
+		"lastOnlineTime": newUser.LastOnlineTime,
+		"lastOnline":     newUser.LastOnline,
+		"chats":          newUser.Chats,
 	}
 
 	if err := DB.UsersCollection.Update(obj{"telebot.id": newUser.Telebot.ID}, obj{"$set": fieldsToSet}); err != nil {
