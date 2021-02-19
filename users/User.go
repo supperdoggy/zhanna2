@@ -47,8 +47,7 @@ type User struct {
 	Tosts               []Tost    `json:"tosts" bson:"tosts"`
 	LastTimeGotTost     int64     `json:"lastTimeGotTost" bson:"lastTimeGotTost"`
 	LastTimeGotTostTime time.Time `json:"lastTimeGotTostTime" bson:"lastTimeGotTostTime"`
-	// todo flowers struct
-	Balance uint64 `json:"balance" bson:"balance"`
+	Balance             uint64    `json:"balance" bson:"balance"`
 }
 
 type Chat struct {
@@ -56,6 +55,13 @@ type Chat struct {
 	Users      []User       `json:"users" bson:"users"`
 	LastOnline int64        `json:"lastOnline" bson:"lastOnline"`
 	Deleted    bool         `json:"deleted" bson:"deleted"`
+}
+
+type Message struct {
+	UserID  int             `json:"userID" bson:"userID"`
+	Message telebot.Message `json:"message" bson:"message"`
+	Reply   telebot.Message `json:"reply" bson:"reply"`
+	Time    time.Time       `json:"time" bson:"time"`
 }
 
 // appends anek to anek slice and saves user

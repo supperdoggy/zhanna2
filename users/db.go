@@ -3,13 +3,16 @@ package main
 import (
 	"time"
 
+	"gopkg.in/tucnak/telebot.v2"
+
 	"gopkg.in/mgo.v2"
 )
 
 type DbStruct struct {
-	DbSession       *mgo.Session
-	UsersCollection *mgo.Collection
-	AdminCollection *mgo.Collection
+	DbSession         *mgo.Session
+	UsersCollection   *mgo.Collection
+	AdminCollection   *mgo.Collection
+	MessageCollection *mgo.Collection
 }
 
 type obj map[string]interface{}
@@ -26,8 +29,13 @@ func connectToUsersCollection() *mgo.Collection {
 	return DB.DbSession.DB(mainDbName).C("users")
 }
 
+// ????
 func connectToAdminCollection() *mgo.Collection {
 	return DB.DbSession.DB(mainDbName).C("admin")
+}
+
+func connectToMessageCollection() *mgo.Collection {
+	return DB.DbSession.DB(mainDbName).C("messages")
 }
 
 func (d *DbStruct) getUserFromDbById(id int) (result User, err error) {
@@ -71,4 +79,9 @@ func (d *DbStruct) getChatUsersIDs(chatid int) (ids []int, err error) {
 func (d *DbStruct) getChatUsers(chatid int) (users []User, err error) {
 	err = d.UsersCollection.Find(obj{"chats.telebot.id": chatid}).All(&users)
 	return
+}
+
+func (d *DbStruct) writeMessage(userMsg, botMsg telebot.Message) error {
+	var msg Message = Message{UserID: userMsg.Sender.ID, Message: userMsg, Reply: botMsg, Time: time.Now()}
+	return d.MessageCollection.Insert(msg)
 }
