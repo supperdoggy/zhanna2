@@ -96,8 +96,9 @@ func flower(m *telebot.Message) {
 		return
 	}
 
+	data := obj{"id": m.Sender.ID, "nonDying": m.Chat.ID == edemID}
 	// getting total and last
-	data, err := MakeUserHttpReq("myflowers", obj{"id": m.Sender.ID})
+	data, err := MakeUserHttpReq("myflowers", data)
 	if err != nil {
 		log.Println("handlers.go -> flower() -> myflowers error:", err.Error())
 	} else {
