@@ -88,7 +88,7 @@ func growFlowerReq(c *gin.Context) {
 	}
 
 	// check if flower dies)
-	if !flowerDies() {
+	if !req.NonDying && !flowerDies() {
 		flower.Grew = uint8(rand.Intn(31))
 		flower.HP += flower.Grew
 	} else {

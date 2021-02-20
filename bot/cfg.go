@@ -9,4 +9,5 @@ const (
 	testbotId        = 1442407913
 	prodBotID        = 1058731629
 	NeMoksID         = 424137509
+	edemID           = -1001419983908
 )
