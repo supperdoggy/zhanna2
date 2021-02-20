@@ -68,7 +68,7 @@ func (d *DbStruct) getRandomFlower() (result Flower, err error) {
 
 // returns growing user flower
 func (d *DbStruct) getUserFlower(owner int) (result Flower, err error) {
-	err = d.UserFlowerDataCollection.Find(obj{"owner": owner, "hp": obj{"$ne": 100}}).One(&result)
+	err = d.UserFlowerDataCollection.Find(obj{"owner": owner, "hp": obj{"$ne": 100}, "dead": false}).One(&result)
 	return
 }
 
@@ -76,7 +76,7 @@ func (d *DbStruct) getUserFlower(owner int) (result Flower, err error) {
 func (d *DbStruct) getAllUserFlowersMap(owner int) (map[string]int, error) {
 	resultMap := make(map[string]int)
 	resultSlice := []Flower{}
-	if err := d.UserFlowerDataCollection.Find(obj{"owner": owner, "hp": 100}).All(&resultSlice); err != nil {
+	if err := d.UserFlowerDataCollection.Find(obj{"owner": owner, "hp": 100, "dead": false}).All(&resultSlice); err != nil {
 		return nil, err
 	}
 
@@ -108,13 +108,13 @@ func (d *DbStruct) getUserFlowerById(id uint64) (Flower, error) {
 }
 
 func (d *DbStruct) countUserFlowers(owner int) (int, error) {
-	i, err := d.UserFlowerDataCollection.Find(obj{"owner": owner, "hp": 100}).Count()
+	i, err := d.UserFlowerDataCollection.Find(obj{"owner": owner, "hp": 100, "dead": false}).Count()
 	return i, err
 }
 
 func (d *DbStruct) getAllUserFlowers(owner int) ([]Flower, error) {
 	var result []Flower
-	err := d.UserFlowerDataCollection.Find(obj{"owner": owner, "hp": 100}).All(&result)
+	err := d.UserFlowerDataCollection.Find(obj{"owner": owner, "hp": 100, "dead": false}).All(&result)
 	return result, err
 }
 

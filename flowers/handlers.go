@@ -61,7 +61,8 @@ func removeFlower(c *gin.Context) {
 // grows user flower
 func growFlowerReq(c *gin.Context) {
 	var req struct {
-		ID int `json:"id"`
+		ID       int  `json:"id"`
+		NonDying bool `json:"nonDying"`
 	}
 	if err := c.Bind(&req); err != nil {
 		fmt.Println("handlers.go -> growFlowerReq) -> binding error:", err.Error())
@@ -85,8 +86,15 @@ func growFlowerReq(c *gin.Context) {
 		flower.ID = ai.Next(DB.UserFlowerDataCollection.Name)
 		flower.Owner = req.ID
 	}
-	flower.Grew = uint8(rand.Intn(31))
-	flower.HP += flower.Grew
+
+	// check if flower dies)
+	if !flowerDies() {
+		flower.Grew = uint8(rand.Intn(31))
+		flower.HP += flower.Grew
+	} else {
+		flower.Dead = true
+	}
+
 	if flower.HP > 100 {
 		flower.HP = 100
 	}

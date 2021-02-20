@@ -241,7 +241,8 @@ func addFlower(c *gin.Context) {
 
 func flowerReq(c *gin.Context) {
 	var req struct {
-		ID int `json:"id"`
+		ID       int  `json:"id"`
+		NonDying bool `json:"nonDying"`
 	}
 	if err := c.Bind(&req); err != nil {
 		fmt.Println("handlers.go -> flowerReq() -> binding error:", err.Error())
