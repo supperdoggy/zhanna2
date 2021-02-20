@@ -36,12 +36,7 @@ func fortuneCookie(m *telebot.Message) {
 		Err string `json:"err"`
 	}
 	data := obj{"id": m.Sender.ID}
-	readyData, err := json.Marshal(data)
-	if err != nil {
-		log.Println("error unmarshalling")
-		return
-	}
-	r, err := MakeHttpReq(userUrl+"/getFortune", "POST", readyData)
+	r, err := MakeUserHttpReq("getFortune", data)
 	if err != nil {
 		log.Println("error making request")
 		return
@@ -53,7 +48,7 @@ func fortuneCookie(m *telebot.Message) {
 	}
 	msg := resp.Text
 	if resp.Err != "" {
-		msg = resp.Err
+		msg = fmt.Sprintf("%v\n\n%v", resp.Err, resp.FortuneCookie)
 	}
 
 	botmsg, err := bot.Reply(m, msg)

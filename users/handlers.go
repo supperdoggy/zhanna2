@@ -115,8 +115,7 @@ func getFortune(c *gin.Context) {
 	}
 	// check if day passed to get new fortune
 	if !CanGetFortune(u.LastTimeGotFortuneCookieTime) {
-		fmt.Println("Day didnt pass")
-		c.JSON(400, obj{"err": cantGetFortune})
+		c.JSON(400, obj{"err": cantGetFortune, "frotune": u.FortuneCookies[len(u.FortuneCookies)-1]})
 		return
 	}
 
