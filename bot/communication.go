@@ -166,6 +166,9 @@ func MakeFlowerReq(id int) (msg string, err error) {
 		fmt.Println("communication.go -> flowerReq() -> answer.Err != '', err:", answer.Err)
 		return "communication error", err
 	}
+	if answer.Dead {
+		return fmt.Sprintf(getLoc("flower_died")), nil
+	}
 	if answer.HP == 100 {
 		return fmt.Sprintf(getLoc("flower_grew"), answer.Icon), err
 	}

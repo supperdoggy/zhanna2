@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"time"
 
 	"gopkg.in/tucnak/telebot.v2"
@@ -82,6 +83,9 @@ func (d *DbStruct) getChatUsers(chatid int) (users []User, err error) {
 }
 
 func (d *DbStruct) writeMessage(userMsg, botMsg telebot.Message) error {
+	if userMsg.Sender.ID == 0 {
+		return fmt.Errorf("user id is 0")
+	}
 	var msg Message = Message{UserID: userMsg.Sender.ID, Message: userMsg, Reply: botMsg, Time: time.Now()}
 	return d.MessageCollection.Insert(msg)
 }

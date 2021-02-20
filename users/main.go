@@ -33,6 +33,7 @@ func main() {
 		apiv1.POST("/myflowers", myflowers)
 		apiv1.POST("/give", give)
 		apiv1.POST("/flowertop", flowertop)
+		// add check if user is banned
 	}
 
 	// admin command handlers

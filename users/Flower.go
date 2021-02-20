@@ -16,6 +16,7 @@ type Flower struct {
 	// owner id
 	Owner int   `json:"owner" bson:"owner"`
 	Grew  uint8 `json:"grew" bson:"grew"`
+	Dead  bool  `json:"dead" bson:"dead"`
 
 	CreationTime time.Time `json:"creationTime" bson:"creationTime"`
 	LastTimeGrow time.Time `json:"lastTimeGrow" bson:"lastTimeGrow"`
