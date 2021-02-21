@@ -32,8 +32,8 @@ func start(m *telebot.Message) {
 // TODO:
 func fortuneCookie(m *telebot.Message) {
 	var resp struct {
-		FortuneCookie
-		Err string `json:"err"`
+		Fortune FortuneCookie `json:"fortune"`
+		Err     string        `json:"err"`
 	}
 	data := obj{"id": m.Sender.ID}
 	r, err := MakeUserHttpReq("getFortune", data)
@@ -46,9 +46,9 @@ func fortuneCookie(m *telebot.Message) {
 		log.Println("error unmarshalling")
 		return
 	}
-	msg := resp.Text
+	msg := resp.Fortune.Text
 	if resp.Err != "" {
-		msg = fmt.Sprintf("%v\n\n%v", resp.Err, resp.FortuneCookie)
+		msg = fmt.Sprintf("%v\n\n%v", resp.Err, resp.Fortune.Text)
 	}
 
 	botmsg, err := bot.Reply(m, msg)
