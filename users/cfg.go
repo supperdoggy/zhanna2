@@ -8,5 +8,4 @@ const (
 	tostUrl          = "http://localhost:9393/api/v1"
 	flowerUrl        = "http://localhost:2345/api/v1"
 	dialogFlowerUrl  = "http://127.0.0.1:5000/api/v1"
-	edemID           = -1001419983908
 )
