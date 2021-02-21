@@ -23,6 +23,13 @@ type Statuses struct {
 	IsDeleted bool `json:"isDeleted" bson:"isDeleted"`
 }
 
+type Chat struct {
+	Telebot    telebot.Chat `json:"telebot" bson:"telebot"`
+	Users      []User       `json:"users" bson:"users"`
+	LastOnline int64        `json:"lastOnline" bson:"lastOnline"`
+	Deleted    bool         `json:"deleted" bson:"deleted"`
+}
+
 type User struct {
 	// telebot api user structure
 	Telebot        telebot.User `json:"telebot" bson:"telebot"`
@@ -46,13 +53,11 @@ type User struct {
 	Tosts               []Tost    `json:"tosts" bson:"tosts"`
 	LastTimeGotTost     int64     `json:"lastTimeGotTost" bson:"lastTimeGotTost"`
 	LastTimeGotTostTime time.Time `json:"lastTimeGotTostTime" bson:"lastTimeGotTostTime"`
-	// todo flowers struct
-	Balance uint64 `json:"balance" bson:"balance"`
+	Balance             uint64    `json:"balance" bson:"balance"`
+	NHIEUserGot         []NHIE    `json:"NHIEUserGot" bson:"NHIEUserGot"`
 }
 
-type Chat struct {
-	Telebot    telebot.Chat `json:"telebot" bson:"telebot"`
-	Users      []User       `json:"users" bson:"users"`
-	LastOnline int64        `json:"lastOnline" bson:"lastOnline"`
-	Deleted    bool         `json:"deleted" bson:"deleted"`
+type NHIE struct {
+	ID   int    `json:"id" bson:"_id"`
+	Text string `json:"text" bson:"text"`
 }

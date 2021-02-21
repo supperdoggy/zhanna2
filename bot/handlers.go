@@ -257,3 +257,20 @@ func danet(m *telebot.Message) {
 	}
 	UpdateUser(m, botmsg)
 }
+
+func neverhaveiever(m *telebot.Message) {
+	data, err := MakeUserHttpReq("getRandomNHIE", nil)
+	if err != nil {
+		bot.Reply(m, getLoc("error"))
+		return
+	}
+	var resp struct {
+		Err    string `json:"err"`
+		Result NHIE   `json:"result"`
+	}
+	if err := json.Unmarshal(data, &resp); err != nil {
+		log.Printf("handlers.go -> neverhaveiever() -> Unmarshal() error: %v, body: %v\n", err.Error(), string(data))
+		return
+	}
+	bot.Reply(m, resp.Result.Text)
+}

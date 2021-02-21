@@ -34,6 +34,7 @@ func main() {
 	bot.Handle("/testMessage", testMessage)
 	bot.Handle("/flowertop", flowertop)
 	bot.Handle("/danet", danet)
+	bot.Handle("/neverhaveiever", neverhaveiever)
 
 	// admin handlers
 	bot.Handle("/adminHelp", adminHelp)

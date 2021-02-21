@@ -48,6 +48,7 @@ type User struct {
 	LastTimeGotTost     int64     `json:"lastTimeGotTost" bson:"lastTimeGotTost"`
 	LastTimeGotTostTime time.Time `json:"lastTimeGotTostTime" bson:"lastTimeGotTostTime"`
 	Balance             uint64    `json:"balance" bson:"balance"`
+	NHIEUserGot         []NHIE    `json:"NHIEUserGot" bson:"NHIEUserGot"`
 }
 
 type Chat struct {
@@ -62,6 +63,11 @@ type Message struct {
 	Message telebot.Message `json:"message" bson:"message"`
 	Reply   telebot.Message `json:"reply" bson:"reply"`
 	Time    time.Time       `json:"time" bson:"time"`
+}
+
+type NHIE struct {
+	ID   int    `json:"id" bson:"_id"`
+	Text string `json:"text" bson:"text"`
 }
 
 // appends anek to anek slice and saves user
