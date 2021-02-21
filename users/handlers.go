@@ -479,3 +479,40 @@ func flowertop(c *gin.Context) {
 	c.JSON(200, obj{"result": result})
 
 }
+
+func getRandomNHIE(c *gin.Context) {
+	var req struct {
+		ID int `json:"id"`
+	}
+	if err := c.Bind(&req); err != nil {
+		log.Println("handlers.go -> getRandomNHIE() -> c.Bind() error:", err.Error())
+		c.JSON(400, obj{"err": err.Error()})
+		return
+	}
+
+	// u, err := DB.getUserFromDbById(req.ID)
+	// if err != nil {
+	// 	log.Println("handlers.go -> getRandomNHIE() -> c.Bind() error:", err.Error())
+	// }
+
+	data, err := MakeHttpReq(NHIEUrl+"/getRandomNeverHaveIEver", "GET", nil)
+	if err != nil {
+		log.Println("handlers.go -> getRandomNHIE() -> c.Bind() error:", err.Error())
+		c.JSON(400, obj{"err": err.Error()})
+		return
+	}
+
+	var resp struct {
+		Err    string `json:"err"`
+		Result NHIE   `json:"result"`
+	}
+	err = json.Unmarshal(data, &resp)
+	if err != nil {
+		log.Printf("handlers.go -> getRandomNHIE() -> Unmarshal error:%v, body:%v\n", err.Error(), string(data))
+		c.JSON(400, obj{"err": "error unmarshaling"})
+		return
+	}
+
+	c.JSON(200, resp)
+
+}

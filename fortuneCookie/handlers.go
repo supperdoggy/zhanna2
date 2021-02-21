@@ -1,13 +1,15 @@
 package main
 
 import (
-	"github.com/gin-gonic/gin"
 	"math/rand"
 	"time"
+
+	"github.com/gin-gonic/gin"
 )
 
 type obj map[string]interface{}
 
+// redo!!!!
 func getRandomFortuneCookieReq(c *gin.Context) {
 	var result Cookie
 	rand.Seed(time.Now().Unix())

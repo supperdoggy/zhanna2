@@ -77,6 +77,8 @@ func MakeUserHttpReq(method string, req interface{}) (answer []byte, err error) 
 		answer, err = MakeHttpReq(path, "POST", data)
 	case "getFortune":
 		answer, err = MakeHttpReq(path, "POST", data)
+	case "getRandomNHIE":
+		answer, err = MakeHttpReq(path, "POST", data)
 	default:
 		err = fmt.Errorf("no such method")
 	}

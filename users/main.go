@@ -33,6 +33,7 @@ func main() {
 		apiv1.POST("/myflowers", myflowers)
 		apiv1.POST("/give", give)
 		apiv1.POST("/flowertop", flowertop)
+		apiv1.POST("/getRandomNHIE", getRandomNHIE)
 		// add check if user is banned
 	}
 
