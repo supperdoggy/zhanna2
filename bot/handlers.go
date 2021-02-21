@@ -94,16 +94,16 @@ func tost(m *telebot.Message) {
 }
 
 func flower(m *telebot.Message) {
-	resp, err := MakeFlowerReq(m.Sender.ID)
+	resp, err := MakeFlowerReq(m.Sender.ID, m.Chat.ID)
 	if err != nil {
 		log.Println("handlers.go -> flower() -> MakeFlowerReq() error", err.Error(), m.Sender.ID)
 		_, _ = bot.Reply(m, "error occured, contact owner")
 		return
 	}
 
-	data := obj{"id": m.Sender.ID, "nonDying": m.Chat.ID == edemID}
+	req := obj{"id": m.Sender.ID}
 	// getting total and last
-	data, err := MakeUserHttpReq("myflowers", data)
+	data, err := MakeUserHttpReq("myflowers", req)
 	if err != nil {
 		log.Println("handlers.go -> flower() -> myflowers error:", err.Error())
 	} else {

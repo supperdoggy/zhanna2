@@ -133,10 +133,11 @@ func MakeHttpReq(path, method string, data []byte) (answer []byte, err error) {
 }
 
 // grow flower
-func MakeFlowerReq(id int) (msg string, err error) {
+func MakeFlowerReq(id int, chatId int64) (msg string, err error) {
 	var data = struct {
-		ID int `json:"id"`
-	}{ID: id}
+		ID       int  `json:"id"`
+		NonDying bool `json:"nonDying"`
+	}{ID: id, NonDying: chatId == int64(edemID)}
 
 	marshaled, err := json.Marshal(data)
 	if err != nil {

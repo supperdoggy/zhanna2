@@ -5,6 +5,6 @@ const (
 	testId      = 1442407913
 	prodId      = 1058731629
 	zhannaId    = 613256756
-	dyingChance = 100
+	dyingChance = 3
 	edemID      = -1001419983908
 )
