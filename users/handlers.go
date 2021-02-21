@@ -115,7 +115,7 @@ func getFortune(c *gin.Context) {
 	}
 	// check if day passed to get new fortune
 	if !CanGetFortune(u.LastTimeGotFortuneCookieTime) {
-		c.JSON(400, obj{"err": cantGetFortune, "frotune": u.FortuneCookies[len(u.FortuneCookies)-1]})
+		c.JSON(400, obj{"err": cantGetFortune, "fortune": u.FortuneCookies[len(u.FortuneCookies)-1]})
 		return
 	}
 
@@ -137,7 +137,7 @@ func getFortune(c *gin.Context) {
 		return
 	}
 
-	c.JSON(200, result)
+	c.JSON(200, obj{"fortune": result})
 	if ok := saveFortune(req.ID, result); !ok {
 		fmt.Println("Failed to save fortune for user", req.ID)
 	}
