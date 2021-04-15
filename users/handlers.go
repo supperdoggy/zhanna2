@@ -248,6 +248,7 @@ func flowerReq(c *gin.Context) {
 		c.JSON(400, obj{"err": "binding error"})
 		return
 	}
+	log.Println(req)
 
 	canGrow, err := canGrowFlower(req.ID)
 	if err != nil {

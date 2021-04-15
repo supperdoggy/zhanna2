@@ -69,14 +69,18 @@ func growFlowerReq(c *gin.Context) {
 		c.JSON(400, obj{"err": "binding error"})
 		return
 	}
+	log.Println(req)
 	flower, err := DB.getUserFlower(req.ID)
+	log.Println("err", err, flower)
 	if err != nil && err.Error() != "not found" {
+		log.Println("error getting")
 		fmt.Println("handlers.go -> growFlowerReq) -> getUserFlower() error:", err.Error())
 		c.JSON(400, obj{"err": "error getting flower"})
 		return
 	}
 	// not found flower, creating new
 	if err != nil && err.Error() == "not found" {
+		log.Println("creating new")
 		flower, err = DB.getRandomFlower()
 		if err != nil {
 			fmt.Println("handlers.go -> growFlowerReq) -> getRandomFlower() error:", err.Error())
@@ -85,20 +89,18 @@ func growFlowerReq(c *gin.Context) {
 		}
 		flower.ID = ai.Next(DB.UserFlowerDataCollection.Name)
 		flower.Owner = req.ID
+		flower.Grew = uint8(rand.Intn(31)) + 1 // so its not possible to get 0
+		flower.HP += flower.Grew
 	}
 
-	// check if flower dies)
-	if !req.NonDying && !flowerDies() {
-		flower.Grew = uint8(rand.Intn(31))
-		flower.HP += flower.Grew
-	} else {
-		flower.Dead = true
-	}
+	flower.Grew = uint8(rand.Intn(31))
+	flower.HP += flower.Grew
 
 	if flower.HP > 100 {
 		flower.HP = 100
 	}
 	flower.LastTimeGrow = time.Now()
+
 	if _, err := DB.UserFlowerDataCollection.Upsert(obj{"_id": flower.ID}, flower); err != nil {
 		fmt.Println("handlers.go -> growFlowerReq) -> Upsert() error:", err.Error())
 		c.JSON(400, obj{"err": err.Error()})
@@ -253,6 +255,7 @@ func userFlowerSlice(c *gin.Context) {
 		Owner int   `json:"owner" bson:"owner"`
 		Hp    uint8 `json:"hp" bson:"hp"`
 	}
+	// BUG: returns dead flowers
 	if err := DB.UserFlowerDataCollection.Find(obj{"$or": query}).All(&result); err != nil {
 		fmt.Println("handlers.go -> userFlowerSlice() -> flower find error:", err.Error())
 		c.JSON(400, obj{"err": err.Error()})
