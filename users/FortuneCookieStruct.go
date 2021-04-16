@@ -8,5 +8,6 @@ type FortuneCookie struct {
 }
 
 func CanGetFortune(date time.Time) bool {
-	return int(time.Now().Sub(date).Hours())/24 >= 1
+	now := time.Now()
+	return date.Day != now.Day || date.Month != now.Month || date.Year != now.Year
 }
