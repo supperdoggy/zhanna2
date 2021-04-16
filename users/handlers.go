@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"os/exec"
 	"sync"
 	"time"
 
@@ -306,6 +307,9 @@ func dialogFlowReq(c *gin.Context) {
 	answer, err := MakeReqToDialogFlow(req.Text)
 	if err != nil {
 		fmt.Println("dialogFlowReq() -> MakeReqToDialogFlow() error:", err.Error())
+		fmt.Println("dialogFlowReq() -> starting python service again....")
+		// restarts service)))
+		go exec.Command("python3", "/root/dialogflow/main.py").Run()
 		c.JSON(400, obj{"err": err.Error()})
 		return
 	}
