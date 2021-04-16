@@ -9,5 +9,5 @@ type FortuneCookie struct {
 
 func CanGetFortune(date time.Time) bool {
 	now := time.Now()
-	return date.Day != now.Day || date.Month != now.Month || date.Year != now.Year
+	return date.Day() != now.Day() || date.Month() != now.Month() || date.Year() != now.Year()
 }
