@@ -9,6 +9,7 @@ import (
 	"gopkg.in/mgo.v2"
 )
 
+// DbStruct - the main db struct
 type DbStruct struct {
 	DbSession         *mgo.Session
 	UsersCollection   *mgo.Collection
@@ -18,25 +19,19 @@ type DbStruct struct {
 
 type obj map[string]interface{}
 
-func connectToDB() *mgo.Session {
+// GetDB - returns db object
+func (ds *DbStruct) initDB() DbStruct {
 	d, err := mgo.Dial("")
 	if err != nil {
 		panic(err.Error())
 	}
-	return d
-}
-
-func connectToUsersCollection() *mgo.Collection {
-	return DB.DbSession.DB(mainDbName).C("users")
-}
-
-// ????
-func connectToAdminCollection() *mgo.Collection {
-	return DB.DbSession.DB(mainDbName).C("admin")
-}
-
-func connectToMessageCollection() *mgo.Collection {
-	return DB.DbSession.DB(mainDbName).C("messages")
+	result := DbStruct{
+		DbSession:         d,
+		UsersCollection:   DB.DbSession.DB(mainDbName).C("users"),
+		AdminCollection:   DB.DbSession.DB(mainDbName).C("admin"),
+		MessageCollection: DB.DbSession.DB(mainDbName).C("messages"),
+	}
+	return result
 }
 
 func (d *DbStruct) getUserFromDbById(id int) (result User, err error) {

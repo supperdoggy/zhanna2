@@ -6,18 +6,11 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// db itself
-var (
-	DB = DbStruct{
-		DbSession: connectToDB(),
-	}
-)
+// DB global object
+var DB = &DbStruct{}
 
 func main() {
-	// remake it
-	DB.AdminCollection = connectToAdminCollection()
-	DB.UsersCollection = connectToUsersCollection()
-	DB.MessageCollection = connectToMessageCollection()
+	DB.initDB()
 
 	r := gin.Default()
 
