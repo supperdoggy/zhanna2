@@ -27,9 +27,9 @@ func (ds *DbStruct) initDB() {
 	}
 	*ds = DbStruct{
 		DbSession:         d,
-		UsersCollection:   DB.DbSession.DB(mainDbName).C("users"),
-		AdminCollection:   DB.DbSession.DB(mainDbName).C("admin"),
-		MessageCollection: DB.DbSession.DB(mainDbName).C("messages"),
+		UsersCollection:   d.DB(mainDbName).C("users"),
+		AdminCollection:   d.DB(mainDbName).C("admin"),
+		MessageCollection: d.DB(mainDbName).C("messages"),
 	}
 }
 
@@ -40,7 +40,6 @@ func (d *DbStruct) getUserFromDbById(id int) (result User, err error) {
 
 func (d *DbStruct) userExists(id int) (bool, error) {
 	var u User
-	fmt.Printf("asdasdsa %+v", d.UsersCollection)
 	if err := d.UsersCollection.Find(obj{"telebot.id": id}).One(&u); err != nil {
 		if err.Error() == "not found" {
 			return false, nil
