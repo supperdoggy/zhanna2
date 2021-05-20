@@ -70,6 +70,9 @@ func addOrUpdateUserReq(c *gin.Context) {
 		"lastOnlineTime": newUser.LastOnlineTime,
 		"lastOnline":     newUser.LastOnline,
 		"chats":          newUser.Chats,
+		"telebot.username": newUser.Telebot.Username,
+		"telebot.first_name": newUser.Telebot.FirstName,
+		"telebot.last_name": newUser.Telebot.LastName,
 	}
 
 	if err := DB.UsersCollection.Update(obj{"telebot.id": newUser.Telebot.ID}, obj{"$set": fieldsToSet}); err != nil {
