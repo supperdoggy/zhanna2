@@ -20,18 +20,17 @@ type DbStruct struct {
 type obj map[string]interface{}
 
 // GetDB - returns db object
-func (ds *DbStruct) initDB() DbStruct {
+func (ds *DbStruct) initDB() {
 	d, err := mgo.Dial("")
-	if err != nil {
+	if err != nil || d == nil {
 		panic(err.Error())
 	}
-	result := DbStruct{
+	*ds = DbStruct{
 		DbSession:         d,
 		UsersCollection:   DB.DbSession.DB(mainDbName).C("users"),
 		AdminCollection:   DB.DbSession.DB(mainDbName).C("admin"),
 		MessageCollection: DB.DbSession.DB(mainDbName).C("messages"),
 	}
-	return result
 }
 
 func (d *DbStruct) getUserFromDbById(id int) (result User, err error) {
@@ -41,12 +40,14 @@ func (d *DbStruct) getUserFromDbById(id int) (result User, err error) {
 
 func (d *DbStruct) userExists(id int) (bool, error) {
 	var u User
+	fmt.Printf("asdasdsa %+v", d.UsersCollection)
 	if err := d.UsersCollection.Find(obj{"telebot.id": id}).One(&u); err != nil {
 		if err.Error() == "not found" {
 			return false, nil
 		}
 		return false, err
 	}
+	fmt.Println("all good")
 	return true, nil
 }
 

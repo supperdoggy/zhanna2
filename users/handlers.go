@@ -21,6 +21,7 @@ func addOrUpdateUserReq(c *gin.Context) {
 		c.JSON(400, obj{"err": err.Error()})
 		return
 	}
+	fmt.Printf("%+v\n", newUser.Telebot.ID)
 
 	exists, err := DB.userExists(newUser.Telebot.ID)
 	if err != nil {
@@ -67,12 +68,12 @@ func addOrUpdateUserReq(c *gin.Context) {
 	}
 
 	fieldsToSet := obj{
-		"lastOnlineTime": newUser.LastOnlineTime,
-		"lastOnline":     newUser.LastOnline,
-		"chats":          newUser.Chats,
-		"telebot.username": newUser.Telebot.Username,
+		"lastOnlineTime":     newUser.LastOnlineTime,
+		"lastOnline":         newUser.LastOnline,
+		"chats":              newUser.Chats,
+		"telebot.username":   newUser.Telebot.Username,
 		"telebot.first_name": newUser.Telebot.FirstName,
-		"telebot.last_name": newUser.Telebot.LastName,
+		"telebot.last_name":  newUser.Telebot.LastName,
 	}
 
 	if err := DB.UsersCollection.Update(obj{"telebot.id": newUser.Telebot.ID}, obj{"$set": fieldsToSet}); err != nil {

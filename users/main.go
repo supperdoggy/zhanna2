@@ -11,6 +11,7 @@ var DB = &DbStruct{}
 
 func main() {
 	DB.initDB()
+	fmt.Printf("%+v\n", DB)
 
 	r := gin.Default()
 
