@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"math"
 	"math/rand"
 	"sort"
 	"time"
@@ -63,15 +64,14 @@ func growFlowerReq(c *gin.Context) {
 	var req struct {
 		ID       int  `json:"id"`
 		NonDying bool `json:"nonDying"`
+		MsgCount int  `json:"msg_count"`
 	}
 	if err := c.Bind(&req); err != nil {
 		fmt.Println("handlers.go -> growFlowerReq) -> binding error:", err.Error())
 		c.JSON(400, obj{"err": "binding error"})
 		return
 	}
-	log.Println(req)
 	flower, err := DB.getUserFlower(req.ID)
-	log.Println("err", err, flower)
 	if err != nil && err.Error() != "not found" {
 		log.Println("error getting")
 		fmt.Println("handlers.go -> growFlowerReq) -> getUserFlower() error:", err.Error())
@@ -93,7 +93,12 @@ func growFlowerReq(c *gin.Context) {
 		flower.HP += flower.Grew
 	}
 
-	flower.Grew = uint8(rand.Intn(31))
+	// add extra grow output for user
+	extraGrow := int(math.Round(float64(req.MsgCount) * message_multiplyer))
+	if extraGrow > 20 {
+		extraGrow = 20
+	}
+	flower.Grew = uint8(rand.Intn(31) + extraGrow)
 	flower.HP += flower.Grew
 
 	if flower.HP > 100 {

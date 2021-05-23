@@ -21,7 +21,6 @@ func MakeReqToAnek(method string, data []byte) (answer []byte, err error) {
 }
 
 // MakeReqToFlowers - makes req to flowers service
-// TODO: implement all the methods
 func MakeReqToFlowers(method string, data interface{}) (answer []byte, err error) {
 	path := fmt.Sprintf("%s/%s", flowerUrl, method)
 	reqData, err := json.Marshal(data)
@@ -76,7 +75,7 @@ func MakeReqToDialogFlow(message string) (answer string, err error) {
 	}
 
 	if respStruct.Err != "" {
-		fmt.Println("MakeReqToDialogFlow() -> got an error from dialogflow:", err.Error())
+		fmt.Println("MakeReqToDialogFlow() -> got an error from dialogflow:", respStruct.Err)
 		return "", fmt.Errorf(respStruct.Err)
 	}
 	return respStruct.Answer, nil

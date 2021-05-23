@@ -84,3 +84,12 @@ func (d *DbStruct) writeMessage(userMsg, botMsg telebot.Message) error {
 	var msg Message = Message{UserID: userMsg.Sender.ID, Message: userMsg, Reply: botMsg, Time: time.Now()}
 	return d.MessageCollection.Insert(msg)
 }
+
+// getUserMsgCount - returns number of msgs user wrote to zhanna :p
+func (d *DbStruct) getUserMsgCount(id int) (int, error) {
+	if count, err := d.MessageCollection.Find(obj{"userID": id}).Count(); err != nil {
+		return 0, err
+	} else {
+		return count, nil
+	}
+}

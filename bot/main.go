@@ -28,6 +28,7 @@ func main() {
 	bot.Handle("/anek", anek)
 	bot.Handle("/tost", tost)
 	bot.Handle("/flower", flower)
+	// just text handler
 	bot.Handle(telebot.OnText, onTextHandler)
 	bot.Handle("/myflowers", myflowers)
 	bot.Handle("/giveoneflower", giveOneFlower)

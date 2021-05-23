@@ -247,13 +247,13 @@ func flowerReq(c *gin.Context) {
 	var req struct {
 		ID       int  `json:"id"`
 		NonDying bool `json:"nonDying"`
+		MsgCount int  `json:"msg_count"`
 	}
 	if err := c.Bind(&req); err != nil {
 		fmt.Println("handlers.go -> flowerReq() -> binding error:", err.Error())
 		c.JSON(400, obj{"err": "binding error"})
 		return
 	}
-	log.Println(req)
 
 	canGrow, err := canGrowFlower(req.ID)
 	if err != nil {
@@ -267,6 +267,10 @@ func flowerReq(c *gin.Context) {
 		return
 	}
 
+	req.MsgCount, err = DB.getUserMsgCount(req.ID)
+	if err != nil {
+		fmt.Println("handlers.go -> flowerReq() -> getUserMsgCount error:", err.Error())
+	}
 	data, err := MakeReqToFlowers("growFlower", req)
 	if err != nil {
 		fmt.Println("handlers.go -> flowerReq() -> req error:", err.Error())
