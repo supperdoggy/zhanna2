@@ -111,7 +111,10 @@ func growFlowerReq(c *gin.Context) {
 		c.JSON(400, obj{"err": err.Error()})
 		return
 	}
-	c.JSON(200, flower)
+	var resp obj = obj{}
+	resp["flower"] = flower
+	resp["extra"] = extraGrow
+	c.JSON(200, resp)
 
 }
 

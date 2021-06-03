@@ -158,6 +158,7 @@ func MakeFlowerReq(id int, chatId int64) (msg string, err error) {
 		Up   uint8  `json:"up"`
 		Grew bool   `json:"grew"`
 		Err  string `json:"err"`
+		Extra int `json:"extra"`
 	}
 	if err := json.Unmarshal(resp, &answer); err != nil {
 		fmt.Printf("communication.go -> flowerReq() -> json.Unmarshal() error: %v body %v\n", err.Error(), string(resp))
@@ -178,7 +179,7 @@ func MakeFlowerReq(id int, chatId int64) (msg string, err error) {
 		return fmt.Sprintf(getLoc("flower_grew"), answer.Icon), err
 	}
 	if answer.Grew {
-		return fmt.Sprintf(getLoc("flower_grew_not_fully"), answer.Up), err
+		return fmt.Sprintf(getLoc("flower_grew_not_fully"), answer.Up, answer.Extra), err
 	}
 	return "its not time, try again later...", err
 }

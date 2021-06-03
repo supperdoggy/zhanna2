@@ -277,7 +277,10 @@ func flowerReq(c *gin.Context) {
 		c.JSON(400, obj{"err": "err req to flowers"})
 		return
 	}
-	var answer Flower
+	var answer struct{
+		Flower Flower `json:"flower"`
+		Extra int `json:"extra"`
+	}
 	if err := json.Unmarshal(data, &answer); err != nil {
 		fmt.Println("handlers.go -> flowerReq() -> unmarshal error:", err.Error())
 		c.JSON(400, obj{"err": "communication error"})
@@ -287,11 +290,13 @@ func flowerReq(c *gin.Context) {
 		Flower
 		Up   uint8 `json:"up"`
 		Grew bool  `json:"grew"`
+		Extra int `json:"extra"`
 	}
-	resp.Flower = answer
-	resp.Up = answer.Grew
+	resp.Flower = answer.Flower
+	resp.Up = answer.Flower.Grew
 	// grew successful
 	resp.Grew = true
+	resp.Extra = answer.Extra
 	c.JSON(200, resp)
 }
 
