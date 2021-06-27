@@ -1,8 +1,4 @@
-package main
-
-type Aneks struct {
-	A []Anek `json:"anek" bson:"anek"`
-}
+package structs
 
 type Anek struct {
 	Id   int    `json:"id" bson:"_id"`

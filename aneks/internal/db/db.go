@@ -1,30 +1,36 @@
-package main
+package db
 
 import (
 	"fmt"
+	"github.com/supperdoggy/superSecretDevelopement/structs"
+	cfg "github.com/supperdoggy/superSecretDevelopement/structs/services/db"
 	"gopkg.in/mgo.v2"
 	"math/rand"
 	"time"
 )
+
+type DB struct {}
+
+type obj map[string]interface{}
 
 func connectToDb() *mgo.Collection {
 	b, err := mgo.Dial("")
 	if err != nil {
 		panic(err.Error())
 	}
-	return b.DB("Zhanna2").C("Aneks")
+	return b.DB(cfg.MainDBName).C(cfg.CollectionName)
 }
 
 var AneksCollection = connectToDb()
 
-func getAnekById(id int) (result Anek) {
+func (d *DB ) GetAnekById(id int) (result structs.Anek) {
 	if err := AneksCollection.Find(obj{"_id": id}).One(&result); err != nil {
 		fmt.Println(err.Error())
 	}
 	return
 }
 
-func getRandomAnek() (result Anek, err error) {
+func (d *DB ) GetRandomAnek() (result structs.Anek, err error) {
 	rand.Seed(time.Now().UnixNano())
 	size, err := AneksCollection.Count()
 	if err != nil {
@@ -32,20 +38,20 @@ func getRandomAnek() (result Anek, err error) {
 		return
 	}
 
-	return getAnekById(rand.Intn(size - 1)), err
+	return d.GetAnekById(rand.Intn(size - 1)), err
 }
 
-func deleteAnek(id int) (err error) {
+func (d *DB ) DeleteAnek(id int) (err error) {
 	err = AneksCollection.Remove(obj{"_id": id})
 	return
 }
 
-func addAnek(text string) (err error) {
+func (d *DB ) AddAnek(text string) (err error) {
 	id, err := AneksCollection.Count()
 	if err != nil {
 		return
 	}
-	a := Anek{
+	a := structs.Anek{
 		Id:   id + 1,
 		Text: text,
 	}

@@ -3,24 +3,30 @@ package main
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
+	db2 "github.com/supperdoggy/superSecretDevelopement/aneks/internal/db"
+	"github.com/supperdoggy/superSecretDevelopement/aneks/internal/handlers"
+	defaultCfg "github.com/supperdoggy/superSecretDevelopement/structs/request/default"
+	cfg "github.com/supperdoggy/superSecretDevelopement/structs/services/db"
 )
 
-// TODO: created admin check for deleteAnekReq and addAnekReq
+// TODO: created admin check for DeleteAnekByIDEndpoint and addAnekEndpoint
 // TODO: maybe create logs and user request id`s
 
-type obj map[string]interface{}
-
 func main() {
+	var db db2.DB
+	var h = handlers.Handlers{
+		DB: db,
+	}
 	r := gin.Default()
-	apiv1 := r.Group("api/v1")
+	apiv1 := r.Group(defaultCfg.ApiV1)
 	{
-		apiv1.GET("/getRandomAnek", getRandomAnekReq) // checked, works fine
-		apiv1.POST("/getAnekById", getAnekByIdReq)    // checked, works fine
-		apiv1.POST("/deleteAnek", deleteAnekReq)      // checked, works fine
-		apiv1.POST("/addAnek", addAnekReq)            // checked, works fine
+		apiv1.GET(cfg.GetRandomAnekURL, h.GetRandomAnekReq)     // checked, works fine
+		apiv1.POST(cfg.GetAnekByIdURL, h.GetAnekByIDEndpiont)   // checked, works fine
+		apiv1.POST(cfg.DeleteAnekURL, h.DeleteAnekByIDEndpoint) // checked, works fine
+		apiv1.POST(cfg.AddAnekURL, h.AddAnekEndpoint)           // checked, works fine
 	}
 	fmt.Println("Started anek server...")
-	if err := r.Run(":9090"); err != nil {
+	if err := r.Run(cfg.Port); err != nil {
 		fmt.Println(err.Error())
 	}
 }
