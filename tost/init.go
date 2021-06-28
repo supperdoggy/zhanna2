@@ -20,7 +20,7 @@ package main
 // 			Id:   k,
 // 			Text: v,
 // 		}
-// 		if err := db.TostCollection.Insert(a); err != nil {
+// 		if err := aneks.TostCollection.Insert(a); err != nil {
 // 			fmt.Println("error inserting", k, err.Error())
 // 		}
 // 	}

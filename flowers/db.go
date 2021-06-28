@@ -46,7 +46,7 @@ func (d *DbStruct) getFlower(id uint64, f Flower) (result Flower, err error) {
 	return f, err
 }
 
-// getAllFlowers - returns all flower types in db
+// getAllFlowers - returns all flower types in aneks
 func (d *DbStruct) getAllFlowers() (result []Flower, err error) {
 	err = d.FlowerCollection.Find(nil).All(&result)
 	return

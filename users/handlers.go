@@ -277,9 +277,9 @@ func flowerReq(c *gin.Context) {
 		c.JSON(400, obj{"err": "err req to flowers"})
 		return
 	}
-	var answer struct{
+	var answer struct {
 		Flower Flower `json:"flower"`
-		Extra int `json:"extra"`
+		Extra  int    `json:"extra"`
 	}
 	if err := json.Unmarshal(data, &answer); err != nil {
 		fmt.Println("handlers.go -> flowerReq() -> unmarshal error:", err.Error())
@@ -288,9 +288,9 @@ func flowerReq(c *gin.Context) {
 	}
 	var resp struct {
 		Flower
-		Up   uint8 `json:"up"`
-		Grew bool  `json:"grew"`
-		Extra int `json:"extra"`
+		Up    uint8 `json:"up"`
+		Grew  bool  `json:"grew"`
+		Extra int   `json:"extra"`
 	}
 	resp.Flower = answer.Flower
 	resp.Up = answer.Flower.Grew

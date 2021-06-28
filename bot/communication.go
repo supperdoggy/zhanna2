@@ -155,10 +155,10 @@ func MakeFlowerReq(id int, chatId int64) (msg string, err error) {
 	}
 	var answer struct {
 		Flower
-		Up   uint8  `json:"up"`
-		Grew bool   `json:"grew"`
-		Err  string `json:"err"`
-		Extra int `json:"extra"`
+		Up    uint8  `json:"up"`
+		Grew  bool   `json:"grew"`
+		Err   string `json:"err"`
+		Extra int    `json:"extra"`
 	}
 	if err := json.Unmarshal(resp, &answer); err != nil {
 		fmt.Printf("communication.go -> flowerReq() -> json.Unmarshal() error: %v body %v\n", err.Error(), string(resp))

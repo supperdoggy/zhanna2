@@ -2,19 +2,24 @@ package main
 
 import (
 	"fmt"
+	"github.com/supperdoggy/superSecretDevelopement/fortuneCookie/internal/db"
+	"github.com/supperdoggy/superSecretDevelopement/fortuneCookie/internal/handlers"
+	defaultCfg "github.com/supperdoggy/superSecretDevelopement/structs/request/default"
+	cfg "github.com/supperdoggy/superSecretDevelopement/structs/services/fortune"
 
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
+	h := handlers.Handlers{DB: db.DB}
 	r := gin.Default()
 
-	apiv1 := r.Group("/api/v1")
+	apiv1 := r.Group(defaultCfg.ApiV1)
 	{
-		apiv1.GET("/getRandomFortuneCookie", getRandomFortuneCookieReq)
+		apiv1.GET(cfg.GetRandomFortuneCookieURL, h.GetRandomFortuneCookieReq)
 	}
 
-	if err := r.Run(":2020"); err != nil {
+	if err := r.Run(cfg.Port); err != nil {
 		fmt.Println("error running server!")
 	}
 }

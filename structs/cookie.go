@@ -1,4 +1,4 @@
-package main
+package structs
 
 type Cookie struct {
 	ID   int32  `json:"id" bson:"_id"`

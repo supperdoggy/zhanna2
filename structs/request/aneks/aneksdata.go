@@ -7,14 +7,14 @@ type GetAnekByIdReq struct {
 }
 
 type GetAnekByIdResp struct {
-	Err string `json:"err"`
+	Err  string       `json:"err"`
 	Anek structs.Anek `json:"anek"`
 }
 
 type GetRandomAnekResp struct {
-	ID int `json:"id"`
+	ID   int    `json:"id"`
 	Text string `json:"text"`
-	Err string `json:"err"`
+	Err  string `json:"err"`
 }
 
 type DeleteAnekByIDReq struct {
@@ -22,7 +22,7 @@ type DeleteAnekByIDReq struct {
 }
 
 type DeleteAnekByIDResp struct {
-	OK bool `json:"ok"`
+	OK  bool   `json:"ok"`
 	Err string `json:"err"`
 }
 
@@ -31,6 +31,6 @@ type AddAnekReq struct {
 }
 
 type AddAnekResp struct {
-	OK bool `json:"ok"`
+	OK  bool   `json:"ok"`
 	Err string `json:"err"`
 }

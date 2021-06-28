@@ -1,6 +1,6 @@
 package cfg
 
 const (
-	MainDBName = "Zhanna2"
+	MainDBName     = "Zhanna2"
 	CollectionName = "Aneks"
 )

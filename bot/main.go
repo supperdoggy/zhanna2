@@ -10,7 +10,7 @@ type obj map[string]interface{}
 
 var (
 	bot = initBot()
-	// db itself
+	// aneks itself
 	DB = DbStruct{
 		DbSession: connectToDB(),
 	}

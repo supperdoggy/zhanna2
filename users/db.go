@@ -9,7 +9,7 @@ import (
 	"gopkg.in/mgo.v2"
 )
 
-// DbStruct - the main db struct
+// DbStruct - the main aneks struct
 type DbStruct struct {
 	DbSession         *mgo.Session
 	UsersCollection   *mgo.Collection
@@ -19,7 +19,7 @@ type DbStruct struct {
 
 type obj map[string]interface{}
 
-// GetDB - returns db object
+// GetDB - returns aneks object
 func (ds *DbStruct) initDB() {
 	d, err := mgo.Dial("")
 	if err != nil || d == nil {

@@ -28,7 +28,7 @@ func (h *Handlers) GetRandomAnekReq(c *gin.Context) {
 	return
 }
 
-func (h *Handlers) GetAnekByIDEndpiont(c *gin.Context) {
+func (h *Handlers) GetAnekByID(c *gin.Context) {
 	var req aneksdata.GetAnekByIdReq
 	var resp aneksdata.GetAnekByIdResp
 	if err := c.Bind(&req); err != nil {
@@ -42,7 +42,7 @@ func (h *Handlers) GetAnekByIDEndpiont(c *gin.Context) {
 	c.JSON(http.StatusOK, a)
 }
 
-func (h *Handlers) DeleteAnekByIDEndpoint(c *gin.Context) {
+func (h *Handlers) DeleteAnekByID(c *gin.Context) {
 	var req aneksdata.DeleteAnekByIDReq
 	var resp aneksdata.DeleteAnekByIDResp
 	if err := c.Bind(&req); err != nil {
@@ -65,7 +65,7 @@ func (h *Handlers) DeleteAnekByIDEndpoint(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
-func (h *Handlers) AddAnekEndpoint(c *gin.Context) {
+func (h *Handlers) AddAnek(c *gin.Context) {
 	var req aneksdata.AddAnekReq
 	var resp aneksdata.AddAnekResp
 	if err := c.Bind(&req); err != nil {
