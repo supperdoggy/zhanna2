@@ -1,6 +1,6 @@
-package main
+package structs
 
 type Tost struct {
 	ID   int    `bson:"_id" json:"id"`
-	Text string `bspn:"text" json:"text"`
+	Text string `bson:"text" json:"text"`
 }

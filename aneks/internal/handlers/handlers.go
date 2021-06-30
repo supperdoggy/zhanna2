@@ -9,7 +9,7 @@ import (
 )
 
 type Handlers struct {
-	DB db.DB
+	DB *db.DbStruct
 }
 
 func (h *Handlers) GetRandomAnekReq(c *gin.Context) {

@@ -13,9 +13,8 @@ import (
 // TODO: maybe create logs and user request id`s
 
 func main() {
-	var db db2.DB
 	var h = handlers.Handlers{
-		DB: db,
+		DB: &db2.DB,
 	}
 	r := gin.Default()
 	apiv1 := r.Group(defaultCfg.ApiV1)

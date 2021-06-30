@@ -9,12 +9,18 @@ import (
 	"time"
 )
 
+type obj map[string]interface{}
+
+type DbStruct struct {
+	DbSession        *mgo.Session
+	CookieCollection *mgo.Collection
+	m []int32
+}
+
 var (
 	DB DbStruct
 
 )
-
-type obj map[string]interface{}
 
 func init() {
 	s, err := mgo.Dial("")
@@ -33,12 +39,6 @@ func init() {
 	for _, v := range o {
 		DB.m = append(DB.m, types.Int32(v["_id"]))
 	}
-}
-
-type DbStruct struct {
-	DbSession        *mgo.Session
-	CookieCollection *mgo.Collection
-	m []int32
 }
 
 func (d *DbStruct) GetRandomFortune() (structs.Cookie, error) {
