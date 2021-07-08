@@ -1,18 +1,25 @@
-package main
+package communication
+
 
 import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	anekscfg "github.com/supperdoggy/superSecretDevelopement/structs/services/aneks"
+	flowerscfg "github.com/supperdoggy/superSecretDevelopement/structs/services/flowers"
+	tostcfg "github.com/supperdoggy/superSecretDevelopement/structs/services/tost"
+	cfg "github.com/supperdoggy/superSecretDevelopement/structs/services/users"
 	"io/ioutil"
 	"net/http"
 )
 
+type obj map[string]interface{}
+
 // MakeReqToAnek - makes req to anek service
 func MakeReqToAnek(method string, data []byte) (answer []byte, err error) {
-	path := fmt.Sprintf("%s/%s", anekUrl, method)
+	path := cfg.AnekURL+method
 	switch method {
-	case "getRandomAnek":
+	case anekscfg.GetRandomAnekURL:
 		answer, err = MakeHttpReq(path, "GET", data)
 	default:
 		err = fmt.Errorf("no such method")
@@ -22,27 +29,27 @@ func MakeReqToAnek(method string, data []byte) (answer []byte, err error) {
 
 // MakeReqToFlowers - makes req to flowers service
 func MakeReqToFlowers(method string, data interface{}) (answer []byte, err error) {
-	path := fmt.Sprintf("%s/%s", flowerUrl, method)
+	path := cfg.FlowerURL+method
 	reqData, err := json.Marshal(data)
 	if err != nil {
 		return
 	}
 	switch method {
-	case "addFlower":
+	case flowerscfg.AddNewFlowerURL:
 		answer, err = MakeHttpReq(path, "POST", reqData)
-	case "growFlower":
+	case flowerscfg.GrowFlowerURL:
 		answer, err = MakeHttpReq(path, "POST", reqData)
-	case "canGrowFlower":
+	case flowerscfg.CanGrowFlowerURL:
 		answer, err = MakeHttpReq(path, "POST", reqData)
-	case "getUserFlowers":
+	case flowerscfg.GetUserFlowersURL:
 		answer, err = MakeHttpReq(path, "POST", reqData)
-	case "giveFlower":
+	case flowerscfg.GiveFlowerURL:
 		answer, err = MakeHttpReq(path, "POST", reqData)
-	case "userFlowerSlice":
+	case flowerscfg.UserFlowerSliceURL:
 		answer, err = MakeHttpReq(path, "POST", reqData)
-	case "getFlowerTypes":
+	case flowerscfg.GetFlowerTypesURL:
 		answer, err = MakeHttpReq(path, "GET", nil)
-	case "removeFlower":
+	case flowerscfg.RemoveFlowerURL:
 		answer, err = MakeHttpReq(path, "POST", reqData)
 	default:
 		err = fmt.Errorf("no such method")
@@ -58,7 +65,7 @@ func MakeReqToDialogFlow(message string) (answer string, err error) {
 		return
 	}
 
-	resp, err := MakeHttpReq(dialogFlowerUrl+"/getAnswer", "POST", req)
+	resp, err := MakeHttpReq(cfg.DialogFlowerURL+"/getAnswer", "POST", req)
 	if err != nil {
 		fmt.Println("MakeReqToDialogFlow() -> makeHttpReq(/getAnswer) error:", err.Error())
 		return
@@ -83,9 +90,9 @@ func MakeReqToDialogFlow(message string) (answer string, err error) {
 
 // MakeReqToTost - makes req to tost service
 func MakeReqToTost(method string, data []byte) (answer []byte, err error) {
-	path := fmt.Sprintf("%s/%s", tostUrl, method)
+	path := cfg.TostURL+method
 	switch method {
-	case "getRandomTost":
+	case tostcfg.GetRandomTostURL:
 		answer, err = MakeHttpReq(path, "GET", data)
 	default:
 		err = fmt.Errorf("no such method")
@@ -115,3 +122,4 @@ func MakeHttpReq(path, method string, data []byte) (answer []byte, err error) {
 
 	return
 }
+

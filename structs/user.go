@@ -1,7 +1,6 @@
-package main
+package structs
 
 import (
-	"fmt"
 	"time"
 
 	"gopkg.in/tucnak/telebot.v2"
@@ -40,9 +39,9 @@ type User struct {
 	LastTimeGotAnek     int64     `json:"lastTimeGotAnek" bson:"lastTimeGotAnek"`
 	LastTimeGotAnekTime time.Time `json:"lastTimeGotAnekTime" bson:"lastTimeGotAnekTime"`
 	// all fortune cookies user got
-	FortuneCookies               []FortuneCookie `json:"fortuneCookies" bson:"fortuneCookies"`
-	LastTimeGotFortuneCookie     int64           `json:"lastTimeGotFortuneCookie" bson:"lastTimeGotFortuneCookie"`
-	LastTimeGotFortuneCookieTime time.Time       `json:"lastTimeGotFortuneCookieTime" bson:"lastTimeGotFortuneCookieTime"`
+	FortuneCookies               []Cookie  `json:"fortuneCookies" bson:"fortuneCookies"`
+	LastTimeGotFortuneCookie     int64     `json:"lastTimeGotFortuneCookie" bson:"lastTimeGotFortuneCookie"`
+	LastTimeGotFortuneCookieTime time.Time `json:"lastTimeGotFortuneCookieTime" bson:"lastTimeGotFortuneCookieTime"`
 	// tosts
 	Tosts               []Tost    `json:"tosts" bson:"tosts"`
 	LastTimeGotTost     int64     `json:"lastTimeGotTost" bson:"lastTimeGotTost"`
@@ -58,62 +57,3 @@ type Chat struct {
 	Deleted    bool         `json:"deleted" bson:"deleted"`
 }
 
-type Message struct {
-	UserID  int             `json:"userID" bson:"userID"`
-	Message telebot.Message `json:"message" bson:"message"`
-	Reply   telebot.Message `json:"reply" bson:"reply"`
-	Time    time.Time       `json:"time" bson:"time"`
-}
-
-type NHIE struct {
-	ID   int    `json:"id" bson:"_id"`
-	Text string `json:"text" bson:"text"`
-}
-
-// appends anek to anek slice and saves user
-func saveAnek(id int, a Anek) bool {
-	u, err := DB.getUserFromDbById(id)
-	if err != nil {
-		fmt.Println("Failed to get user", err.Error())
-		return false
-	}
-	u.Aneks = append(u.Aneks, a)
-	u.LastTimeGotAnek = time.Now().Unix()
-	u.LastTimeGotAnekTime = time.Now()
-	err = DB.updateUser(u)
-	if err != nil {
-		fmt.Println("Failed to save anek to user")
-		return false
-	}
-	return true
-}
-
-func saveFortune(id int, a FortuneCookie) bool {
-	u, err := DB.getUserFromDbById(id)
-	if err != nil {
-		fmt.Println("failed to get user in saveFortune", err.Error())
-		return false
-	}
-	u.FortuneCookies = append(u.FortuneCookies, a)
-	err = DB.updateUser(u)
-	if err != nil {
-		fmt.Println("error updating user saving fortune")
-		return false
-	}
-	return true
-}
-
-func saveTost(id int, a Tost) bool {
-	u, err := DB.getUserFromDbById(id)
-	if err != nil {
-		fmt.Println("failed to get user in saveTost", err.Error())
-		return false
-	}
-	u.Tosts = append(u.Tosts, a)
-	err = DB.updateUser(u)
-	if err != nil {
-		fmt.Println("error updating user saving tost", err.Error())
-		return false
-	}
-	return true
-}
