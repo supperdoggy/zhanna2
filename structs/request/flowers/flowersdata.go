@@ -9,6 +9,7 @@ type AddNewFlowerReq struct {
 }
 
 type AddNewFlowerResp struct {
+	OK bool `json:"ok"`
 	Err string `json:"err"`
 }
 
@@ -17,6 +18,7 @@ type RemoveFlowerReq struct {
 }
 
 type RemoveFlowerResp struct {
+	OK bool `json:"ok"`
 	Err string `json:"err"`
 }
 

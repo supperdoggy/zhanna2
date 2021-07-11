@@ -2,10 +2,13 @@ package adminHandlers
 
 import (
 	"encoding/json"
-	"github.com/supperdoggy/superSecretDevelopement/structs"
+	flowersdata "github.com/supperdoggy/superSecretDevelopement/structs/request/flowers"
+	usersdata "github.com/supperdoggy/superSecretDevelopement/structs/request/users"
+	flowerscfg "github.com/supperdoggy/superSecretDevelopement/structs/services/flowers"
 	"github.com/supperdoggy/superSecretDevelopement/users/internal/communication"
 	"github.com/supperdoggy/superSecretDevelopement/users/internal/db"
 	"log"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
@@ -14,93 +17,105 @@ type AdminHandlers struct {
 	DB *db.DbStruct
 }
 
-func (ah *AdminHandlers) IsAdminReq(c *gin.Context) {
-	var req struct {
-		ID int `json:"id"`
-	}
+func (ah *AdminHandlers) IsAdmin(c *gin.Context) {
+	var req usersdata.IsAdminReq
+	var resp usersdata.IsAdminResp
 	err := c.Bind(&req)
 	if err != nil || req.ID == 0 {
-		c.JSON(400, obj{"err": "no id field"})
+		resp.Err = "no id field"
+		c.JSON(http.StatusBadRequest, resp)
 		return
 	}
 
 	u, err := ah.DB.GetUserByID(req.ID)
 	if err != nil {
-		c.JSON(400, obj{"result": false, "err": err.Error()})
+		resp.Err = err.Error()
+		c.JSON(http.StatusBadRequest, resp)
 		return
 	}
 
-	c.JSON(200, obj{"result": u.Statuses.IsAdmin})
+	resp.Result = u.Statuses.IsAdmin
+	c.JSON(http.StatusOK, resp)
 }
 
-func (ah *AdminHandlers) AdminReq(c *gin.Context) {
-	var req struct {
-		ID int `json:"id"`
-	}
+func (ah *AdminHandlers) ChangeAdmin(c *gin.Context) {
+	var req usersdata.AdminReq
+	var resp usersdata.AdminResp
 	err := c.Bind(&req)
 	if err != nil || req.ID == 0 {
-		c.JSON(400, obj{"err": "no id field"})
+		resp.Err = "no id field"
+		c.JSON(http.StatusBadRequest, resp)
 		return
 	}
 
 	u, err := ah.DB.GetUserByID(req.ID)
 	if err != nil {
-		c.JSON(400, obj{"err": err.Error()})
+		resp.Err = err.Error()
+		c.JSON(http.StatusBadRequest, resp)
 		return
 	}
 
 	u.Statuses.IsAdmin = !u.Statuses.IsAdmin
 	err = ah.DB.UpdateUser(u)
 	if err != nil {
-		c.JSON(400, obj{"err": err.Error()})
+		resp.Err = err.Error()
+		c.JSON(http.StatusBadRequest, resp)
 		return
 	}
-	c.JSON(200, obj{"err": "", "admin": u.Statuses.IsAdmin})
+	resp.Admin = u.Statuses.IsAdmin
+	resp.OK = true
+	c.JSON(http.StatusOK, resp)
 }
 
 func (ah *AdminHandlers) GetAllFlowerTypes(c *gin.Context) {
-	data, err := communication.MakeReqToFlowers("getFlowerTypes", nil)
+	var resp usersdata.GetAllFlowerTypesResp
+	data, err := communication.MakeReqToFlowers(flowerscfg.GetFlowerTypesURL, nil)
 	if err != nil {
 		log.Println("handlers_admin.go -> getAllFlowerTypes() error:", err.Error())
-		c.JSON(400, obj{"err": err.Error()})
+		resp.Err = err.Error()
+		c.JSON(http.StatusBadRequest, resp)
 		return
-	}
-	var resp struct {
-		Result []structs.Flower `json:"result"`
-		Err    string   `json:"err"`
 	}
 
-	if err := json.Unmarshal(data, &resp); err != nil {
-		log.Printf("handlers_admin.go -> getAllFlowerTypes() -> unmarshal error:%v body: %v\n", err.Error(), string(data))
-		c.JSON(400, obj{"err": "unmarhsal error"})
+	if err := json.Unmarshal(data, &resp); err != nil || resp.Err != ""{
+		log.Printf("handlers_admin.go -> getAllFlowerTypes() -> unmarshal error:%v body: %v\n", err, string(data))
+		resp.Err = "failed to make request to flowers"
+		c.JSON(http.StatusBadRequest, resp)
 		return
 	}
-	c.JSON(200, resp)
+	c.JSON(http.StatusOK, resp)
 }
 
 func (ah *AdminHandlers) RemoveFlower(c *gin.Context) {
-	var req struct {
-		ID uint64 `json:"id"`
-	}
+	var req flowersdata.RemoveFlowerReq
+	var resp flowersdata.RemoveFlowerResp
 	if err := c.Bind(&req); err != nil {
 		log.Println("handlers_admin.go -> removeFlower() -> binding error:", err.Error())
-		c.JSON(400, obj{"err": "no id field"})
+		resp.Err = "no id field"
+		c.JSON(http.StatusBadRequest, resp)
 		return
 	}
 
-	data, err := communication.MakeReqToFlowers("removeFlower", req)
+	reqToFlowers := flowersdata.RemoveFlowerReq{ID: req.ID}
+	respFromFlowers := flowersdata.RemoveFlowerResp{}
+	data, err := communication.MakeReqToFlowers(flowerscfg.RemoveFlowerURL, reqToFlowers)
 	if err != nil {
 		log.Println("handlers_admin.go -> removeFlower() -> removeFlower req error:", err.Error())
-		c.JSON(400, obj{"err": err.Error()})
+		resp.Err = err.Error()
+		c.JSON(http.StatusBadRequest, resp)
 		return
 	}
-	var resp struct {
-		Err string `json:"err"`
-	}
-	if err := json.Unmarshal(data, &resp); err != nil {
+	if err := json.Unmarshal(data, &respFromFlowers); err != nil {
 		log.Printf("handlers_admin.go -> removeFlower() -> unmarshal error: %v, body: %v\n", err.Error(), string(data))
-		c.JSON(400, obj{"err": err.Error()})
+		resp.Err = err.Error()
+		c.JSON(http.StatusBadRequest, resp)
+		return
 	}
-
-	c.JSON(200, obj{"err": resp.Err})
+	if !respFromFlowers.OK {
+		resp.Err = respFromFlowers.Err
+		c.JSON(http.StatusBadRequest, resp)
+		return
+	}
+	resp.OK = true
+	c.JSON(http.StatusOK, resp)
 }

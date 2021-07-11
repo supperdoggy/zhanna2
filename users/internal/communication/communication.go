@@ -29,7 +29,7 @@ func MakeReqToAnek(method string, data []byte) (answer []byte, err error) {
 
 // MakeReqToFlowers - makes req to flowers service
 func MakeReqToFlowers(method string, data interface{}) (answer []byte, err error) {
-	path := cfg.FlowerURL+method
+	path := cfg.FlowersURL+method
 	reqData, err := json.Marshal(data)
 	if err != nil {
 		return
@@ -65,7 +65,7 @@ func MakeReqToDialogFlow(message string) (answer string, err error) {
 		return
 	}
 
-	resp, err := MakeHttpReq(cfg.DialogFlowerURL+"/getAnswer", "POST", req)
+	resp, err := MakeHttpReq(cfg.DialogFlowURL+"/getAnswer", "POST", req)
 	if err != nil {
 		fmt.Println("MakeReqToDialogFlow() -> makeHttpReq(/getAnswer) error:", err.Error())
 		return

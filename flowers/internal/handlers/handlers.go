@@ -55,6 +55,7 @@ func (h Handlers) AddNewFlower(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, resp)
 		return
 	}
+	resp.OK = true
 	c.JSON(http.StatusOK, resp)
 }
 
@@ -77,6 +78,7 @@ func (h Handlers) RemoveFlower(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, resp)
 		return
 	}
+	resp.OK = true
 	c.JSON(http.StatusOK, resp)
 }
 
