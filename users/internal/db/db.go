@@ -49,7 +49,6 @@ func (d *DbStruct) UserExists(id int) (bool, error) {
 		}
 		return false, err
 	}
-	fmt.Println("all good")
 	return true, nil
 }
 

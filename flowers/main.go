@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	ai "github.com/night-codes/mgo-ai"
 	"github.com/supperdoggy/superSecretDevelopement/flowers/internal/db"
 	handlers2 "github.com/supperdoggy/superSecretDevelopement/flowers/internal/handlers"
 	defaultCfg "github.com/supperdoggy/superSecretDevelopement/structs/request/default"
@@ -13,6 +14,8 @@ import (
 func main() {
 	r := gin.Default()
 	handlers := handlers2.Handlers{DB: &db.DB}
+	ai.Connect(handlers.DB.FlowerCollection)
+	ai.Connect(handlers.DB.UserFlowerDataCollection)
 	apiv1 := r.Group(defaultCfg.ApiV1)
 	{
 		apiv1.POST(cfg.AddNewFlowerURL, handlers.AddNewFlower)

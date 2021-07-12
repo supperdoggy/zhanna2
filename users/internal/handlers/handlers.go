@@ -17,6 +17,7 @@ import (
 	tostcfg "github.com/supperdoggy/superSecretDevelopement/structs/services/tost"
 	cfg "github.com/supperdoggy/superSecretDevelopement/structs/services/users"
 	"gopkg.in/mgo.v2"
+	"io/ioutil"
 	"net/http"
 
 	"github.com/supperdoggy/superSecretDevelopement/users/internal/communication"
@@ -85,9 +86,11 @@ func (h *Handlers) AddOrUpdateUser(c *gin.Context) {
 	}
 
 	// add message
-	err = h.DB.WriteMessage(userReq.MessagesUserSent[0], userReq.MessagesZhannaSent[0])
-	if err != nil {
-		log.Println("handlers.go -> addOrUpdateUserReq() -> DB.writeMessage() error:", err.Error())
+	if len(userReq.MessagesUserSent) != 0 {
+		err = h.DB.WriteMessage(userReq.MessagesUserSent[0], userReq.MessagesZhannaSent[0])
+		if err != nil {
+			log.Println("handlers.go -> addOrUpdateUserReq() -> DB.writeMessage() error:", err.Error())
+		}
 	}
 
 	fieldsToSet := obj{
@@ -282,7 +285,8 @@ func (h *Handlers) AddFlower(c *gin.Context) {
 	var req usersdata.AddFlowerReq
 	var resp usersdata.AddFlowerResp
 	if err := c.Bind(&req); err != nil {
-		fmt.Println("handlers.go -> addFlower() -> binding error:", err.Error())
+		d, err := ioutil.ReadAll(c.Request.Body)
+		fmt.Println("handlers.go -> addFlower() -> binding error:", err.Error(), string(d))
 		resp.Err = err.Error()
 		c.JSON(400, resp)
 		return
@@ -597,6 +601,8 @@ func (h *Handlers) GetRandomNHIE(c *gin.Context) {
 		c.JSON(400, resp)
 		return
 	}
+	resp.Result.Text = respFromNHIE.Text
+	resp.Result.ID = respFromNHIE.ID
 
 	c.JSON(200, resp)
 }

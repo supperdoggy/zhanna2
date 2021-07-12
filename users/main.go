@@ -29,7 +29,7 @@ func main() {
 		apiv1.POST(cfg.MyFlowersURL, handlers.MyFlowers)
 		apiv1.POST(cfg.GiveFlowerURL, handlers.GiveFlower)
 		apiv1.POST(cfg.FlowertopURL, handlers.Flowertop)
-		apiv1.POST(cfg.GetRandomNHIEURL, handlers.GetRandomNHIE)
+		apiv1.POST(cfg.GetRandomNHIEURL, handlers.GetRandomNHIE) // doesnt work
 		// todo add check if user is banned
 	}
 
@@ -39,7 +39,7 @@ func main() {
 		apiv1_admin.POST(cfg.IsAdminURL, admin_handlers.IsAdmin)
 		apiv1_admin.POST(cfg.ChangeAdminURL, admin_handlers.ChangeAdmin)
 		apiv1_admin.GET(cfg.GetAllFlowerTypesURL, admin_handlers.GetAllFlowerTypes)
-		apiv1_admin.POST(cfg.RemoveFlowerURL, admin_handlers.RemoveFlower)
+		apiv1_admin.POST(cfg.RemoveFlowerURL, admin_handlers.RemoveFlower) // ??
 	}
 
 	if err := r.Run(cfg.Port); err != nil {

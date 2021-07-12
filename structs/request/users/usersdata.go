@@ -82,6 +82,7 @@ type AddFlowerReq struct {
 }
 
 type AddFlowerResp struct {
+	// response flower type
 	OK  bool   `json:"ok"`
 	Err string `json:"err"`
 }
