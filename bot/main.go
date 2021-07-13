@@ -2,13 +2,14 @@ package main
 
 import (
 	"fmt"
+	admin_handlers2 "github.com/supperdoggy/superSecretDevelopement/bot/internal/admin_handlers"
+	handlers2 "github.com/supperdoggy/superSecretDevelopement/bot/internal/handlers"
+	Cfg "github.com/supperdoggy/superSecretDevelopement/structs/services/bot"
 	"log"
 	"time"
 
 	"gopkg.in/tucnak/telebot.v2"
 )
-
-type obj map[string]interface{}
 
 var (
 	bot *telebot.Bot
@@ -31,28 +32,27 @@ func init() {
 }
 
 func main() {
+	handlers := handlers2.Handlers{Bot: bot}
+	admin_handlers := admin_handlers2.AdminHandlers{Bot: bot}
 	// handlers
-	bot.Handle("/start", start)
-	bot.Handle("/fortune", fortuneCookie)
-	bot.Handle("/anek", anek)
-	bot.Handle("/tost", tost)
-	bot.Handle("/flower", flower)
-	// just text handler
-	bot.Handle(telebot.OnText, onTextHandler)
-	bot.Handle("/myflowers", myflowers)
-	bot.Handle("/giveoneflower", giveOneFlower)
-	bot.Handle("/testMessage", testMessage)
-	bot.Handle("/flowertop", flowertop)
-	bot.Handle("/danet", danet)
-	bot.Handle("/neverhaveiever", neverhaveiever)
+	bot.Handle(Cfg.StartCommand, handlers.Start)
+	bot.Handle(Cfg.FortuneCommand, handlers.FortuneCookie)
+	bot.Handle(Cfg.AnekCommand, handlers.Anek)
+	bot.Handle(Cfg.TostCommand, handlers.Tost)
+	bot.Handle(Cfg.FlowerCommand, handlers.Flower)
+	bot.Handle(Cfg.MyFlowersCommand, handlers.MyFlowers)
+	bot.Handle(Cfg.GiveFlowerCommand, handlers.GiveOneFlower)
+	bot.Handle(Cfg.FlowerTopCommand, handlers.Flowertop)
+	bot.Handle(Cfg.DanetCommand, handlers.Danet)
+	bot.Handle(Cfg.NHIECommand, handlers.Neverhaveiever)
+	bot.Handle(telebot.OnText, handlers.OnTextHandler)
 
 	// admin handlers
-	bot.Handle("/adminHelp", adminHelp)
-	bot.Handle("/addFlower", addFlower)
-	bot.Handle("/admin", admin)
-	bot.Handle("/allFlowers", allFlowers)
-	bot.Handle("/removeFlower", removeFlower)
-	bot.Handle("/danet", danet)
+	bot.Handle(Cfg.AdminHelpCommand, admin_handlers.AdminHelp)
+	bot.Handle(Cfg.AddFlowerCommand, admin_handlers.AddFlower)
+	bot.Handle(Cfg.AdminCommand, admin_handlers.Admin)
+	bot.Handle(Cfg.AllFlowersCommand, admin_handlers.AllFlowers)
+	bot.Handle(Cfg.RemoveFlower, admin_handlers.RemoveFlower)
 
 	log.Println("Bot is running...")
 	bot.Start()

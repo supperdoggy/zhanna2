@@ -126,7 +126,7 @@ type GiveFlowerReq struct {
 	ID       uint64 `json:"id"`
 	Owner    int    `json:"owner"`
 	Reciever int    `json:"reciever"`
-	// why this???? >>
+	// this is check for last or number of lasts
 	Last  bool `json:"last"`
 	Count int  `json:"count"`
 }

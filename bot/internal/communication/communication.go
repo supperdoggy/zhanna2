@@ -10,6 +10,7 @@ import (
 	Cfg "github.com/supperdoggy/superSecretDevelopement/structs/services/bot"
 	cfg "github.com/supperdoggy/superSecretDevelopement/structs/services/users"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"time"
 
@@ -141,6 +142,7 @@ func MakeHttpReq(path, method string, data []byte) (answer []byte, err error) {
 }
 
 // grow flower
+// todo test this
 func MakeFlowerReq(id int, chatId int64) (msg string, err error) {
 	var req = usersdata.FlowerReq{ID: id, NonDying: chatId == int64(Cfg.EdemID)}
 	var resp usersdata.FlowerResp
@@ -160,8 +162,22 @@ func MakeFlowerReq(id int, chatId int64) (msg string, err error) {
 		fmt.Printf("communication.go -> flowerReq() -> json.Unmarshal() error: %v body %v\n", err.Error(), string(respdata))
 		return "communication error", err
 	}
+	// making request to my flowers to get total and last
+	var replymsg string
+	myflowersReq := usersdata.MyFlowersReq{ID: id}
+	var myflowersResp usersdata.MyFlowersResp
+	// getting total and last
+	data, err := MakeUserHttpReq(cfg.MyFlowersURL, myflowersReq)
+	if err != nil {
+		log.Println("handlers.go -> flower() -> myflowers error:", err.Error())
+	} else {
+		err := json.Unmarshal(data, &myflowersResp)
+		if err == nil {
+			replymsg = fmt.Sprintf("\nУ тебя уже %v🌷 и %v🌱", myflowersResp.Total, myflowersResp.Last)
+		}
+	}
 	if resp.Err == "cant grow flower" {
-		return localization.GetLoc("already_grew_flowers"), nil
+		return localization.GetLoc("already_grew_flowers") + replymsg, nil
 	}
 
 	if resp.Err != "" {
@@ -169,13 +185,13 @@ func MakeFlowerReq(id int, chatId int64) (msg string, err error) {
 		return "communication error", err
 	}
 	if resp.Dead {
-		return fmt.Sprintf(localization.GetLoc("flower_died")), nil
+		return fmt.Sprintf(localization.GetLoc("flower_died")) + replymsg, nil
 	}
 	if resp.HP == 100 {
-		return fmt.Sprintf(localization.GetLoc("flower_grew"), resp.Icon), err
+		return fmt.Sprintf(localization.GetLoc("flower_grew"), resp.Icon) + replymsg, err
 	}
 	if resp.Grew {
-		return fmt.Sprintf(localization.GetLoc("flower_grew_not_fully"), resp.Up, resp.Extra), err
+		return fmt.Sprintf(localization.GetLoc("flower_grew_not_fully")+replymsg, resp.Up, resp.Extra), err
 	}
 	return "its not time, try again later...", err
 }

@@ -128,7 +128,7 @@ func (ah *AdminHandlers) AllFlowers(m *telebot.Message) {
 		return
 	}
 
-	if err := json.Unmarshal(data, &resp); err != nil || resp.Err != ""{
+	if err := json.Unmarshal(data, &resp); err != nil || resp.Err != "" {
 		log.Println("admin_handlers.go -> allFlowers() -> Unmarshal err:", err, string(data), resp.Err)
 		return
 	}
@@ -168,7 +168,7 @@ func (ah *AdminHandlers) RemoveFlower(m *telebot.Message) {
 		ah.Bot.Reply(m, localization.GetLoc("error"))
 		return
 	}
-	if err := json.Unmarshal(data, &resp); err != nil{
+	if err := json.Unmarshal(data, &resp); err != nil {
 		log.Println("admin_handlers.go -> removeFlower() -> Unmarshal err:", err.Error(), string(data))
 		ah.Bot.Reply(m, localization.GetLoc("error"))
 		return

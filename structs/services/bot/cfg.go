@@ -13,4 +13,26 @@ const (
 	UsersURL = usercfg.UserURL
 	// todo something cleaver make
 	UsersAdminURL = usercfg.UserURL + "/admin"
+
+	// user
+
+	StartCommand = "/start"
+	FortuneCommand = "/fortune"
+	AnekCommand = "/anek"
+	TostCommand = "/tost"
+	FlowerCommand = "/flower"
+	MyFlowersCommand = "/myflowers"
+	GiveFlowerCommand = "/giveoneflower"
+	FlowerTopCommand = "/flowertop"
+	DanetCommand = "/danet"
+	NHIECommand = "/neverhaveiever"
+
+
+	// admin
+
+	AdminHelpCommand = "/adminHelp"
+	AddFlowerCommand = "/addFlower"
+	AdminCommand = "/admin"
+	AllFlowersCommand = "/allFlowers"
+	RemoveFlower = "/removeFlower"
 )
