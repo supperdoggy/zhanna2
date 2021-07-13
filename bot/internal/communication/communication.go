@@ -1,9 +1,14 @@
-package main
+package communication
 
 import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/supperdoggy/superSecretDevelopement/bot/internal/localization"
+	"github.com/supperdoggy/superSecretDevelopement/structs"
+	usersdata "github.com/supperdoggy/superSecretDevelopement/structs/request/users"
+	Cfg "github.com/supperdoggy/superSecretDevelopement/structs/services/bot"
+	cfg "github.com/supperdoggy/superSecretDevelopement/structs/services/users"
 	"io/ioutil"
 	"net/http"
 	"time"
@@ -12,21 +17,19 @@ import (
 )
 
 // MakeRandomAnekHttpReq - sends http req to anek server and unmarshals it to RandomAnekAnswer struct
-func MakeRandomAnekHttpReq(id int) (response RandomAnekAnswer, err error) {
-	req := struct {
-		ID int `json:"id" bson:"id"`
-	}{ID: id}
+func MakeRandomAnekHttpReq(id int) (resp usersdata.GetRandomAnekResp, err error) {
+	req := usersdata.GetRandomAnekReq{ID: id}
 	data, err := json.Marshal(req)
 	if err != nil {
-		return response, err
+		return resp, err
 	}
-	resp, err := MakeHttpReq(userUrl+"/getRandomAnek", "POST", data)
+	bytedata, err := MakeHttpReq(cfg.UserURL+cfg.GetRandomAnekURL, "POST", data)
 	if err != nil {
 		fmt.Println("handlers.go -> MakeRandomAnekHttpReq() -> MakeHttpReq ->", err.Error())
 		return
 	}
 
-	if err = json.Unmarshal(resp, &response); err != nil {
+	if err = json.Unmarshal(bytedata, &resp); err != nil {
 		fmt.Println("communication.go -> MakeRandomAnekHttpReq() -> error ->", err.Error())
 		return
 	}
@@ -34,15 +37,13 @@ func MakeRandomAnekHttpReq(id int) (response RandomAnekAnswer, err error) {
 	return
 }
 
-func MakeRandomTostHttpReq(id int) (response Tost, err error) {
-	req := struct {
-		ID int `json:"id" bson:"id"`
-	}{ID: id}
+func MakeRandomTostHttpReq(id int) (response structs.Tost, err error) {
+	req := usersdata.GetRandomTostReq{ID: id}
 	data, err := json.Marshal(req)
 	if err != nil {
 		return response, err
 	}
-	resp, err := MakeHttpReq(userUrl+"/getRandomTost", "POST", data)
+	resp, err := MakeHttpReq(cfg.UserURL+cfg.GetRandomTostURL, "POST", data)
 	if err != nil {
 		fmt.Println("comunication.go -> MakeRandomTostHttpReq() -> MakeHttpReq ->", err.Error())
 		return
@@ -63,21 +64,21 @@ func MakeUserHttpReq(method string, req interface{}) (answer []byte, err error) 
 	if err != nil {
 		return
 	}
-	path := fmt.Sprintf("%s/%s", userUrl, method)
+	path := cfg.UserURL+method
 	switch method {
-	case "addFlower":
+	case cfg.AddFlowerURL:
 		answer, err = MakeHttpReq(path, "POST", data)
-	case "getAnswer":
+	case cfg.DialogFlowHandlerURL:
 		answer, err = MakeHttpReq(path, "POST", data)
-	case "myflowers":
+	case cfg.MyFlowersURL:
 		answer, err = MakeHttpReq(path, "POST", data)
-	case "give":
+	case cfg.GiveFlowerURL:
 		answer, err = MakeHttpReq(path, "POST", data)
-	case "flowertop":
+	case cfg.FlowertopURL:
 		answer, err = MakeHttpReq(path, "POST", data)
-	case "getFortune":
+	case cfg.GetFortuneURL:
 		answer, err = MakeHttpReq(path, "POST", data)
-	case "getRandomNHIE":
+	case cfg.GetRandomNHIEURL:
 		answer, err = MakeHttpReq(path, "POST", data)
 	default:
 		err = fmt.Errorf("no such method")
@@ -86,30 +87,33 @@ func MakeUserHttpReq(method string, req interface{}) (answer []byte, err error) 
 }
 
 func UpdateUser(usermsg, botmsg *telebot.Message) {
-	var user User = User{
+	var req structs.User = structs.User{
 		Telebot: *usermsg.Sender,
-		Chats: []Chat{{
+		Chats: []structs.Chat{{
 			Telebot:    *usermsg.Chat,
 			LastOnline: time.Now().Unix(),
 		}},
 		MessagesUserSent:   []telebot.Message{*usermsg},
 		MessagesZhannaSent: []telebot.Message{*botmsg},
 	}
-	data, err := json.Marshal(user)
+	var resp usersdata.AddOrUpdateUserResp
+	data, err := json.Marshal(req)
 	if err != nil {
 		fmt.Println("communication -> UpdateUser() -> marshal error:", err.Error())
 		return
 	}
-	respStruct := obj{}
-	resp, err := MakeHttpReq(userUrl+"/addOrUpdateUser", "POST", data)
+	respdata, err := MakeHttpReq(cfg.UserURL+cfg.AddOrUpdateUserURL, "POST", data)
 	if err != nil {
 		fmt.Println("communication -> UpdateUser() -> req error:", err.Error())
 		return
 	}
-	err = json.Unmarshal(resp, &respStruct)
+	err = json.Unmarshal(respdata, &resp)
 	if err != nil {
-		fmt.Println("communication -> UpdateUser() -> unmarshal error:", err, respStruct)
+		fmt.Println("communication -> UpdateUser() -> unmarshal error:", err, string(respdata))
 		return
+	}
+	if !resp.OK {
+		fmt.Printf("UserUpdate error: %+v\n", resp)
 	}
 }
 
@@ -138,66 +142,58 @@ func MakeHttpReq(path, method string, data []byte) (answer []byte, err error) {
 
 // grow flower
 func MakeFlowerReq(id int, chatId int64) (msg string, err error) {
-	var data = struct {
-		ID       int  `json:"id"`
-		NonDying bool `json:"nonDying"`
-	}{ID: id, NonDying: chatId == int64(edemID)}
+	var req = usersdata.FlowerReq{ID: id, NonDying: chatId == int64(Cfg.EdemID)}
+	var resp usersdata.FlowerResp
 
-	marshaled, err := json.Marshal(data)
+	marshaled, err := json.Marshal(req)
 	if err != nil {
-		fmt.Printf("communication.go -> flowerReq() -> json.Marshal() error: %v user %v\n", err.Error(), data.ID)
+		fmt.Printf("communication.go -> flowerReq() -> json.Marshal() error: %v user %v\n", err.Error(), req.ID)
 		return "communication error", err
 	}
-	resp, err := MakeHttpReq(userUrl+"/flower", "POST", marshaled)
+	respdata, err := MakeHttpReq(cfg.UserURL+cfg.FlowerURL, "POST", marshaled)
 	if err != nil {
 		fmt.Println("communication.go -> flowerReq() -> json.MakeHttpReq() error", err.Error())
 		return "communication error", err
 	}
-	var answer struct {
-		Flower
-		Up    uint8  `json:"up"`
-		Grew  bool   `json:"grew"`
-		Err   string `json:"err"`
-		Extra int    `json:"extra"`
-	}
-	if err := json.Unmarshal(resp, &answer); err != nil {
-		fmt.Printf("communication.go -> flowerReq() -> json.Unmarshal() error: %v body %v\n", err.Error(), string(resp))
+
+	if err := json.Unmarshal(respdata, &resp); err != nil {
+		fmt.Printf("communication.go -> flowerReq() -> json.Unmarshal() error: %v body %v\n", err.Error(), string(respdata))
 		return "communication error", err
 	}
-	if answer.Err == "cant grow flower" {
-		return getLoc("already_grew_flowers"), nil
+	if resp.Err == "cant grow flower" {
+		return localization.GetLoc("already_grew_flowers"), nil
 	}
 
-	if answer.Err != "" {
-		fmt.Println("communication.go -> flowerReq() -> answer.Err != '', err:", answer.Err)
+	if resp.Err != "" {
+		fmt.Println("communication.go -> flowerReq() -> answer.Err != '', err:", resp.Err)
 		return "communication error", err
 	}
-	if answer.Dead {
-		return fmt.Sprintf(getLoc("flower_died")), nil
+	if resp.Dead {
+		return fmt.Sprintf(localization.GetLoc("flower_died")), nil
 	}
-	if answer.HP == 100 {
-		return fmt.Sprintf(getLoc("flower_grew"), answer.Icon), err
+	if resp.HP == 100 {
+		return fmt.Sprintf(localization.GetLoc("flower_grew"), resp.Icon), err
 	}
-	if answer.Grew {
-		return fmt.Sprintf(getLoc("flower_grew_not_fully"), answer.Up, answer.Extra), err
+	if resp.Grew {
+		return fmt.Sprintf(localization.GetLoc("flower_grew_not_fully"), resp.Up, resp.Extra), err
 	}
 	return "its not time, try again later...", err
 }
 
 func MakeAdminHTTPReq(method string, data interface{}) (dataresp []byte, err error) {
-	path := fmt.Sprintf("%v/%v", userAdminUrl, method)
+	path := Cfg.UsersAdminURL+method
 	marshaled, err := json.Marshal(data)
 	if err != nil {
 		return []byte{}, err
 	}
 	switch method {
-	case "isAdmin":
+	case cfg.IsAdminURL:
 		dataresp, err = MakeHttpReq(path, "POST", marshaled)
-	case "admin":
+	case cfg.ChangeAdminURL:
 		dataresp, err = MakeHttpReq(path, "POST", marshaled)
-	case "getAllFlowerTypes":
+	case cfg.GetAllFlowerTypesURL:
 		dataresp, err = MakeHttpReq(path, "GET", nil)
-	case "removeFlower":
+	case cfg.RemoveFlowerURL:
 		dataresp, err = MakeHttpReq(path, "POST", marshaled)
 	default:
 		return []byte{}, fmt.Errorf("no such method")

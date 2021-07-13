@@ -1,7 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"log"
+	"time"
 
 	"gopkg.in/tucnak/telebot.v2"
 )
@@ -9,19 +11,26 @@ import (
 type obj map[string]interface{}
 
 var (
-	bot = initBot()
-	// aneks itself
-	DB = DbStruct{
-		DbSession: connectToDB(),
-	}
+	bot *telebot.Bot
+	err error
 )
 
-func main() {
-	// connection to collections
-	DB.CfgCollection = connectToCfgCollection()
-	DB.MessagesCollection = connectToMessagesCollection()
-	DB.PhrasesCollection = connectToPhrasesCollection()
+func init() {
+	timeout := time.Second
+	bot, err = telebot.NewBot(telebot.Settings{
+		// todo maybe pass token as env variable?
+		Token:  token,
+		Poller: &telebot.LongPoller{Timeout: timeout},
+	})
+	if err != nil {
+		panic(err.Error())
+	}
 
+	fmt.Println("Bot created!")
+	fmt.Println("Timeout:", timeout)
+}
+
+func main() {
 	// handlers
 	bot.Handle("/start", start)
 	bot.Handle("/fortune", fortuneCookie)

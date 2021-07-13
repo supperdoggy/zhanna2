@@ -13,7 +13,8 @@ const (
 	DBName = "Zhanna2"
 	Port   = ":1488"
 
-	// move it to default cfg
+	// todo move it to default cfg
+
 	FortuneCookieURL = "http://localhost" + cookieCfg.Port + "/" + defaultCfg.ApiV1
 	FlowersURL        = "http://localhost" + flowercfg.Port + "/" + defaultCfg.ApiV1
 	AnekURL          = "http://localhost" + anekscfg.Port + "/" + defaultCfg.ApiV1

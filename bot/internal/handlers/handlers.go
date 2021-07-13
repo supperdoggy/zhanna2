@@ -1,42 +1,45 @@
-package main
+package handlers
+
 
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/supperdoggy/superSecretDevelopement/bot/internal/communication"
+	"github.com/supperdoggy/superSecretDevelopement/bot/internal/localization"
+	"github.com/supperdoggy/superSecretDevelopement/structs"
+	Cfg "github.com/supperdoggy/superSecretDevelopement/structs/services/bot"
+	cfg "github.com/supperdoggy/superSecretDevelopement/structs/services/users"
 	"log"
 
 	"gopkg.in/tucnak/telebot.v2"
 )
 
-func testMessage(m *telebot.Message) {
-	resp := fmt.Sprintf("%v", m.IsReply())
-
-	b, _ := bot.Reply(m, resp)
-	log.Println(b.Sender.ID)
+type Handlers struct {
+	Bot *telebot.Bot
 }
 
-// start() - handles /start command and sends text response
+// Start - handles /start command and sends text response
 // todo below
-func start(m *telebot.Message) {
+func (h *Handlers) Start(m *telebot.Message) {
 	var response string
 	// todo: create id checker and answer variations for different users
-	response = getLoc("dev_welcome")
-	botmsg, err := bot.Reply(m, response)
+	response = localization.GetLoc("prod_welcome")
+	botmsg, err := h.Bot.Reply(m, response)
 	if err != nil {
 		log.Println("handlers.go -> start() -> error:", err.Error(), ", user id:", m.Sender.ID)
 		return
 	}
-	go UpdateUser(m, botmsg)
+	go communication.UpdateUser(m, botmsg)
 }
 
 // TODO:
-func fortuneCookie(m *telebot.Message) {
+func (h *Handlers) FortuneCookie(m *telebot.Message) {
 	var resp struct {
-		Fortune FortuneCookie `json:"fortune"`
+		Fortune structs.Cookie `json:"fortune"`
 		Err     string        `json:"err"`
 	}
 	data := obj{"id": m.Sender.ID}
-	r, err := MakeUserHttpReq("getFortune", data)
+	r, err := communication.MakeUserHttpReq(cfg.GetFortuneURL, data)
 	if err != nil {
 		log.Println("error making request")
 		return
@@ -51,54 +54,54 @@ func fortuneCookie(m *telebot.Message) {
 		msg = fmt.Sprintf("%v\n\n%v", resp.Err, resp.Fortune.Text)
 	}
 
-	botmsg, err := bot.Reply(m, msg)
+	botmsg, err := h.Bot.Reply(m, msg)
 	if err != nil {
 		log.Println("error sending answer, FortuneCookie:", err.Error())
 		return
 	}
-	go UpdateUser(m, botmsg)
+	go communication.UpdateUser(m, botmsg)
 }
 
 // anek() - handles /anek command and sends anek text response
-func anek(m *telebot.Message) {
-	anekAnswer, err := MakeRandomAnekHttpReq(m.Sender.ID)
+func (h *Handlers) Anek(m *telebot.Message) {
+	anekAnswer, err := communication.MakeRandomAnekHttpReq(m.Sender.ID)
 	if err != nil {
 		log.Println("handlers.go -> anek() -> make req error:", err.Error())
 		return
 	}
-	botmsg, err := bot.Reply(m, anekAnswer.Text)
+	botmsg, err := h.Bot.Reply(m, anekAnswer.Text)
 	if err != nil {
 		log.Println("handlers.go -> anek() -> reply error:", err.Error())
 		return
 	}
-	go UpdateUser(m, botmsg)
+	go communication.UpdateUser(m, botmsg)
 }
 
-func tost(m *telebot.Message) {
-	answerTost, err := MakeRandomTostHttpReq(m.Sender.ID)
+func (h *Handlers) Tost(m *telebot.Message) {
+	answerTost, err := communication.MakeRandomTostHttpReq(m.Sender.ID)
 	if err != nil {
 		log.Println("handlers.go -> tost() -> make req error:", err.Error())
 		return
 	}
-	botmsg, err := bot.Reply(m, answerTost.Text)
+	botmsg, err := h.Bot.Reply(m, answerTost.Text)
 	if err != nil {
 		log.Println("handlers.go -> tost() -> reply error:", err.Error())
 		return
 	}
-	go UpdateUser(m, botmsg)
+	go communication.UpdateUser(m, botmsg)
 }
 
-func flower(m *telebot.Message) {
-	resp, err := MakeFlowerReq(m.Sender.ID, m.Chat.ID)
+func (h *Handlers) Flower(m *telebot.Message) {
+	resp, err := communication.MakeFlowerReq(m.Sender.ID, m.Chat.ID)
 	if err != nil {
 		log.Println("handlers.go -> flower() -> MakeFlowerReq() error", err.Error(), m.Sender.ID)
-		_, _ = bot.Reply(m, "error occured, contact owner")
+		_, _ = h.Bot.Reply(m, "error occured, contact owner")
 		return
 	}
 
 	req := obj{"id": m.Sender.ID}
 	// getting total and last
-	data, err := MakeUserHttpReq("myflowers", req)
+	data, err := communication.MakeUserHttpReq(cfg.MyFlowersURL, req)
 	if err != nil {
 		log.Println("handlers.go -> flower() -> myflowers error:", err.Error())
 	} else {
@@ -112,25 +115,25 @@ func flower(m *telebot.Message) {
 		}
 	}
 
-	botmsg, err := bot.Reply(m, resp)
+	botmsg, err := h.Bot.Reply(m, resp)
 	if err != nil {
 		log.Println("handlers.go -> flower() -> bot.Reply() error", err.Error())
 		return
 	}
-	go UpdateUser(m, botmsg)
+	go communication.UpdateUser(m, botmsg)
 }
 
 // onTextHandler - makes req to python service and gets message from apiai
-func onTextHandler(m *telebot.Message) {
+func (h *Handlers) OnTextHandler(m *telebot.Message) {
 
 	// if chat is not private then user must reply bot to get answer
 	if m.Chat.Type != telebot.ChatPrivate {
-		if !m.IsReply() || m.IsReply() && !(m.ReplyTo.Sender.ID == prodBotID || m.ReplyTo.Sender.ID == testbotId) {
+		if !m.IsReply() || m.IsReply() && !(m.ReplyTo.Sender.ID == Cfg.ProdBotID || m.ReplyTo.Sender.ID == Cfg.TestbotId) {
 			return
 		}
 	}
 
-	answer, err := MakeUserHttpReq("getAnswer", obj{"id": m.Sender.ID, "text": m.Text})
+	answer, err := communication.MakeUserHttpReq(cfg.DialogFlowHandlerURL, obj{"id": m.Sender.ID, "text": m.Text})
 	if err != nil {
 		log.Println("onTextHandler() -> req error:", err.Error())
 		return
@@ -148,12 +151,12 @@ func onTextHandler(m *telebot.Message) {
 		log.Println("onTextHandler() -> got error in response:", resp.Err)
 		return
 	}
-	botmsg, _ := bot.Reply(m, resp.Answer)
-	go UpdateUser(m, botmsg)
+	botmsg, _ := h.Bot.Reply(m, resp.Answer)
+	go communication.UpdateUser(m, botmsg)
 }
 
-func myflowers(m *telebot.Message) {
-	answer, err := MakeUserHttpReq("myflowers", obj{"id": m.Sender.ID})
+func (h *Handlers) MyFlowers(m *telebot.Message) {
+	answer, err := communication.MakeUserHttpReq(cfg.MyFlowersURL, obj{"id": m.Sender.ID})
 	if err != nil {
 		log.Println("myflowers() -> MakeUserHttpReq(myflowers) err:", err.Error())
 		return
@@ -172,27 +175,27 @@ func myflowers(m *telebot.Message) {
 
 	if resp.Err != "" {
 		log.Println("myflowers() -> got error resp from service:", resp.Err)
-		bot.Reply(m, resp.Err)
+		h.Bot.Reply(m, resp.Err)
 		return
 	}
 
-	var answerstr string = fmt.Sprintf(getLoc("my_flower"), resp.Total, resp.Last)
+	var answerstr = fmt.Sprintf(localization.GetLoc("my_flower"), resp.Total, resp.Last)
 	for k, v := range resp.Flowers {
 		answerstr += fmt.Sprintf("%v - %v\n", k, v)
 	}
-	botmsg, _ := bot.Reply(m, answerstr)
-	go UpdateUser(m, botmsg)
+	botmsg, _ := h.Bot.Reply(m, answerstr)
+	go communication.UpdateUser(m, botmsg)
 }
 
-func giveOneFlower(m *telebot.Message) {
+func (h *Handlers) GiveOneFlower(m *telebot.Message) {
 	if !m.IsReply() {
-		b, _ := bot.Reply(m, getLoc("give_flower_need_reply"))
-		UpdateUser(m, b)
+		b, _ := h.Bot.Reply(m, localization.GetLoc("give_flower_need_reply"))
+		communication.UpdateUser(m, b)
 		return
 	}
 
 	data := obj{"last": true, "owner": m.Sender.ID, "reciever": m.ReplyTo.Sender.ID}
-	answer, err := MakeUserHttpReq("give", data)
+	answer, err := communication.MakeUserHttpReq(cfg.GiveFlowerURL, data)
 	if err != nil {
 		log.Printf("handlers.go -> user give req error: %v, data:%v\n", err.Error(), data)
 		return
@@ -207,24 +210,24 @@ func giveOneFlower(m *telebot.Message) {
 	if resp.Err != "" {
 		log.Println(resp.Err)
 	}
-	b, _ := bot.Reply(m, getLoc("give_flower_good"))
-	go UpdateUser(m, b)
+	b, _ := h.Bot.Reply(m, localization.GetLoc("give_flower_good"))
+	go communication.UpdateUser(m, b)
 }
 
 // forms user top by total amount of flowers
 // works only in group chats and supergroups
-func flowertop(m *telebot.Message) {
+func (h *Handlers) Flowertop(m *telebot.Message) {
 	// check for private chat
 	if m.Chat.Type == telebot.ChatPrivate {
-		botmsg, _ := bot.Reply(m, getLoc("command_only_in_group"))
-		UpdateUser(m, botmsg)
+		botmsg, _ := h.Bot.Reply(m, localization.GetLoc("command_only_in_group"))
+		communication.UpdateUser(m, botmsg)
 		return
 	}
-	answer, err := MakeUserHttpReq("flowertop", obj{"chatid": m.Chat.ID})
+	answer, err := communication.MakeUserHttpReq(cfg.FlowertopURL, obj{"chatid": m.Chat.ID})
 	if err != nil {
 		log.Printf("handlers.go -> flowertop() -> MakeUserHttpReq('flowertop') error: %v, chatid: %v\n", err.Error(), m.Chat.ID)
-		botmsg, _ := bot.Reply(m, getLoc("error"))
-		UpdateUser(m, botmsg)
+		botmsg, _ := h.Bot.Reply(m, localization.GetLoc("error"))
+		communication.UpdateUser(m, botmsg)
 		return
 	}
 	var resp struct {
@@ -235,42 +238,42 @@ func flowertop(m *telebot.Message) {
 	}
 	err = json.Unmarshal(answer, &resp)
 	if err != nil || len(resp.Top) == 0 {
-		log.Printf("handlers.go -> flowertop() -> Unmarshal error:%v, body: %v\n", err.Error(), string(answer))
-		botmsg, _ := bot.Reply(m, getLoc("error"))
-		UpdateUser(m, botmsg)
+		log.Printf("handlers.go -> flowertop() -> Unmarshal error:%v, body: %v\n", err, string(answer))
+		botmsg, _ := h.Bot.Reply(m, localization.GetLoc("error"))
+		communication.UpdateUser(m, botmsg)
 		return
 	}
-	var msg string = fmt.Sprintf(getLoc("chat_top"), m.Chat.FirstName+""+m.Chat.LastName)
+	var msg = fmt.Sprintf(localization.GetLoc("chat_top"), m.Chat.FirstName+""+m.Chat.LastName)
 	for k, v := range resp.Top {
 		msg += fmt.Sprintf("%v. %v - %v 🌷\n", k+1, v.Username, v.Total)
 	}
-	botmsg, _ := bot.Reply(m, msg)
-	UpdateUser(m, botmsg)
+	botmsg, _ := h.Bot.Reply(m, msg)
+	communication.UpdateUser(m, botmsg)
 }
 
 // handler for danet, returns agree or disagree message to user
-func danet(m *telebot.Message) {
-	answer := getRandomDanet()
-	botmsg, err := bot.Reply(m, answer)
+func (h *Handlers) Danet(m *telebot.Message) {
+	answer := localization.GetRandomDanet()
+	botmsg, err := h.Bot.Reply(m, answer)
 	if err != nil {
 		log.Printf("handlers.go -> danet() -> Reply() error: %v, id: %v\n", err.Error(), m.Sender.ID)
 	}
-	UpdateUser(m, botmsg)
+	communication.UpdateUser(m, botmsg)
 }
 
-func neverhaveiever(m *telebot.Message) {
-	data, err := MakeUserHttpReq("getRandomNHIE", nil)
+func (h *Handlers) Neverhaveiever(m *telebot.Message) {
+	data, err := communication.MakeUserHttpReq(cfg.GetRandomNHIEURL, nil)
 	if err != nil {
-		bot.Reply(m, getLoc("error"))
+		h.Bot.Reply(m, localization.GetLoc("error"))
 		return
 	}
 	var resp struct {
 		Err    string `json:"err"`
-		Result NHIE   `json:"result"`
+		Result structs.NHIE   `json:"result"`
 	}
 	if err := json.Unmarshal(data, &resp); err != nil {
 		log.Printf("handlers.go -> neverhaveiever() -> Unmarshal() error: %v, body: %v\n", err.Error(), string(data))
 		return
 	}
-	bot.Reply(m, resp.Result.Text)
+	h.Bot.Reply(m, resp.Result.Text)
 }

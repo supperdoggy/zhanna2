@@ -1,4 +1,4 @@
-package main
+package localization
 
 import (
 	"math/rand"
@@ -22,6 +22,7 @@ var (
 			"add_flower":             "неправильный формат, надо иконка-название-категория",
 			"chat_top":               "Вот топ чатика: %v\n\n",
 			"dev_welcome":            "Привет, я пока что очень сырая, будь нежен со мной...",
+			"prod_welcome": "Приветик, я жанночка, давай знакомиться?",
 			"yes":                    "да",
 			"no":                     "нет",
 			"idk":                    "хз",
@@ -39,7 +40,7 @@ var (
 )
 
 // returns localization
-func getLoc(key string) string {
+func GetLoc(key string) string {
 	loc.mut.Lock()
 	defer loc.mut.Unlock()
 	val := loc.m[key]
@@ -47,11 +48,12 @@ func getLoc(key string) string {
 }
 
 // returns string with random agree or disagree
-func getRandomDanet() string {
+func GetRandomDanet() string {
 	rand.Seed(time.Now().UnixNano())
 	agree := rand.Intn(2) == 0
 	if agree {
-		return danetVariations[rand.Intn(len(danetVariations))] + getLoc("yes")
+		return danetVariations[rand.Intn(len(danetVariations))] + GetLoc("yes")
 	}
-	return danetVariations[rand.Intn(len(danetVariations))] + getLoc("no")
+	return danetVariations[rand.Intn(len(danetVariations))] + GetLoc("no")
 }
+
