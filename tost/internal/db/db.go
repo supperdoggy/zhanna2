@@ -14,8 +14,8 @@ import (
 type DbStruct struct {
 	DbSession      *mgo.Session
 	TostCollection *mgo.Collection
-	m []int
-	mut sync.Mutex
+	m              []int
+	mut            sync.Mutex
 }
 
 type obj map[string]interface{}
@@ -31,7 +31,7 @@ func init() {
 	DB.TostCollection = DB.DbSession.DB(cfg.DBName).C(cfg.CollectionName)
 
 	var o []structs.Tost
-	if err := DB.TostCollection.Find(nil).Select(obj{"_id":1}).All(&o); err != nil {
+	if err := DB.TostCollection.Find(nil).Select(obj{"_id": 1}).All(&o); err != nil {
 		panic(err.Error())
 	}
 	for _, v := range o {
@@ -41,7 +41,7 @@ func init() {
 
 func (db *DbStruct) GetRandomTost() (result structs.Tost, err error) {
 	rand.Seed(time.Now().UnixNano())
-	return db.GetTostById(DB.m[rand.Intn(len(DB.m)- 1)]), err
+	return db.GetTostById(DB.m[rand.Intn(len(DB.m)-1)]), err
 }
 
 func (db *DbStruct) GetTostById(id int) (result structs.Tost) {

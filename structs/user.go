@@ -56,4 +56,3 @@ type Chat struct {
 	LastOnline int64        `json:"lastOnline" bson:"lastOnline"`
 	Deleted    bool         `json:"deleted" bson:"deleted"`
 }
-

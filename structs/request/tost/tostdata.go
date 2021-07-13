@@ -1,10 +1,9 @@
 package tostdata
 
-
 type GetRandomTostResp struct {
-	ID int `json:"id"`
+	ID   int    `json:"id"`
 	Text string `json:"text"`
-	Err string `json:"err"`
+	Err  string `json:"err"`
 }
 
 type GetTostByIdReq struct {
@@ -12,9 +11,9 @@ type GetTostByIdReq struct {
 }
 
 type GetTostByIdResp struct {
-	ID int `json:"id"`
+	ID   int    `json:"id"`
 	Text string `json:"text"`
-	Err string `json:"err"`
+	Err  string `json:"err"`
 }
 
 type DeleteTostReq struct {
@@ -23,7 +22,7 @@ type DeleteTostReq struct {
 
 type DeleteTostResp struct {
 	Err string `json:"err"`
-	OK bool `json:"ok"`
+	OK  bool   `json:"ok"`
 }
 
 type AddTostReq struct {
@@ -32,6 +31,5 @@ type AddTostReq struct {
 
 type AddTostResp struct {
 	Err string `json:"err"`
-	OK bool `json:"ok"`
+	OK  bool   `json:"ok"`
 }
-

@@ -77,7 +77,7 @@ func (ah *AdminHandlers) GetAllFlowerTypes(c *gin.Context) {
 		return
 	}
 
-	if err := json.Unmarshal(data, &resp); err != nil || resp.Err != ""{
+	if err := json.Unmarshal(data, &resp); err != nil || resp.Err != "" {
 		log.Printf("handlers_admin.go -> getAllFlowerTypes() -> unmarshal error:%v body: %v\n", err, string(data))
 		resp.Err = "failed to make request to flowers"
 		c.JSON(http.StatusBadRequest, resp)

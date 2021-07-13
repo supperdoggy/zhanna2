@@ -22,7 +22,7 @@ var (
 			"add_flower":             "неправильный формат, надо иконка-название-категория",
 			"chat_top":               "Вот топ чатика: %v\n\n",
 			"dev_welcome":            "Привет, я пока что очень сырая, будь нежен со мной...",
-			"prod_welcome": "Приветик, я жанночка, давай знакомиться?",
+			"prod_welcome":           "Приветик, я жанночка, давай знакомиться?",
 			"yes":                    "да",
 			"no":                     "нет",
 			"idk":                    "хз",
@@ -56,4 +56,3 @@ func GetRandomDanet() string {
 	}
 	return danetVariations[rand.Intn(len(danetVariations))] + GetLoc("no")
 }
-

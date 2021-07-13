@@ -5,13 +5,12 @@ import (
 )
 
 const (
-	TestbotId        = 1442407913
-	ProdBotID        = 1058731629
-	NeMoksID         = 424137509
-	EdemID           = -1001419983908
+	TestbotId = 1442407913
+	ProdBotID = 1058731629
+	NeMoksID  = 424137509
+	EdemID    = -1001419983908
 
-	UsersURL          = usercfg.UserURL
+	UsersURL = usercfg.UserURL
 	// todo something cleaver make
-	UsersAdminURL     = usercfg.UserURL+"/admin"
+	UsersAdminURL = usercfg.UserURL + "/admin"
 )
-

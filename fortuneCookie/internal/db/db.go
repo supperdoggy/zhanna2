@@ -14,12 +14,11 @@ type obj map[string]interface{}
 type DbStruct struct {
 	DbSession        *mgo.Session
 	CookieCollection *mgo.Collection
-	m []int32
+	m                []int32
 }
 
 var (
 	DB DbStruct
-
 )
 
 func init() {
@@ -30,10 +29,10 @@ func init() {
 	DB = DbStruct{
 		DbSession:        s,
 		CookieCollection: s.DB(cfg2.DBName).C(cfg2.FortuneCollection),
-		m: make([]int32, 0),
+		m:                make([]int32, 0),
 	}
 	var o []obj
-	if err := DB.CookieCollection.Find(obj{}).Select(obj{"_id":1}).All(&o); err != nil {
+	if err := DB.CookieCollection.Find(obj{}).Select(obj{"_id": 1}).All(&o); err != nil {
 		panic(err.Error())
 	}
 	for _, v := range o {
@@ -43,7 +42,7 @@ func init() {
 
 func (d *DbStruct) GetRandomFortune() (structs.Cookie, error) {
 	rand.Seed(time.Now().Unix())
-	id := d.m[rand.Intn(len(d.m) - 1)]
+	id := d.m[rand.Intn(len(d.m)-1)]
 	var result structs.Cookie
 	if err := DB.CookieCollection.Find(obj{"_id": id}).One(&result); err != nil {
 		return result, err

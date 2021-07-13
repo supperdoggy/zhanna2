@@ -56,7 +56,7 @@ func (h *Handlers) AddOrUpdateUser(c *gin.Context) {
 		resp.Err = err.Error()
 		c.JSON(400, resp)
 		return
-	// if we dont have this user in db
+		// if we dont have this user in db
 	} else if err == mgo.ErrNotFound {
 		// inserting
 		err = h.DB.UsersCollection.Insert(userReq)

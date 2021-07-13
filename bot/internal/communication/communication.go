@@ -64,7 +64,7 @@ func MakeUserHttpReq(method string, req interface{}) (answer []byte, err error) 
 	if err != nil {
 		return
 	}
-	path := cfg.UserURL+method
+	path := cfg.UserURL + method
 	switch method {
 	case cfg.AddFlowerURL:
 		answer, err = MakeHttpReq(path, "POST", data)
@@ -181,7 +181,7 @@ func MakeFlowerReq(id int, chatId int64) (msg string, err error) {
 }
 
 func MakeAdminHTTPReq(method string, data interface{}) (dataresp []byte, err error) {
-	path := Cfg.UsersAdminURL+method
+	path := Cfg.UsersAdminURL + method
 	marshaled, err := json.Marshal(data)
 	if err != nil {
 		return []byte{}, err

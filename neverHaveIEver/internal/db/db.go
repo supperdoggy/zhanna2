@@ -13,12 +13,12 @@ import (
 type DBStruct struct {
 	DbSession                *mgo.Session
 	NeverHaveIEverCollection *mgo.Collection
-	QuestionsCache []structs.NHIE
-	mut sync.Mutex
+	QuestionsCache           []structs.NHIE
+	mut                      sync.Mutex
 }
 
 var (
-	DB	DBStruct
+	DB DBStruct
 )
 
 func init() {

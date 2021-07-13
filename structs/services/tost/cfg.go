@@ -1,12 +1,12 @@
 package cfg
 
-const(
-	Port = ":9393"
+const (
+	Port           = ":9393"
 	CollectionName = "tostv"
-	DBName = "Zhanna2"
+	DBName         = "Zhanna2"
 
 	GetRandomTostURL = "/getRandomTost"
-	GetTostByIdURL = "/getTostById"
-	DeleteTostURL = "/deleteTost"
-	AddTostURL = "/addTost"
+	GetTostByIdURL   = "/getTostById"
+	DeleteTostURL    = "/deleteTost"
+	AddTostURL       = "/addTost"
 )

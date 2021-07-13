@@ -14,13 +14,12 @@ import (
 
 type obj map[string]interface{}
 
-
 type DbStruct struct {
 	DbSession                *mgo.Session
 	UserFlowerDataCollection *mgo.Collection
 	FlowerCollection         *mgo.Collection
-	mut sync.Mutex
-	m []uint64
+	mut                      sync.Mutex
+	m                        []uint64
 }
 
 var DB DbStruct
@@ -143,7 +142,7 @@ func (d *DbStruct) EditUserFlower(id uint64, f structs.Flower) (err error) {
 	return d.UserFlowerDataCollection.Update(obj{"_id": id}, obj{"$set": f})
 }
 
-func (d *DbStruct) GetRandomID() uint64{
+func (d *DbStruct) GetRandomID() uint64 {
 	rand.Seed(time.Now().Unix())
 	d.mut.Lock()
 	id := d.m[rand.Intn(len(d.m))]
@@ -151,7 +150,7 @@ func (d *DbStruct) GetRandomID() uint64{
 	return id
 }
 
-func (d *DbStruct) removeIDFromCache(val uint64) error{
+func (d *DbStruct) removeIDFromCache(val uint64) error {
 	var i int
 	var ok bool
 	d.mut.Lock()

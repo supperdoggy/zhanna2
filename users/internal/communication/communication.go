@@ -1,6 +1,5 @@
 package communication
 
-
 import (
 	"bytes"
 	"encoding/json"
@@ -17,7 +16,7 @@ type obj map[string]interface{}
 
 // MakeReqToAnek - makes req to anek service
 func MakeReqToAnek(method string, data []byte) (answer []byte, err error) {
-	path := cfg.AnekURL+method
+	path := cfg.AnekURL + method
 	switch method {
 	case anekscfg.GetRandomAnekURL:
 		answer, err = MakeHttpReq(path, "GET", data)
@@ -29,7 +28,7 @@ func MakeReqToAnek(method string, data []byte) (answer []byte, err error) {
 
 // MakeReqToFlowers - makes req to flowers service
 func MakeReqToFlowers(method string, data interface{}) (answer []byte, err error) {
-	path := cfg.FlowersURL+method
+	path := cfg.FlowersURL + method
 	reqData, err := json.Marshal(data)
 	if err != nil {
 		return
@@ -90,7 +89,7 @@ func MakeReqToDialogFlow(message string) (answer string, err error) {
 
 // MakeReqToTost - makes req to tost service
 func MakeReqToTost(method string, data []byte) (answer []byte, err error) {
-	path := cfg.TostURL+method
+	path := cfg.TostURL + method
 	switch method {
 	case tostcfg.GetRandomTostURL:
 		answer, err = MakeHttpReq(path, "GET", data)
@@ -122,4 +121,3 @@ func MakeHttpReq(path, method string, data []byte) (answer []byte, err error) {
 
 	return
 }
-

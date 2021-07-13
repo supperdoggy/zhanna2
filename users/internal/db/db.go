@@ -143,4 +143,3 @@ func (d *DbStruct) SaveTost(userID int, a structs.Tost) bool {
 	}
 	return true
 }
-

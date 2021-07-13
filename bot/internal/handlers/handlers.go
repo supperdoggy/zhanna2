@@ -1,6 +1,5 @@
 package handlers
 
-
 import (
 	"encoding/json"
 	"fmt"
@@ -36,7 +35,7 @@ func (h *Handlers) Start(m *telebot.Message) {
 func (h *Handlers) FortuneCookie(m *telebot.Message) {
 	var resp struct {
 		Fortune structs.Cookie `json:"fortune"`
-		Err     string        `json:"err"`
+		Err     string         `json:"err"`
 	}
 	data := obj{"id": m.Sender.ID}
 	r, err := communication.MakeUserHttpReq(cfg.GetFortuneURL, data)
@@ -268,8 +267,8 @@ func (h *Handlers) Neverhaveiever(m *telebot.Message) {
 		return
 	}
 	var resp struct {
-		Err    string `json:"err"`
-		Result structs.NHIE   `json:"result"`
+		Err    string       `json:"err"`
+		Result structs.NHIE `json:"result"`
 	}
 	if err := json.Unmarshal(data, &resp); err != nil {
 		log.Printf("handlers.go -> neverhaveiever() -> Unmarshal() error: %v, body: %v\n", err.Error(), string(data))

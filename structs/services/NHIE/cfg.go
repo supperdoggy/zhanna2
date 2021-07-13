@@ -1,9 +1,9 @@
 package cfg
 
 const (
-	DBNAME = "Zhanna2"
+	DBNAME         = "Zhanna2"
 	NHIECollection = "NeverHaveIEver"
 
 	GetRandomNeverHaveIEverURL = "/getRandomNeverHaveIEver"
-	Port = ":1122"
+	Port                       = ":1122"
 )

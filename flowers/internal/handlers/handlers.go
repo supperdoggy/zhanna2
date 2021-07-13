@@ -297,7 +297,7 @@ func (h Handlers) UserFlowerSlice(c *gin.Context) {
 
 	var result []structs.Flower
 	// TODO: BUG: returns dead flowers
-	if err := h.DB.UserFlowerDataCollection.Find(obj{"$or": query}).Select(obj{"owner":1, "hp":1}).All(&result); err != nil {
+	if err := h.DB.UserFlowerDataCollection.Find(obj{"$or": query}).Select(obj{"owner": 1, "hp": 1}).All(&result); err != nil {
 		fmt.Println("handlers.go -> userFlowerSlice() -> flower find error:", err.Error())
 		resp.Err = err.Error()
 		c.JSON(http.StatusBadRequest, resp)
@@ -309,7 +309,7 @@ func (h Handlers) UserFlowerSlice(c *gin.Context) {
 		scores[v.Owner]++
 	}
 	for k, v := range scores {
-		resp.Result = append(resp.Result, struct{
+		resp.Result = append(resp.Result, struct {
 			Key   int `json:"id"`
 			Value int `json:"total"`
 		}{k, v})

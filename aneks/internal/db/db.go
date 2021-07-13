@@ -10,9 +10,9 @@ import (
 	"time"
 )
 
-type DbStruct struct{
-	m []int
-	mut sync.Mutex
+type DbStruct struct {
+	m          []int
+	mut        sync.Mutex
 	Collection *mgo.Collection
 }
 
@@ -20,7 +20,7 @@ type obj map[string]interface{}
 
 var DB DbStruct
 
-func init () {
+func init() {
 	DB.Collection = connectToDb()
 	var o []structs.Anek
 	if err := DB.Collection.Find(nil).All(&o); err != nil {
@@ -39,7 +39,6 @@ func connectToDb() *mgo.Collection {
 	return b.DB(cfg.MainDBName).C(cfg.CollectionName)
 }
 
-
 func (d *DbStruct) GetAnekById(id int) (result structs.Anek) {
 	if err := d.Collection.Find(obj{"_id": id}).One(&result); err != nil {
 		fmt.Println(err.Error())
@@ -49,7 +48,7 @@ func (d *DbStruct) GetAnekById(id int) (result structs.Anek) {
 
 func (d *DbStruct) GetRandomAnek() (result structs.Anek, err error) {
 	rand.Seed(time.Now().UnixNano())
-	return d.GetAnekById(d.m[rand.Intn(len(d.m) - 1)]), err
+	return d.GetAnekById(d.m[rand.Intn(len(d.m)-1)]), err
 }
 
 // TODO MAKE REMOVE FROM CACHE
@@ -80,4 +79,3 @@ func (db *DbStruct) AddIdToCache(id int) {
 	db.m = append(db.m, id)
 	db.mut.Unlock()
 }
-

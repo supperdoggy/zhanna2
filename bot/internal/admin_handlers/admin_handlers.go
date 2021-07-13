@@ -112,7 +112,7 @@ func (ah *AdminHandlers) AllFlowers(m *telebot.Message) {
 
 	var resp struct {
 		Result []structs.Flower `json:"result"`
-		Err    string   `json:"err"`
+		Err    string           `json:"err"`
 	}
 	if err := json.Unmarshal(data, &resp); err != nil {
 		log.Println("admin_handlers.go -> allFlowers() -> Unmarshal err:", err.Error(), string(data))
@@ -191,4 +191,3 @@ func (ah *AdminHandlers) CheckAdmin(id int) (bool, error) {
 	}
 	return resp.Result, nil
 }
-

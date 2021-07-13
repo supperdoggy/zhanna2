@@ -127,8 +127,8 @@ type GiveFlowerReq struct {
 	Owner    int    `json:"owner"`
 	Reciever int    `json:"reciever"`
 	// why this???? >>
-	Last     bool   `json:"last"`
-	Count    int    `json:"count"`
+	Last  bool `json:"last"`
+	Count int  `json:"count"`
 }
 
 type GiveFlowerResp struct {
@@ -153,6 +153,6 @@ type GetRandomNHIEreq struct {
 }
 
 type GetRandomNHIEresp struct {
-	Err    string `json:"err"`
-	Result structs.NHIE   `json:"result"`
+	Err    string       `json:"err"`
+	Result structs.NHIE `json:"result"`
 }
