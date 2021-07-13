@@ -5,9 +5,10 @@ import (
 	"fmt"
 	"github.com/supperdoggy/superSecretDevelopement/bot/internal/communication"
 	"github.com/supperdoggy/superSecretDevelopement/bot/internal/localization"
-	"github.com/supperdoggy/superSecretDevelopement/structs"
+	usersdata "github.com/supperdoggy/superSecretDevelopement/structs/request/users"
 	Cfg "github.com/supperdoggy/superSecretDevelopement/structs/services/bot"
 	cfg "github.com/supperdoggy/superSecretDevelopement/structs/services/users"
+	"gopkg.in/night-codes/types.v1"
 	"log"
 	"strconv"
 	"strings"
@@ -26,6 +27,7 @@ func (ah *AdminHandlers) AdminHelp(m *telebot.Message) {
 		return
 	}
 
+	// todo localization
 	text := "/admin - set/unset admin\n" +
 		"/addFlower - add new flower type\n" +
 		"/removeFlower - remove flower type\n" +
@@ -47,13 +49,30 @@ func (ah *AdminHandlers) AddFlower(m *telebot.Message) {
 		go communication.UpdateUser(m, bmsg)
 		return
 	}
-	data := obj{"icon": text[0], "name": text[1], "type": text[2]}
-	_, err := communication.MakeUserHttpReq(cfg.AddFlowerURL, data)
+
+	req := usersdata.AddFlowerReq{
+		Icon: text[0],
+		Name: text[1],
+		Type: text[2],
+	}
+	var resp usersdata.AddFlowerResp
+	respdata, err := communication.MakeUserHttpReq(cfg.AddFlowerURL, req)
 	if err != nil {
 		log.Println("admin_handlers.go -> addFlower() -> MakeUserHttpReq error:", err.Error())
 		return
 	}
-	botmsg, _ := ah.Bot.Reply(m, "Done!")
+	if err := json.Unmarshal(respdata, &resp); err != nil {
+		log.Println("admin_handlers.go -> addFlower() -> unmarshal error:", err.Error())
+		return
+	}
+
+	// todo localization
+	var msg string = "Done!"
+	if !resp.OK {
+		msg = fmt.Sprintf("%s - %s", localization.GetLoc("error"), resp.Err)
+	}
+
+	botmsg, _ := ah.Bot.Reply(m, msg)
 	go communication.UpdateUser(m, botmsg)
 }
 
@@ -69,31 +88,29 @@ func (ah *AdminHandlers) Admin(m *telebot.Message) {
 		return
 	}
 
-	data, err := communication.MakeAdminHTTPReq(cfg.ChangeAdminURL, obj{"id": m.ReplyTo.Sender.ID})
+	req := usersdata.AdminReq{ID: m.ReplyTo.Sender.ID}
+	var resp usersdata.AdminResp
+	data, err := communication.MakeAdminHTTPReq(cfg.ChangeAdminURL, req)
 	if err != nil {
-		log.Printf("admin_handlers.go -> admin() -> MakeAdminHTTPReq error: %v id: %v\n", err.Error(), m.ReplyTo.Sender.ID)
+		log.Printf("admin_handlers.go -> admin() -> MakeAdminHTTPReq error: %v id: %v\n", err.Error(), req.ID)
 		botmsg, _ := ah.Bot.Reply(m, localization.GetLoc("error"))
 		communication.UpdateUser(m, botmsg)
 		return
 	}
 
-	var resp struct {
-		Err   string `json:"err"`
-		Admin bool   `json:"admin"`
-	}
 	err = json.Unmarshal(data, &resp)
-	if err != nil || resp.Err != "" {
-		log.Printf("admin_handlers.go -> admin() -> Marshal error: %v body: %v, resp error: %v\n", err.Error(), string(data), resp.Err)
+	if err != nil || !resp.OK {
+		log.Printf("admin_handlers.go -> admin() -> Marshal error: %v body: %v, resp error: %v\n", err, string(data), resp.Err)
 		botmsg, _ := ah.Bot.Reply(m, localization.GetLoc("error"))
 		communication.UpdateUser(m, botmsg)
 		return
 	}
 
 	// todo localization
-	botmsg, _ := ah.Bot.Reply(m, fmt.Sprintf("Пользователь %v admin: %v\n", m.ReplyTo.Sender.ID, resp.Admin))
+	botmsg, _ := ah.Bot.Reply(m, fmt.Sprintf("Пользователь %v admin: %v\n", req.ID, resp.Admin))
 	go communication.UpdateUser(m, botmsg)
 
-	bot.Send(m.Sender, fmt.Sprintf("Пользователь %v admin: %v\n", m.ReplyTo.Sender.ID, resp.Admin))
+	ah.Bot.Send(m.Sender, fmt.Sprintf("Пользователь %v admin: %v\n", req.ID, resp.Admin))
 	return
 }
 
@@ -104,18 +121,15 @@ func (ah *AdminHandlers) AllFlowers(m *telebot.Message) {
 		return
 	}
 
-	data, err := communication.MakeAdminHTTPReq(cfg.GetAllFlowerTypesURL, obj{})
+	var resp usersdata.GetAllFlowerTypesResp
+	data, err := communication.MakeAdminHTTPReq(cfg.GetAllFlowerTypesURL, nil)
 	if err != nil {
 		log.Println("admin_handlers.go -> allFlowers() -> error makin req err:", err.Error())
 		return
 	}
 
-	var resp struct {
-		Result []structs.Flower `json:"result"`
-		Err    string           `json:"err"`
-	}
-	if err := json.Unmarshal(data, &resp); err != nil {
-		log.Println("admin_handlers.go -> allFlowers() -> Unmarshal err:", err.Error(), string(data))
+	if err := json.Unmarshal(data, &resp); err != nil || resp.Err != ""{
+		log.Println("admin_handlers.go -> allFlowers() -> Unmarshal err:", err, string(data), resp.Err)
 		return
 	}
 
@@ -146,22 +160,22 @@ func (ah *AdminHandlers) RemoveFlower(m *telebot.Message) {
 		return
 	}
 
-	data, err := communication.MakeAdminHTTPReq(cfg.RemoveFlowerURL, obj{"id": id})
+	req := usersdata.RemoveFlowerReq{ID: types.Uint64(id)}
+	var resp usersdata.RemoveFlowerResp
+	data, err := communication.MakeAdminHTTPReq(cfg.RemoveFlowerURL, req)
 	if err != nil {
 		log.Println("admin_handlers.go -> removeFlower() -> removeFlower err:", err.Error())
 		ah.Bot.Reply(m, localization.GetLoc("error"))
 		return
 	}
-	var resp struct {
-		Err string `json:"err"`
-	}
-	if err := json.Unmarshal(data, &resp); err != nil {
+	if err := json.Unmarshal(data, &resp); err != nil{
 		log.Println("admin_handlers.go -> removeFlower() -> Unmarshal err:", err.Error(), string(data))
 		ah.Bot.Reply(m, localization.GetLoc("error"))
 		return
 	}
-	if resp.Err != "" {
-		log.Println("admin_handlers.go -> removeFlower() -> resp err:", resp)
+	if !resp.OK {
+		log.Println("admin_handlers.go -> removeFlower() -> resp err:", resp.Err)
+		ah.Bot.Reply(m, localization.GetLoc("error"))
 		return
 	}
 	ah.Bot.Reply(m, "ok")
@@ -171,17 +185,16 @@ func (ah *AdminHandlers) CheckAdmin(id int) (bool, error) {
 	if id == Cfg.NeMoksID {
 		return true, nil
 	}
-	data, err := communication.MakeAdminHTTPReq(cfg.IsAdminURL, obj{"id": id})
+	req := usersdata.IsAdminReq{ID: id}
+	var resp usersdata.IsAdminResp
+	data, err := communication.MakeAdminHTTPReq(cfg.IsAdminURL, req)
 	if err != nil {
 		log.Println("admin_auth.go -> checkAdmin() -> isAdmin method req error:", err)
 		return false, err
 	}
-	var resp struct {
-		Err    string `json:"err"`
-		Result bool   `json:"result"`
-	}
 	err = json.Unmarshal(data, &resp)
 	if err != nil {
+		log.Println("admin_auth.go -> checkAdmin() -> unmarshal error")
 		return false, err
 	}
 
