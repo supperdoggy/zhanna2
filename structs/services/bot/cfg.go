@@ -10,7 +10,6 @@ const (
 	NeMoksID  = 424137509
 	EdemID    = -1001419983908
 
-	UsersURL = usercfg.UserURL
 	// todo something cleaver make
 	UsersAdminURL = usercfg.UserURL + "/admin"
 

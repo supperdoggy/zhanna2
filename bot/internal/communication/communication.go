@@ -59,7 +59,6 @@ func MakeRandomTostHttpReq(id int) (response structs.Tost, err error) {
 }
 
 // MakeUserHttpReq - method handler for users req
-// TODO: refactor it!!!
 func MakeUserHttpReq(method string, req interface{}) (answer []byte, err error) {
 	data, err := json.Marshal(req)
 	if err != nil {
@@ -142,7 +141,6 @@ func MakeHttpReq(path, method string, data []byte) (answer []byte, err error) {
 }
 
 // grow flower
-// todo test this
 func MakeFlowerReq(id int, chatId int64) (msg string, err error) {
 	var req = usersdata.FlowerReq{ID: id, NonDying: chatId == int64(Cfg.EdemID)}
 	var resp usersdata.FlowerResp

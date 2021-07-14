@@ -33,6 +33,13 @@ var (
 			"not_admin":              "Вы не администратор",
 			"need_reply":             "Ответь на сообщение кого надо сделать админом",
 			"flower_died":            "Штош, у меня плохие новости, твой цветок умер",
+			"fortune":                "%v\n\n%v",
+			"admin_help": "/admin - set/unset admin\n" +
+				"/addFlower - add new flower type\n" +
+				"/removeFlower - remove flower type\n" +
+				"/allFlowers - returns flower types list\n",
+			"done": "Дело сделано!",
+			"change_admin": "Пользователь %v admin: %v\n",
 		},
 	}
 	// for danet

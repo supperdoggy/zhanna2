@@ -27,11 +27,7 @@ func (ah *AdminHandlers) AdminHelp(m *telebot.Message) {
 		return
 	}
 
-	// todo localization
-	text := "/admin - set/unset admin\n" +
-		"/addFlower - add new flower type\n" +
-		"/removeFlower - remove flower type\n" +
-		"/allFlowers - returns flower types list\n"
+	text := localization.GetLoc("admin_help")
 	ah.Bot.Reply(m, text)
 }
 
@@ -66,8 +62,7 @@ func (ah *AdminHandlers) AddFlower(m *telebot.Message) {
 		return
 	}
 
-	// todo localization
-	var msg string = "Done!"
+	var msg string = localization.GetLoc("done")
 	if !resp.OK {
 		msg = fmt.Sprintf("%s - %s", localization.GetLoc("error"), resp.Err)
 	}
@@ -106,11 +101,10 @@ func (ah *AdminHandlers) Admin(m *telebot.Message) {
 		return
 	}
 
-	// todo localization
-	botmsg, _ := ah.Bot.Reply(m, fmt.Sprintf("Пользователь %v admin: %v\n", req.ID, resp.Admin))
+	botmsg, _ := ah.Bot.Reply(m, fmt.Sprintf(localization.GetLoc("change_admin"), req.ID, resp.Admin))
 	go communication.UpdateUser(m, botmsg)
 
-	ah.Bot.Send(m.Sender, fmt.Sprintf("Пользователь %v admin: %v\n", req.ID, resp.Admin))
+	ah.Bot.Send(m.Sender, fmt.Sprintf(localization.GetLoc("change_admin"), req.ID, resp.Admin))
 	return
 }
 

@@ -19,8 +19,7 @@ var (
 func init() {
 	timeout := time.Second
 	bot, err = telebot.NewBot(telebot.Settings{
-		// todo maybe pass token as env variable?
-		Token:  token,
+		Token:  testToken,
 		Poller: &telebot.LongPoller{Timeout: timeout},
 	})
 	if err != nil {

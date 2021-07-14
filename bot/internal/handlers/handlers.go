@@ -46,8 +46,7 @@ func (h *Handlers) FortuneCookie(m *telebot.Message) {
 	}
 	msg := resp.Fortune.Text
 	if resp.Err != "" {
-		// todo localization
-		msg = fmt.Sprintf("%v\n\n%v", resp.Err, resp.Fortune.Text)
+		msg = fmt.Sprintf(localization.GetLoc("fortune"), resp.Err, resp.Fortune.Text)
 	}
 
 	botmsg, err := h.Bot.Reply(m, msg)
@@ -236,7 +235,6 @@ func (h *Handlers) Danet(m *telebot.Message) {
 
 func (h *Handlers) Neverhaveiever(m *telebot.Message) {
 	var resp usersdata.GetRandomNHIEresp
-	// todo lol test wtf
 	data, err := communication.MakeUserHttpReq(cfg.GetRandomNHIEURL, nil)
 	if err != nil {
 		h.Bot.Reply(m, localization.GetLoc("error"))
