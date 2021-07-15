@@ -1,7 +1,6 @@
 package adminHandlers
 
 import (
-	"encoding/json"
 	flowersdata "github.com/supperdoggy/superSecretDevelopement/structs/request/flowers"
 	usersdata "github.com/supperdoggy/superSecretDevelopement/structs/request/users"
 	flowerscfg "github.com/supperdoggy/superSecretDevelopement/structs/services/flowers"
@@ -67,9 +66,10 @@ func (ah *AdminHandlers) ChangeAdmin(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
+// todo should be flowersdata.GetAllFlowerTypesResp and only after that usersdata.GetAllFlowerTypesResp
 func (ah *AdminHandlers) GetAllFlowerTypes(c *gin.Context) {
 	var resp usersdata.GetAllFlowerTypesResp
-	data, err := communication.MakeReqToFlowers(flowerscfg.GetFlowerTypesURL, nil)
+	err := communication.MakeReqToFlowers(flowerscfg.GetFlowerTypesURL, nil, &resp)
 	if err != nil {
 		log.Println("handlers_admin.go -> getAllFlowerTypes() error:", err.Error())
 		resp.Err = err.Error()
@@ -77,8 +77,8 @@ func (ah *AdminHandlers) GetAllFlowerTypes(c *gin.Context) {
 		return
 	}
 
-	if err := json.Unmarshal(data, &resp); err != nil || resp.Err != "" {
-		log.Printf("handlers_admin.go -> getAllFlowerTypes() -> unmarshal error:%v body: %v\n", err, string(data))
+	if resp.Err != "" {
+		log.Printf("handlers_admin.go -> getAllFlowerTypes() -> unmarshal error:%v body: %v\n", resp.Err)
 		resp.Err = "failed to make request to flowers"
 		c.JSON(http.StatusBadRequest, resp)
 		return
@@ -98,19 +98,14 @@ func (ah *AdminHandlers) RemoveFlower(c *gin.Context) {
 
 	reqToFlowers := flowersdata.RemoveFlowerReq{ID: req.ID}
 	respFromFlowers := flowersdata.RemoveFlowerResp{}
-	data, err := communication.MakeReqToFlowers(flowerscfg.RemoveFlowerURL, reqToFlowers)
+	err := communication.MakeReqToFlowers(flowerscfg.RemoveFlowerURL, reqToFlowers, &respFromFlowers)
 	if err != nil {
 		log.Println("handlers_admin.go -> removeFlower() -> removeFlower req error:", err.Error())
 		resp.Err = err.Error()
 		c.JSON(http.StatusBadRequest, resp)
 		return
 	}
-	if err := json.Unmarshal(data, &respFromFlowers); err != nil {
-		log.Printf("handlers_admin.go -> removeFlower() -> unmarshal error: %v, body: %v\n", err.Error(), string(data))
-		resp.Err = err.Error()
-		c.JSON(http.StatusBadRequest, resp)
-		return
-	}
+
 	if !respFromFlowers.OK {
 		resp.Err = respFromFlowers.Err
 		c.JSON(http.StatusBadRequest, resp)

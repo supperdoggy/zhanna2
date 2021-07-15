@@ -210,16 +210,11 @@ func (h *Handlers) GetRandomAnek(c *gin.Context) {
 		c.JSON(400, resp)
 		return
 	}
-	data, err := communication.MakeReqToAnek(anekscfg.GetRandomAnekURL, nil)
+
+	var respFromAneks aneksdata.GetRandomAnekResp
+	err := communication.MakeReqToAnek(anekscfg.GetRandomAnekURL, nil, &respFromAneks)
 	if err != nil {
 		fmt.Println("handlers.go -> getRandomAnek()-> req error", err.Error())
-		resp.Err = "something went wrong, contact @supperdoggy"
-		c.JSON(400, resp)
-		return
-	}
-	var respFromAneks aneksdata.GetRandomAnekResp
-	if err = json.Unmarshal(data, &respFromAneks); err != nil {
-		fmt.Println("handlers.go -> getRandomAnek() -> unmarshal error:", err.Error())
 		resp.Err = "something went wrong, contact @supperdoggy"
 		c.JSON(400, resp)
 		return
@@ -253,20 +248,15 @@ func (h *Handlers) GetRandomTost(c *gin.Context) {
 		return
 	}
 
-	data, err := communication.MakeReqToTost(tostcfg.GetRandomTostURL, nil)
+	var respFromTost tostdata.GetRandomTostResp
+	err := communication.MakeReqToTost(tostcfg.GetRandomTostURL, nil, &respFromTost)
 	if err != nil {
 		fmt.Println("handlers.go -> getRandomTost() -> MakeReqToTost(\"getRandomTost\") error:", err.Error())
 		resp.Err = err.Error()
 		c.JSON(http.StatusBadRequest, resp)
 		return
 	}
-	var respFromTost tostdata.GetRandomTostResp
-	if err = json.Unmarshal(data, &respFromTost); err != nil {
-		fmt.Println("handlers.go -> getRandomTost() -> json.Unmarshal error:", err.Error())
-		resp.Err = "unmarshal error"
-		c.JSON(400, resp)
-		return
-	}
+
 	if respFromTost.Err != "" {
 		resp.Err = respFromTost.Err
 		c.JSON(http.StatusBadRequest, resp)
@@ -297,7 +287,7 @@ func (h *Handlers) AddFlower(c *gin.Context) {
 	reqToFlowers.Name = req.Name
 	reqToFlowers.Icon = req.Icon
 	reqToFlowers.Type = req.Type
-	data, err := communication.MakeReqToFlowers(flowercfg.AddNewFlowerURL, reqToFlowers)
+	err := communication.MakeReqToFlowers(flowercfg.AddNewFlowerURL, reqToFlowers, &respFromFlowers)
 	if err != nil {
 		fmt.Println("handlers.go -> addFlower() -> MakeReqToFlowers error:", err.Error())
 		resp.Err = "communication error"
@@ -305,12 +295,6 @@ func (h *Handlers) AddFlower(c *gin.Context) {
 		return
 	}
 
-	if err := json.Unmarshal(data, &respFromFlowers); err != nil {
-		fmt.Println("handlers.go -> addFlower() -> unmarshal error:", err.Error())
-		resp.Err = "communication error"
-		c.JSON(400, resp)
-		return
-	}
 	if !respFromFlowers.OK {
 		resp.Err = respFromFlowers.Err
 		c.JSON(http.StatusBadRequest, resp)
@@ -353,19 +337,14 @@ func (h *Handlers) Flower(c *gin.Context) {
 	reqToFlower.ID = req.ID
 	reqToFlower.NonDying = req.NonDying
 	reqToFlower.MsgCount = req.MsgCount
-	data, err := communication.MakeReqToFlowers(flowercfg.GrowFlowerURL, req)
+	err = communication.MakeReqToFlowers(flowercfg.GrowFlowerURL, reqToFlower, &respFromFlower)
 	if err != nil {
 		fmt.Println("handlers.go -> flowerReq() -> req error:", err.Error())
 		resp.Err = "err req to flowers"
 		c.JSON(400, resp)
 		return
 	}
-	if err := json.Unmarshal(data, &respFromFlower); err != nil {
-		fmt.Println("handlers.go -> flowerReq() -> unmarshal error:", err.Error())
-		resp.Err = "communication error"
-		c.JSON(400, resp)
-		return
-	}
+
 	resp.Flower = respFromFlower.Flower
 	resp.Up = respFromFlower.Flower.Grew
 	// grew successful
@@ -426,16 +405,10 @@ func (h *Handlers) MyFlowers(c *gin.Context) {
 	var reqToFlower flowersdata.GetUserFlowersReq
 	var respFromFlower flowersdata.GetUserFlowersResp
 	reqToFlower.ID = req.ID
-	answer, err := communication.MakeReqToFlowers(flowercfg.GetUserFlowersURL, reqToFlower)
+	err := communication.MakeReqToFlowers(flowercfg.GetUserFlowersURL, reqToFlower, respFromFlower)
 	if err != nil {
 		fmt.Println("myflowers() -> MakeHttpReq(getUserFlowers) error:", err.Error())
 		resp.Err = err.Error()
-		c.JSON(400, resp)
-		return
-	}
-	if err := json.Unmarshal(answer, &respFromFlower); err != nil {
-		fmt.Println("myflowers() -> unmarshal error:", err.Error(), string(answer))
-		resp.Err = "unmarshal error"
 		c.JSON(400, resp)
 		return
 	}
@@ -472,16 +445,16 @@ func (h *Handlers) GiveFlower(c *gin.Context) {
 	reqToFlowers.ID = req.ID
 	reqToFlowers.Owner = req.Owner
 	reqToFlowers.Reciever = req.Reciever
-	answer, err := communication.MakeReqToFlowers(flowercfg.GiveFlowerURL, req)
+	err := communication.MakeReqToFlowers(flowercfg.GiveFlowerURL, reqToFlowers, &respFromFlowers)
 	if err != nil {
 		fmt.Println("handlers.go -> give() -> MakeReqToFlowers error:", err.Error())
 		resp.Err = "err making req"
 		c.JSON(400, resp)
 		return
 	}
-	if err := json.Unmarshal(answer, &resp); err != nil || respFromFlowers.Err != "" {
-		fmt.Println("handlers.go -> give() -> Unmarshal error:", err, string(answer))
-		resp.Err = "flower error"
+	if respFromFlowers.Err != "" {
+		fmt.Println("handlers.go -> give() -> Unmarshal error:", respFromFlowers.Err)
+		resp.Err = respFromFlowers.Err
 		c.JSON(400, resp)
 		return
 	}
@@ -540,17 +513,11 @@ func (h *Handlers) Flowertop(c *gin.Context) {
 	var reqToFlowers flowersdata.UserFlowerSliceReq
 	var respFromFlowers flowersdata.UserFlowerSliceResp
 	reqToFlowers.ID = ids
-	answer, err := communication.MakeReqToFlowers(flowercfg.UserFlowerSliceURL, reqToFlowers)
+	err = communication.MakeReqToFlowers(flowercfg.UserFlowerSliceURL, reqToFlowers, &respFromFlowers)
 	if err != nil {
 		fmt.Println("flowertop() -> MakeReqToFlowers(\"userFlowerSlice\") error:", err.Error())
 		resp.Err = "error making req"
 		c.JSON(400, req)
-		return
-	}
-	if err := json.Unmarshal(answer, &respFromFlowers); err != nil {
-		fmt.Println("flowertop() -> unmarshal error:", err.Error(), string(answer))
-		resp.Err = "unmarshal error"
-		c.JSON(400, resp)
 		return
 	}
 
@@ -616,14 +583,9 @@ func canGrowFlower(id int) (bool, error) {
 	var reqToFlowers flowersdata.CanGrowFlowerReq
 	var respFromFlowers flowersdata.CanGrowFlowerResp
 	reqToFlowers.ID = id
-	answer, err := communication.MakeReqToFlowers(flowercfg.CanGrowFlowerURL, reqToFlowers)
+	err := communication.MakeReqToFlowers(flowercfg.CanGrowFlowerURL, reqToFlowers, &respFromFlowers)
 	if err != nil {
 		fmt.Println("canGrowFlower() -> MakeReqToFlower(canGrowFlower) error:", err.Error())
-		return false, err
-	}
-
-	if err := json.Unmarshal(answer, &respFromFlowers); err != nil {
-		fmt.Println("canGrowFlower() -> Unmarshal error:", err.Error(), string(answer))
 		return false, err
 	}
 
