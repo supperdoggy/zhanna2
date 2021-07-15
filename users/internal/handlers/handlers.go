@@ -405,7 +405,7 @@ func (h *Handlers) MyFlowers(c *gin.Context) {
 	var reqToFlower flowersdata.GetUserFlowersReq
 	var respFromFlower flowersdata.GetUserFlowersResp
 	reqToFlower.ID = req.ID
-	err := communication.MakeReqToFlowers(flowercfg.GetUserFlowersURL, reqToFlower, respFromFlower)
+	err := communication.MakeReqToFlowers(flowercfg.GetUserFlowersURL, reqToFlower, &respFromFlower)
 	if err != nil {
 		fmt.Println("myflowers() -> MakeHttpReq(getUserFlowers) error:", err.Error())
 		resp.Err = err.Error()

@@ -129,7 +129,6 @@ func MakeFlowerReq(id int, chatId int64) (msg string, err error) {
 		return "communication error", err
 	}
 	// making request to my flowers to get total and last
-	var replymsg string
 	myflowersReq := usersdata.MyFlowersReq{ID: id}
 	var myflowersResp usersdata.MyFlowersResp
 	// getting total and last
@@ -137,6 +136,14 @@ func MakeFlowerReq(id int, chatId int64) (msg string, err error) {
 	if err != nil {
 		log.Println("handlers.go -> flower() -> myflowers error:", err.Error())
 	}
+
+	var replymsg string
+	if myflowersResp.Err != "" {
+		log.Println("handlers.go -> flower() myflowers error:", myflowersResp.Err)
+	} else {
+		replymsg = fmt.Sprintf(localization.GetLoc("flower_already_have"), myflowersResp.Total, myflowersResp.Last)
+	}
+
 	if resp.Err == "cant grow flower" {
 		return localization.GetLoc("already_grew_flowers") + replymsg, nil
 	}
