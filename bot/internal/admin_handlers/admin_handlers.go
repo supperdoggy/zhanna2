@@ -1,7 +1,6 @@
 package admin_handlers
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/supperdoggy/superSecretDevelopement/bot/internal/communication"
 	"github.com/supperdoggy/superSecretDevelopement/bot/internal/localization"
@@ -52,13 +51,9 @@ func (ah *AdminHandlers) AddFlower(m *telebot.Message) {
 		Type: text[2],
 	}
 	var resp usersdata.AddFlowerResp
-	respdata, err := communication.MakeUserHttpReq(cfg.AddFlowerURL, req)
+	err := communication.MakeUserHttpReq(cfg.AddFlowerURL, req, &resp)
 	if err != nil {
 		log.Println("admin_handlers.go -> addFlower() -> MakeUserHttpReq error:", err.Error())
-		return
-	}
-	if err := json.Unmarshal(respdata, &resp); err != nil {
-		log.Println("admin_handlers.go -> addFlower() -> unmarshal error:", err.Error())
 		return
 	}
 
@@ -85,7 +80,7 @@ func (ah *AdminHandlers) Admin(m *telebot.Message) {
 
 	req := usersdata.AdminReq{ID: m.ReplyTo.Sender.ID}
 	var resp usersdata.AdminResp
-	data, err := communication.MakeAdminHTTPReq(cfg.ChangeAdminURL, req)
+	err := communication.MakeAdminHTTPReq(cfg.ChangeAdminURL, req, &resp)
 	if err != nil {
 		log.Printf("admin_handlers.go -> admin() -> MakeAdminHTTPReq error: %v id: %v\n", err.Error(), req.ID)
 		botmsg, _ := ah.Bot.Reply(m, localization.GetLoc("error"))
@@ -93,9 +88,8 @@ func (ah *AdminHandlers) Admin(m *telebot.Message) {
 		return
 	}
 
-	err = json.Unmarshal(data, &resp)
-	if err != nil || !resp.OK {
-		log.Printf("admin_handlers.go -> admin() -> Marshal error: %v body: %v, resp error: %v\n", err, string(data), resp.Err)
+	if !resp.OK {
+		log.Printf("admin_handlers.go -> admin() -> Marshal error: %v body: %v, resp error: %v\n", err, resp.Err)
 		botmsg, _ := ah.Bot.Reply(m, localization.GetLoc("error"))
 		communication.UpdateUser(m, botmsg)
 		return
@@ -116,14 +110,14 @@ func (ah *AdminHandlers) AllFlowers(m *telebot.Message) {
 	}
 
 	var resp usersdata.GetAllFlowerTypesResp
-	data, err := communication.MakeAdminHTTPReq(cfg.GetAllFlowerTypesURL, nil)
+	err := communication.MakeAdminHTTPReq(cfg.GetAllFlowerTypesURL, nil, &resp)
 	if err != nil {
 		log.Println("admin_handlers.go -> allFlowers() -> error makin req err:", err.Error())
 		return
 	}
 
-	if err := json.Unmarshal(data, &resp); err != nil || resp.Err != "" {
-		log.Println("admin_handlers.go -> allFlowers() -> Unmarshal err:", err, string(data), resp.Err)
+	if resp.Err != "" {
+		log.Println("admin_handlers.go -> allFlowers() -> resp error", resp.Err)
 		return
 	}
 
@@ -156,17 +150,13 @@ func (ah *AdminHandlers) RemoveFlower(m *telebot.Message) {
 
 	req := usersdata.RemoveFlowerReq{ID: types.Uint64(id)}
 	var resp usersdata.RemoveFlowerResp
-	data, err := communication.MakeAdminHTTPReq(cfg.RemoveFlowerURL, req)
+	err = communication.MakeAdminHTTPReq(cfg.RemoveFlowerURL, req, &resp)
 	if err != nil {
 		log.Println("admin_handlers.go -> removeFlower() -> removeFlower err:", err.Error())
 		ah.Bot.Reply(m, localization.GetLoc("error"))
 		return
 	}
-	if err := json.Unmarshal(data, &resp); err != nil {
-		log.Println("admin_handlers.go -> removeFlower() -> Unmarshal err:", err.Error(), string(data))
-		ah.Bot.Reply(m, localization.GetLoc("error"))
-		return
-	}
+
 	if !resp.OK {
 		log.Println("admin_handlers.go -> removeFlower() -> resp err:", resp.Err)
 		ah.Bot.Reply(m, localization.GetLoc("error"))
@@ -181,14 +171,9 @@ func (ah *AdminHandlers) CheckAdmin(id int) (bool, error) {
 	}
 	req := usersdata.IsAdminReq{ID: id}
 	var resp usersdata.IsAdminResp
-	data, err := communication.MakeAdminHTTPReq(cfg.IsAdminURL, req)
+	err := communication.MakeAdminHTTPReq(cfg.IsAdminURL, req, &resp)
 	if err != nil {
 		log.Println("admin_auth.go -> checkAdmin() -> isAdmin method req error:", err)
-		return false, err
-	}
-	err = json.Unmarshal(data, &resp)
-	if err != nil {
-		log.Println("admin_auth.go -> checkAdmin() -> unmarshal error")
 		return false, err
 	}
 

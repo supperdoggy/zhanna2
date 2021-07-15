@@ -17,54 +17,15 @@ import (
 	"gopkg.in/tucnak/telebot.v2"
 )
 
-// MakeRandomAnekHttpReq - sends http req to anek server and unmarshals it to RandomAnekAnswer struct
-func MakeRandomAnekHttpReq(id int) (resp usersdata.GetRandomAnekResp, err error) {
-	req := usersdata.GetRandomAnekReq{ID: id}
-	data, err := json.Marshal(req)
-	if err != nil {
-		return resp, err
-	}
-	bytedata, err := MakeHttpReq(cfg.UserURL+cfg.GetRandomAnekURL, "POST", data)
-	if err != nil {
-		fmt.Println("handlers.go -> MakeRandomAnekHttpReq() -> MakeHttpReq ->", err.Error())
-		return
-	}
-
-	if err = json.Unmarshal(bytedata, &resp); err != nil {
-		fmt.Println("communication.go -> MakeRandomAnekHttpReq() -> error ->", err.Error())
-		return
-	}
-
-	return
-}
-
-func MakeRandomTostHttpReq(id int) (response structs.Tost, err error) {
-	req := usersdata.GetRandomTostReq{ID: id}
-	data, err := json.Marshal(req)
-	if err != nil {
-		return response, err
-	}
-	resp, err := MakeHttpReq(cfg.UserURL+cfg.GetRandomTostURL, "POST", data)
-	if err != nil {
-		fmt.Println("comunication.go -> MakeRandomTostHttpReq() -> MakeHttpReq ->", err.Error())
-		return
-	}
-
-	if err = json.Unmarshal(resp, &response); err != nil {
-		fmt.Println("communication.go -> MakeRandomTostHttpReq() -> error ->", err.Error())
-		return
-	}
-
-	return
-}
-
 // MakeUserHttpReq - method handler for users req
-func MakeUserHttpReq(method string, req interface{}) (answer []byte, err error) {
+// resp must be a pointer!!!!
+func MakeUserHttpReq(method string, req, resp interface{}) (err error) {
 	data, err := json.Marshal(req)
 	if err != nil {
 		return
 	}
 	path := cfg.UserURL + method
+	var answer []byte
 	switch method {
 	case cfg.AddFlowerURL:
 		answer, err = MakeHttpReq(path, "POST", data)
@@ -80,10 +41,17 @@ func MakeUserHttpReq(method string, req interface{}) (answer []byte, err error) 
 		answer, err = MakeHttpReq(path, "POST", data)
 	case cfg.GetRandomNHIEURL:
 		answer, err = MakeHttpReq(path, "POST", data)
+	case cfg.GetRandomTostURL:
+		answer, err = MakeHttpReq(path, "POST", data)
+	case cfg.GetRandomAnekURL:
+		answer, err = MakeHttpReq(path, "POST", data)
 	default:
 		err = fmt.Errorf("no such method")
 	}
-	return
+	if err != nil {
+		return
+	}
+	return json.Unmarshal(answer, resp)
 }
 
 func UpdateUser(usermsg, botmsg *telebot.Message) {
@@ -161,19 +129,21 @@ func MakeFlowerReq(id int, chatId int64) (msg string, err error) {
 		return "communication error", err
 	}
 	// making request to my flowers to get total and last
-	var replymsg string
 	myflowersReq := usersdata.MyFlowersReq{ID: id}
 	var myflowersResp usersdata.MyFlowersResp
 	// getting total and last
-	data, err := MakeUserHttpReq(cfg.MyFlowersURL, myflowersReq)
+	err = MakeUserHttpReq(cfg.MyFlowersURL, myflowersReq, &myflowersResp)
 	if err != nil {
 		log.Println("handlers.go -> flower() -> myflowers error:", err.Error())
-	} else {
-		err := json.Unmarshal(data, &myflowersResp)
-		if err == nil {
-			replymsg = fmt.Sprintf("\nУ тебя уже %v🌷 и %v🌱", myflowersResp.Total, myflowersResp.Last)
-		}
 	}
+
+	var replymsg string
+	if myflowersResp.Err != "" {
+		log.Println("handlers.go -> flower() myflowers error:", myflowersResp.Err)
+	} else {
+		replymsg = fmt.Sprintf(localization.GetLoc("flower_already_have"), myflowersResp.Total, myflowersResp.Last)
+	}
+
 	if resp.Err == "cant grow flower" {
 		return localization.GetLoc("already_grew_flowers") + replymsg, nil
 	}
@@ -194,23 +164,27 @@ func MakeFlowerReq(id int, chatId int64) (msg string, err error) {
 	return "its not time, try again later...", err
 }
 
-func MakeAdminHTTPReq(method string, data interface{}) (dataresp []byte, err error) {
+func MakeAdminHTTPReq(method string, req, resp interface{}) (err error) {
 	path := Cfg.UsersAdminURL + method
-	marshaled, err := json.Marshal(data)
+	data, err := json.Marshal(req)
 	if err != nil {
-		return []byte{}, err
+		return err
 	}
+	var dataresp []byte
 	switch method {
 	case cfg.IsAdminURL:
-		dataresp, err = MakeHttpReq(path, "POST", marshaled)
+		dataresp, err = MakeHttpReq(path, "POST", data)
 	case cfg.ChangeAdminURL:
-		dataresp, err = MakeHttpReq(path, "POST", marshaled)
+		dataresp, err = MakeHttpReq(path, "POST", data)
 	case cfg.GetAllFlowerTypesURL:
 		dataresp, err = MakeHttpReq(path, "GET", nil)
 	case cfg.RemoveFlowerURL:
-		dataresp, err = MakeHttpReq(path, "POST", marshaled)
+		dataresp, err = MakeHttpReq(path, "POST", data)
 	default:
-		return []byte{}, fmt.Errorf("no such method")
+		err = fmt.Errorf("no such method")
 	}
-	return
+	if err != nil {
+		return
+	}
+	return json.Unmarshal(dataresp, resp)
 }

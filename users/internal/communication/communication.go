@@ -15,24 +15,33 @@ import (
 type obj map[string]interface{}
 
 // MakeReqToAnek - makes req to anek service
-func MakeReqToAnek(method string, data []byte) (answer []byte, err error) {
+func MakeReqToAnek(method string, req, resp interface{}) (err error) {
 	path := cfg.AnekURL + method
+	data, err := json.Marshal(req)
+	if err != nil {
+		return
+	}
+	var answer []byte
 	switch method {
 	case anekscfg.GetRandomAnekURL:
 		answer, err = MakeHttpReq(path, "GET", data)
 	default:
 		err = fmt.Errorf("no such method")
 	}
-	return
-}
-
-// MakeReqToFlowers - makes req to flowers service
-func MakeReqToFlowers(method string, data interface{}) (answer []byte, err error) {
-	path := cfg.FlowersURL + method
-	reqData, err := json.Marshal(data)
 	if err != nil {
 		return
 	}
+	return json.Unmarshal(answer, resp)
+}
+
+// MakeReqToFlowers - makes req to flowers service
+func MakeReqToFlowers(method string, req, resp interface{}) (err error) {
+	path := cfg.FlowersURL + method
+	reqData, err := json.Marshal(req)
+	if err != nil {
+		return
+	}
+	var answer []byte
 	switch method {
 	case flowerscfg.AddNewFlowerURL:
 		answer, err = MakeHttpReq(path, "POST", reqData)
@@ -53,10 +62,14 @@ func MakeReqToFlowers(method string, data interface{}) (answer []byte, err error
 	default:
 		err = fmt.Errorf("no such method")
 	}
-	return
+	if err != nil {
+		return
+	}
+	return json.Unmarshal(answer, resp)
 }
 
 // returns string
+// todo refactor dude
 func MakeReqToDialogFlow(message string) (answer string, err error) {
 	req, err := json.Marshal(obj{"message": message})
 	if err != nil {
@@ -88,15 +101,23 @@ func MakeReqToDialogFlow(message string) (answer string, err error) {
 }
 
 // MakeReqToTost - makes req to tost service
-func MakeReqToTost(method string, data []byte) (answer []byte, err error) {
+func MakeReqToTost(method string, req, resp interface{}) (err error) {
 	path := cfg.TostURL + method
+	data, err := json.Marshal(req)
+	if err != nil {
+		return
+	}
+	var answer []byte
 	switch method {
 	case tostcfg.GetRandomTostURL:
 		answer, err = MakeHttpReq(path, "GET", data)
 	default:
 		err = fmt.Errorf("no such method")
 	}
-	return
+	if err != nil {
+		return
+	}
+	return json.Unmarshal(answer, resp)
 }
 
 // MakeHttpReq - func for sending http req with given path, method(get or post!) and data

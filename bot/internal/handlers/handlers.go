@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/supperdoggy/superSecretDevelopement/bot/internal/communication"
 	"github.com/supperdoggy/superSecretDevelopement/bot/internal/localization"
@@ -34,14 +33,9 @@ func (h *Handlers) Start(m *telebot.Message) {
 func (h *Handlers) FortuneCookie(m *telebot.Message) {
 	var resp usersdata.GetFortuneResp
 	req := usersdata.GetFortuneReq{ID: m.Sender.ID}
-	r, err := communication.MakeUserHttpReq(cfg.GetFortuneURL, req)
+	err := communication.MakeUserHttpReq(cfg.GetFortuneURL, req, &resp)
 	if err != nil {
 		log.Println("error making request")
-		return
-	}
-	err = json.Unmarshal(r, &resp)
-	if err != nil {
-		log.Println("error unmarshalling")
 		return
 	}
 	msg := resp.Fortune.Text
@@ -59,12 +53,14 @@ func (h *Handlers) FortuneCookie(m *telebot.Message) {
 
 // anek() - handles /anek command and sends anek text response
 func (h *Handlers) Anek(m *telebot.Message) {
-	anekAnswer, err := communication.MakeRandomAnekHttpReq(m.Sender.ID)
+	var req = usersdata.GetRandomAnekReq{ID:m.Sender.ID}
+	var resp usersdata.GetRandomAnekResp
+	err := communication.MakeUserHttpReq(cfg.GetRandomAnekURL, req, &resp)
 	if err != nil {
 		log.Println("handlers.go -> anek() -> make req error:", err.Error())
 		return
 	}
-	botmsg, err := h.Bot.Reply(m, anekAnswer.Text)
+	botmsg, err := h.Bot.Reply(m, resp.Text)
 	if err != nil {
 		log.Println("handlers.go -> anek() -> reply error:", err.Error())
 		return
@@ -73,12 +69,14 @@ func (h *Handlers) Anek(m *telebot.Message) {
 }
 
 func (h *Handlers) Tost(m *telebot.Message) {
-	answerTost, err := communication.MakeRandomTostHttpReq(m.Sender.ID)
+	var req = usersdata.GetRandomTostReq{ID: m.Sender.ID}
+	var resp usersdata.GetRandomTostResp
+	err := communication.MakeUserHttpReq(cfg.GetRandomTostURL, req, &resp)
 	if err != nil {
 		log.Println("handlers.go -> tost() -> make req error:", err.Error())
 		return
 	}
-	botmsg, err := h.Bot.Reply(m, answerTost.Text)
+	botmsg, err := h.Bot.Reply(m, resp.Text)
 	if err != nil {
 		log.Println("handlers.go -> tost() -> reply error:", err.Error())
 		return
@@ -86,6 +84,7 @@ func (h *Handlers) Tost(m *telebot.Message) {
 	go communication.UpdateUser(m, botmsg)
 }
 
+// todo onion architecture here
 func (h *Handlers) Flower(m *telebot.Message) {
 	replymsg, err := communication.MakeFlowerReq(m.Sender.ID, m.Chat.ID)
 	if err != nil {
@@ -113,16 +112,12 @@ func (h *Handlers) OnTextHandler(m *telebot.Message) {
 
 	var req = usersdata.DialogFlowReq{ID: m.Sender.ID, Text: m.Text}
 	var resp usersdata.DialogFlowResp
-	answer, err := communication.MakeUserHttpReq(cfg.DialogFlowHandlerURL, req)
+	err := communication.MakeUserHttpReq(cfg.DialogFlowHandlerURL, req, &resp)
 	if err != nil {
 		log.Println("onTextHandler() -> req error:", err.Error())
 		return
 	}
 
-	if err := json.Unmarshal(answer, &resp); err != nil {
-		log.Println("onTextHandler() -> Unmarshal error:", err.Error())
-		return
-	}
 	if resp.Err != "" {
 		log.Println("onTextHandler() -> got error in response:", resp.Err)
 		return
@@ -134,14 +129,9 @@ func (h *Handlers) OnTextHandler(m *telebot.Message) {
 func (h *Handlers) MyFlowers(m *telebot.Message) {
 	var req = usersdata.MyFlowersReq{ID: m.Sender.ID}
 	var resp usersdata.MyFlowersResp
-	answer, err := communication.MakeUserHttpReq(cfg.MyFlowersURL, req)
+	err := communication.MakeUserHttpReq(cfg.MyFlowersURL, req, &resp)
 	if err != nil {
 		log.Println("myflowers() -> MakeUserHttpReq(myflowers) err:", err.Error())
-		return
-	}
-
-	if err := json.Unmarshal(answer, &resp); err != nil {
-		log.Println("myflowers() -> unmarshal error:", err.Error(), string(answer))
 		return
 	}
 
@@ -172,16 +162,12 @@ func (h *Handlers) GiveOneFlower(m *telebot.Message) {
 		Last:     true,
 	}
 	var resp usersdata.GiveFlowerResp
-	answer, err := communication.MakeUserHttpReq(cfg.GiveFlowerURL, req)
+	err := communication.MakeUserHttpReq(cfg.GiveFlowerURL, req, &resp)
 	if err != nil {
 		log.Printf("handlers.go -> user give req error: %v, data:%v\n", err.Error(), req)
 		return
 	}
 
-	if err := json.Unmarshal(answer, &resp); err != nil {
-		log.Printf("handlers.go -> unmarshal error: %v, body: %v\n", err.Error(), string(answer))
-		return
-	}
 	if resp.Err != "" {
 		log.Println(resp.Err)
 	}
@@ -200,17 +186,9 @@ func (h *Handlers) Flowertop(m *telebot.Message) {
 	}
 	var req = usersdata.FlowertopReq{ChatId: types.Int(m.Chat.ID)}
 	var resp usersdata.FlowertopResp
-	answer, err := communication.MakeUserHttpReq(cfg.FlowertopURL, req)
+	err := communication.MakeUserHttpReq(cfg.FlowertopURL, req, &resp)
 	if err != nil {
 		log.Printf("handlers.go -> flowertop() -> MakeUserHttpReq('flowertop') error: %v, chatid: %v\n", err.Error(), m.Chat.ID)
-		botmsg, _ := h.Bot.Reply(m, localization.GetLoc("error"))
-		communication.UpdateUser(m, botmsg)
-		return
-	}
-
-	err = json.Unmarshal(answer, &resp)
-	if err != nil || len(resp.Result) == 0 {
-		log.Printf("handlers.go -> flowertop() -> Unmarshal error:%v, body: %v\n", err, string(answer))
 		botmsg, _ := h.Bot.Reply(m, localization.GetLoc("error"))
 		communication.UpdateUser(m, botmsg)
 		return
@@ -235,15 +213,11 @@ func (h *Handlers) Danet(m *telebot.Message) {
 
 func (h *Handlers) Neverhaveiever(m *telebot.Message) {
 	var resp usersdata.GetRandomNHIEresp
-	data, err := communication.MakeUserHttpReq(cfg.GetRandomNHIEURL, nil)
+	err := communication.MakeUserHttpReq(cfg.GetRandomNHIEURL, nil, &resp)
 	if err != nil {
 		h.Bot.Reply(m, localization.GetLoc("error"))
 		return
 	}
 
-	if err := json.Unmarshal(data, &resp); err != nil {
-		log.Printf("handlers.go -> neverhaveiever() -> Unmarshal() error: %v, body: %v\n", err.Error(), string(data))
-		return
-	}
 	h.Bot.Reply(m, resp.Result.Text)
 }
