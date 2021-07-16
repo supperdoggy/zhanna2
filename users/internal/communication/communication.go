@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	usersdata "github.com/supperdoggy/superSecretDevelopement/structs/request/users"
 	anekscfg "github.com/supperdoggy/superSecretDevelopement/structs/services/aneks"
 	flowerscfg "github.com/supperdoggy/superSecretDevelopement/structs/services/flowers"
 	tostcfg "github.com/supperdoggy/superSecretDevelopement/structs/services/tost"
@@ -70,34 +71,29 @@ func MakeReqToFlowers(method string, req, resp interface{}) (err error) {
 
 // returns string
 // todo refactor dude
-func MakeReqToDialogFlow(message string) (answer string, err error) {
-	req, err := json.Marshal(obj{"message": message})
+func MakeReqToDialogFlow(req usersdata.DialogFlowReq) (resp usersdata.DialogFlowResp) {
+	reqdata, err := json.Marshal(req)
 	if err != nil {
 		fmt.Println("MakeReqToDialogFlow() -> json.Marshal error:", err.Error())
 		return
 	}
 
-	resp, err := MakeHttpReq(cfg.DialogFlowURL+"/getAnswer", "POST", req)
+	respdata, err := MakeHttpReq(cfg.DialogFlowURL+"/getAnswer", "POST", reqdata)
 	if err != nil {
 		fmt.Println("MakeReqToDialogFlow() -> makeHttpReq(/getAnswer) error:", err.Error())
 		return
 	}
 
-	var respStruct struct {
-		Answer string `json:"answer"`
-		Err    string `json:"err"`
-	}
-
-	if err := json.Unmarshal(resp, &respStruct); err != nil {
+	if err := json.Unmarshal(respdata, &resp); err != nil {
 		fmt.Println("MakeReqToDialogFlow() -> unmarshal error:", err.Error())
-		return "", err
+		return resp
 	}
 
-	if respStruct.Err != "" {
-		fmt.Println("MakeReqToDialogFlow() -> got an error from dialogflow:", respStruct.Err)
-		return "", fmt.Errorf(respStruct.Err)
+	if resp.Err != "" {
+		fmt.Println("MakeReqToDialogFlow() -> got an error from dialogflow:", resp.Err)
+		return resp
 	}
-	return respStruct.Answer, nil
+	return resp
 }
 
 // MakeReqToTost - makes req to tost service

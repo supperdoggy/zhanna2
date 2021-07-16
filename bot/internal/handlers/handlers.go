@@ -110,7 +110,7 @@ func (h *Handlers) OnTextHandler(m *telebot.Message) {
 		}
 	}
 
-	var req = usersdata.DialogFlowReq{ID: m.Sender.ID, Text: m.Text}
+	var req = usersdata.DialogFlowReq{ID: types.String(m.Sender.ID), Text: m.Text}
 	var resp usersdata.DialogFlowResp
 	err := communication.MakeUserHttpReq(cfg.DialogFlowHandlerURL, req, &resp)
 	if err != nil {
