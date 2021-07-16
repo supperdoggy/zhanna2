@@ -103,7 +103,7 @@ type FlowerResp struct {
 
 type DialogFlowReq struct {
 	Text string `json:"text"`
-	ID   int    `json:"id"`
+	ID   string    `json:"id"`
 }
 
 type DialogFlowResp struct {

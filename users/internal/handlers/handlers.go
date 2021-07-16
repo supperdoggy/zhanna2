@@ -23,7 +23,6 @@ import (
 	"github.com/supperdoggy/superSecretDevelopement/users/internal/communication"
 	"github.com/supperdoggy/superSecretDevelopement/users/internal/db"
 	"log"
-	"os/exec"
 	"sync"
 	"time"
 
@@ -359,30 +358,21 @@ func (h *Handlers) DialogFlow(c *gin.Context) {
 	if err := c.Bind(&req); err != nil {
 		fmt.Println("dialogFlowReq() -> c.Bind() error", err.Error())
 		resp.Err = "binding error"
-		c.JSON(400, resp)
+		c.JSON(http.StatusBadRequest, resp)
 		return
 	}
 
-	if req.Text == "" || req.ID == 0 {
+	if req.Text == "" || req.ID == "" {
 		resp.Err = "fill all the fields"
-		c.JSON(400, resp)
+		c.JSON(http.StatusBadRequest, resp)
 		return
 	}
 
-	answer, err := communication.MakeReqToDialogFlow(req.Text)
-	if err != nil {
-		// if we dont get proper answer from python service we just restart it)
-		// shitcode but it works for now
-		// p.s sorry programmer reading this
-		fmt.Println("dialogFlowReq() -> MakeReqToDialogFlow() error:", err.Error())
-		fmt.Println("dialogFlowReq() -> starting python service again....")
-		// restarts service)))
-		go exec.Command("python3", "/root/dialogflow/main.py").Run()
-		resp.Err = err.Error()
-		c.JSON(400, resp)
+	resp = communication.MakeReqToDialogFlow(req)
+	if resp.Err != "" {
+		c.JSON(http.StatusBadRequest, resp)
 		return
 	}
-	resp.Answer = answer
 	c.JSON(200, resp)
 }
 

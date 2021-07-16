@@ -10,3 +10,4 @@ aneks/aneks
 tost/tost
 aneks/src
 bot/secrets.go
+dialogflow/creds.json
