@@ -1,7 +1,6 @@
 package db
 
 import (
-	"fmt"
 	"github.com/supperdoggy/superSecretDevelopement/structs"
 	cfg "github.com/supperdoggy/superSecretDevelopement/structs/services/tost"
 	"math/rand"
@@ -41,43 +40,50 @@ func init() {
 
 func (db *DbStruct) GetRandomTost() (result structs.Tost, err error) {
 	rand.Seed(time.Now().UnixNano())
-	return db.GetTostById(DB.m[rand.Intn(len(DB.m)-1)]), err
-}
-
-func (db *DbStruct) GetTostById(id int) (result structs.Tost) {
-	if err := db.TostCollection.Find(obj{"_id": id}).One(&result); err != nil {
-		fmt.Println(err.Error(), id)
-		fmt.Println(err.Error())
-	}
+	result, err = db.GetTostById(DB.m[rand.Intn(len(DB.m)-1)])
 	return
 }
 
-// TODO MAKE REMOVE FROM CACHE
+func (db *DbStruct) GetTostById(id int) (result structs.Tost, err error) {
+	err = db.TostCollection.Find(obj{"_id": id}).One(&result)
+	return
+}
+
 func (db *DbStruct) DeleteTost(id int) (err error) {
 	err = db.TostCollection.Remove(obj{"_id": id})
-	return
-}
-
-func (db *DbStruct) AddTost(text string) (err error) {
-	id, err := db.TostCollection.Count()
 	if err != nil {
 		return
 	}
+	db.RemoveFromCacheByVal(id)
+	return nil
+}
+
+func (db *DbStruct) AddTost(text string) (err error) {
 	a := structs.Tost{
-		ID:   id + 1,
+		ID:   db.m[len(db.m)]+1,
 		Text: text,
 	}
 
 	if err = db.TostCollection.Insert(a); err != nil {
 		return
 	}
-	db.AddIdToCache(id)
+	db.AddIdToCache(a.ID)
 	return
 }
 
-// TODO MAKE REMOVE FROM CACHE
 func (db *DbStruct) AddIdToCache(id int) {
 	db.mut.Lock()
 	db.m = append(db.m, id)
 	db.mut.Unlock()
 }
+
+func (db *DbStruct) RemoveFromCacheByVal(val int) {
+	db.mut.Lock()
+	for k, v := range db.m {
+		if v == val {
+			db.m = append(db.m[:k], db.m[k+1:]...)
+		}
+	}
+	db.mut.Unlock()
+}
+
