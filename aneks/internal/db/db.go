@@ -1,7 +1,6 @@
 package db
 
 import (
-	"fmt"
 	"github.com/supperdoggy/superSecretDevelopement/structs"
 	cfg "github.com/supperdoggy/superSecretDevelopement/structs/services/aneks"
 	"gopkg.in/mgo.v2"
@@ -39,31 +38,29 @@ func connectToDb() *mgo.Collection {
 	return b.DB(cfg.MainDBName).C(cfg.CollectionName)
 }
 
-func (d *DbStruct) GetAnekById(id int) (result structs.Anek) {
-	if err := d.Collection.Find(obj{"_id": id}).One(&result); err != nil {
-		fmt.Println(err.Error())
-	}
+func (d *DbStruct) GetAnekById(id int) (result structs.Anek, err error) {
+	err = d.Collection.Find(obj{"_id": id}).One(&result)
 	return
 }
 
 func (d *DbStruct) GetRandomAnek() (result structs.Anek, err error) {
 	rand.Seed(time.Now().UnixNano())
-	return d.GetAnekById(d.m[rand.Intn(len(d.m)-1)]), err
-}
-
-// TODO MAKE REMOVE FROM CACHE
-func (d *DbStruct) DeleteAnek(id int) (err error) {
-	err = d.Collection.Remove(obj{"_id": id})
+	result, err = d.GetAnekById(d.m[rand.Intn(len(d.m)-1)])
 	return
 }
 
-func (d *DbStruct) AddAnek(text string) (err error) {
-	id, err := d.Collection.Count()
+func (d *DbStruct) DeleteAnek(id int) (err error) {
+	err = d.Collection.Remove(obj{"_id": id})
 	if err != nil {
-		return
+		return err
 	}
+	d.RemoveFromCacheByVal(id)
+	return nil
+}
+
+func (d *DbStruct) AddAnek(text string) (err error) {
 	a := structs.Anek{
-		Id:   id + 1,
+		Id:   d.m[len(d.m)-1]+1,
 		Text: text,
 	}
 
@@ -77,5 +74,15 @@ func (d *DbStruct) AddAnek(text string) (err error) {
 func (db *DbStruct) AddIdToCache(id int) {
 	db.mut.Lock()
 	db.m = append(db.m, id)
+	db.mut.Unlock()
+}
+
+func (db *DbStruct) RemoveFromCacheByVal(val int) {
+	db.mut.Lock()
+	for k, v := range db.m {
+		if v == val {
+			db.m = append(db.m[:k], db.m[k+1:]...)
+		}
+	}
 	db.mut.Unlock()
 }

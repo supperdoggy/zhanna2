@@ -3,27 +3,21 @@ package handlers
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/supperdoggy/superSecretDevelopement/aneks/internal/db"
+	"github.com/supperdoggy/superSecretDevelopement/aneks/internal/aneks"
 	aneksdata "github.com/supperdoggy/superSecretDevelopement/structs/request/aneks"
 	"net/http"
 )
 
 type Handlers struct {
-	DB *db.DbStruct
+	Service *aneks.AneksService
 }
 
 func (h *Handlers) GetRandomAnekReq(c *gin.Context) {
-	var resp aneksdata.GetRandomAnekResp
-	a, err := h.DB.GetRandomAnek()
-	if err != nil {
-		resp.Err = err.Error()
-		c.JSON(http.StatusOK, resp)
+	resp := h.Service.GetRandomAnek()
+	if resp.Err != "" {
+		c.JSON(http.StatusBadRequest, resp)
 		return
 	}
-
-	resp.Text = a.Text
-	resp.ID = a.Id
-
 	c.JSON(http.StatusOK, resp)
 	return
 }
@@ -33,13 +27,16 @@ func (h *Handlers) GetAnekByID(c *gin.Context) {
 	var resp aneksdata.GetAnekByIdResp
 	if err := c.Bind(&req); err != nil {
 		resp.Err = err.Error()
-		c.JSON(http.StatusOK, resp)
+		c.JSON(http.StatusBadRequest, resp)
+		return
+	}
+	resp = h.Service.GetAnekByID(req)
+	if resp.Err != "" {
+		c.JSON(http.StatusBadRequest, resp)
 		return
 	}
 
-	a := h.DB.GetAnekById(req.ID)
-	resp.Anek = a
-	c.JSON(http.StatusOK, a)
+	c.JSON(http.StatusOK, resp)
 }
 
 func (h *Handlers) DeleteAnekByID(c *gin.Context) {
@@ -52,15 +49,11 @@ func (h *Handlers) DeleteAnekByID(c *gin.Context) {
 		return
 	}
 
-	err := h.DB.DeleteAnek(req.ID)
-	if err != nil {
-		fmt.Println(err.Error())
-		resp.Err = err.Error()
+	resp = h.Service.DeleteAnekByID(req)
+	if resp.Err != "" {
 		c.JSON(http.StatusBadRequest, resp)
 		return
 	}
-
-	resp.OK = true
 
 	c.JSON(http.StatusOK, resp)
 }
@@ -74,18 +67,11 @@ func (h *Handlers) AddAnek(c *gin.Context) {
 		return
 	}
 
-	if req.Text == "" {
-		resp.Err = "text field cant be empty"
+	resp = h.Service.AddAnek(req)
+	if resp.Err != "" {
 		c.JSON(http.StatusBadRequest, resp)
 		return
 	}
 
-	err := h.DB.AddAnek(req.Text)
-	if err != nil {
-		resp.Err = err.Error()
-		c.JSON(http.StatusBadRequest, resp)
-		return
-	}
-	resp.OK = true
 	c.JSON(http.StatusOK, resp)
 }
