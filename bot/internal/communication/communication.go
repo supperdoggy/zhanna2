@@ -55,6 +55,9 @@ func MakeUserHttpReq(method string, req, resp interface{}) (err error) {
 }
 
 func UpdateUser(usermsg, botmsg *telebot.Message) {
+	if usermsg == nil || botmsg == nil {
+		fmt.Println("got nil botmsg or usermsg")
+	}
 	var req structs.User = structs.User{
 		Telebot: *usermsg.Sender,
 		Chats: []structs.Chat{{
