@@ -339,6 +339,7 @@ func (h Handlers) GiveFlower(c *gin.Context) {
 
 	var f structs.Flower
 	if req.Last {
+		fmt.Println(req)
 		// getting flowers
 		flowers, err := h.DB.GetAllUserFlowers(req.Owner)
 		if err != nil { // if has no flower

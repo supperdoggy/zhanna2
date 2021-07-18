@@ -435,6 +435,7 @@ func (h *Handlers) GiveFlower(c *gin.Context) {
 	reqToFlowers.ID = req.ID
 	reqToFlowers.Owner = req.Owner
 	reqToFlowers.Reciever = req.Reciever
+	reqToFlowers.Last = true
 	err := communication.MakeReqToFlowers(flowercfg.GiveFlowerURL, reqToFlowers, &respFromFlowers)
 	if err != nil {
 		fmt.Println("handlers.go -> give() -> MakeReqToFlowers error:", err.Error())
