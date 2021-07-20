@@ -60,7 +60,7 @@ func (db *DbStruct) DeleteTost(id int) (err error) {
 
 func (db *DbStruct) AddTost(text string) (err error) {
 	a := structs.Tost{
-		ID:   db.m[len(db.m)]+1,
+		ID:   db.m[len(db.m)-1]+1,
 		Text: text,
 	}
 
