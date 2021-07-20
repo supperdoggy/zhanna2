@@ -41,7 +41,7 @@ func init() {
 }
 
 func (d *DbStruct) GetRandomFortune() (structs.Cookie, error) {
-	rand.Seed(time.Now().Unix())
+	rand.Seed(time.Now().UnixNano())
 	id := d.m[rand.Intn(len(d.m)-1)]
 	var result structs.Cookie
 	if err := DB.CookieCollection.Find(obj{"_id": id}).One(&result); err != nil {

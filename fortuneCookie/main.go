@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/supperdoggy/superSecretDevelopement/fortuneCookie/internal/db"
+	"github.com/supperdoggy/superSecretDevelopement/fortuneCookie/internal/fortune"
 	"github.com/supperdoggy/superSecretDevelopement/fortuneCookie/internal/handlers"
 	defaultCfg "github.com/supperdoggy/superSecretDevelopement/structs/request/default"
 	cfg "github.com/supperdoggy/superSecretDevelopement/structs/services/fortune"
@@ -11,7 +12,7 @@ import (
 )
 
 func main() {
-	h := handlers.Handlers{DB: db.DB}
+	h := handlers.Handlers{Service: fortune.Service{DB: db.DB}}
 	r := gin.Default()
 
 	apiv1 := r.Group(defaultCfg.ApiV1)
