@@ -1,6 +1,0 @@
-Wip: documentation
-
-#Release
-
-Build binary with deploy.sh and then scp
-"scp file root@ip:/root/"
