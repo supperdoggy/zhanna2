@@ -5,6 +5,7 @@ import (
 	ai "github.com/night-codes/mgo-ai"
 	"github.com/supperdoggy/superSecretDevelopement/flowers/internal/db"
 	handlers2 "github.com/supperdoggy/superSecretDevelopement/flowers/internal/handlers"
+	"github.com/supperdoggy/superSecretDevelopement/flowers/internal/service"
 	defaultCfg "github.com/supperdoggy/superSecretDevelopement/structs/request/default"
 	cfg "github.com/supperdoggy/superSecretDevelopement/structs/services/flowers"
 
@@ -13,9 +14,9 @@ import (
 
 func main() {
 	r := gin.Default()
-	handlers := handlers2.Handlers{DB: &db.DB}
-	ai.Connect(handlers.DB.FlowerCollection)
-	ai.Connect(handlers.DB.UserFlowerDataCollection)
+	handlers := handlers2.Handlers{Service: service.Service{DB: &db.DB}}
+	ai.Connect(handlers.Service.DB.FlowerCollection)
+	ai.Connect(handlers.Service.DB.UserFlowerDataCollection)
 	apiv1 := r.Group(defaultCfg.ApiV1)
 	{
 		apiv1.POST(cfg.AddNewFlowerURL, handlers.AddNewFlower)
