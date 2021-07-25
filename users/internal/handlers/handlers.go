@@ -1,113 +1,39 @@
 package handlers
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/supperdoggy/superSecretDevelopement/structs"
-	aneksdata "github.com/supperdoggy/superSecretDevelopement/structs/request/aneks"
-	flowersdata "github.com/supperdoggy/superSecretDevelopement/structs/request/flowers"
-	fortunedata "github.com/supperdoggy/superSecretDevelopement/structs/request/fortune"
-	NHIEdata "github.com/supperdoggy/superSecretDevelopement/structs/request/nhie"
-	tostdata "github.com/supperdoggy/superSecretDevelopement/structs/request/tost"
 	usersdata "github.com/supperdoggy/superSecretDevelopement/structs/request/users"
-	nhiecfg "github.com/supperdoggy/superSecretDevelopement/structs/services/NHIE"
-	anekscfg "github.com/supperdoggy/superSecretDevelopement/structs/services/aneks"
-	flowercfg "github.com/supperdoggy/superSecretDevelopement/structs/services/flowers"
-	fortunecfg "github.com/supperdoggy/superSecretDevelopement/structs/services/fortune"
-	tostcfg "github.com/supperdoggy/superSecretDevelopement/structs/services/tost"
-	cfg "github.com/supperdoggy/superSecretDevelopement/structs/services/users"
-	"gopkg.in/mgo.v2"
+	"github.com/supperdoggy/superSecretDevelopement/users/internal/service"
 	"io/ioutil"
 	"net/http"
 
-	"github.com/supperdoggy/superSecretDevelopement/users/internal/communication"
-	"github.com/supperdoggy/superSecretDevelopement/users/internal/db"
-	"log"
-	"sync"
-	"time"
-
-	"gopkg.in/tucnak/telebot.v2"
-
 	"github.com/gin-gonic/gin"
+	"log"
 )
 
 type Handlers struct {
-	DB *db.DbStruct
+	Service service.Service
 }
 
-type obj map[string]interface{}
-
-// todo simplify
 func (h *Handlers) AddOrUpdateUser(c *gin.Context) {
 	// todo tink of something new
-	var userReq structs.User
+	var req structs.User
 	var resp usersdata.AddOrUpdateUserResp
-	if err := c.Bind(&userReq); err != nil {
+	if err := c.Bind(&req); err != nil {
 		fmt.Println("handlers.go -> addOrUpdateUserReq() -> binding error:", err.Error())
 		resp.Err = err.Error()
 		c.JSON(400, resp)
 		return
 	}
-	old, err := h.DB.GetUserByID(userReq.Telebot.ID)
-	// if we get mongo error
-	if err != nil && err != mgo.ErrNotFound {
-		fmt.Println("handlers.go -> addOrUpdateUserReq() -> userExists() error:", err.Error())
-		resp.Err = err.Error()
-		c.JSON(400, resp)
-		return
-		// if we dont have this user in db
-	} else if err == mgo.ErrNotFound {
-		// inserting
-		err = h.DB.UsersCollection.Insert(userReq)
-		if err != nil {
-			fmt.Println("handlers.go -> addOrUpdateUserReq() -> insert error:", err.Error())
-			resp.Err = err.Error()
-			c.JSON(400, resp)
-			return
-		}
-		resp.OK = true
-		c.JSON(http.StatusOK, resp)
+
+	resp, err := h.Service.AddOrUpdateUser(req)
+	if err != nil {
+		fmt.Println("handlers.go -> AddOrUpdateUser() ->", err.Error())
+		c.JSON(http.StatusBadRequest, resp)
 		return
 	}
 
-	userReq.LastOnlineTime = time.Now()
-	userReq.LastOnline = userReq.LastOnlineTime.Unix()
-
-	// checks if chat already in user struct
-	var in bool
-	for _, v := range old.Chats {
-		if v.Telebot.ID == userReq.Chats[0].Telebot.ID {
-			in = true
-		}
-	}
-	if !in {
-		userReq.Chats = append(old.Chats, userReq.Chats...)
-	}
-
-	// add message
-	if len(userReq.MessagesUserSent) != 0 {
-		err = h.DB.WriteMessage(userReq.MessagesUserSent[0], userReq.MessagesZhannaSent[0])
-		if err != nil {
-			log.Println("handlers.go -> addOrUpdateUserReq() -> DB.writeMessage() error:", err.Error())
-		}
-	}
-
-	fieldsToSet := obj{
-		"lastOnlineTime":     userReq.LastOnlineTime,
-		"lastOnline":         userReq.LastOnline,
-		"chats":              userReq.Chats,
-		"telebot.username":   userReq.Telebot.Username,
-		"telebot.first_name": userReq.Telebot.FirstName,
-		"telebot.last_name":  userReq.Telebot.LastName,
-	}
-
-	if err := h.DB.UsersCollection.Update(obj{"telebot.id": userReq.Telebot.ID}, obj{"$set": fieldsToSet}); err != nil {
-		fmt.Println("handlers.go -> addOrUpdateUserReq() -> update error:", err.Error())
-		resp.Err = err.Error()
-		c.JSON(400, resp)
-		return
-	}
-	resp.OK = true
 	c.JSON(200, resp)
 }
 
@@ -123,68 +49,11 @@ func (h *Handlers) GetFortune(c *gin.Context) {
 		return
 	}
 
-	// checking if user exists if not then just create one
-	exists, err := h.DB.UserExists(req.ID)
+	resp, err := h.Service.GetFortune(req)
 	if err != nil {
-		fmt.Println("handlers.go -> getFortune() -> userExists() error:", err.Error())
-		resp.Err = "error getting user"
-		c.JSON(400, resp)
-		return
-	}
-	if !exists {
-		err := h.DB.UsersCollection.Insert(structs.User{Telebot: telebot.User{ID: req.ID}})
-		if err != nil {
-			fmt.Println("handlers.go -> addOrUpdateUserReq() -> insert error:", err.Error())
-			resp.Err = err.Error()
-			c.JSON(400, resp)
-			return
-		}
-	}
-
-	u, err := h.DB.GetUserByID(req.ID)
-	if err != nil {
-		fmt.Println("handlers.go -> getFortune() -> cant find user:", err.Error())
-		resp.Err = "cant find user"
-		c.JSON(400, resp)
-		return
-	}
-	// check if day passed to get new fortune
-	if !CanGetFortune(u.LastTimeGotFortuneCookieTime) {
-		resp.Err = "Попробуй завтра!"
-		// getting last fortune
-		resp.Fortune = u.FortuneCookies[len(u.FortuneCookies)-1]
-		c.JSON(400, resp)
-		return
-	}
-	var respFromFortune fortunedata.GetRandomFortuneCookieResp
-
-	data, err := communication.MakeHttpReq(cfg.FortuneCookieURL+fortunecfg.GetRandomFortuneCookieURL, "GET", nil)
-	if err != nil {
-		fmt.Println("error making req:", err.Error())
-		resp.Err = err.Error()
-		c.JSON(400, resp)
-		return
-	}
-	if err := json.Unmarshal(data, &respFromFortune); err != nil {
-		fmt.Println("fortune cookie unmarshal error")
-		resp.Err = "unmarshal error"
-		c.JSON(400, resp)
-		return
-	}
-	if respFromFortune.Err != "" {
-		resp.Err = respFromFortune.Err
+		fmt.Println("handlers.go -> GetFortune() ->", err.Error())
 		c.JSON(http.StatusBadRequest, resp)
 		return
-	}
-	if err := h.DB.UpdateLastTimeFortune(req.ID); err != nil {
-		fmt.Println("error updating last time fortune:", err.Error())
-		resp.Err = err.Error()
-		c.JSON(400, resp)
-		return
-	}
-	resp.Fortune = structs.Cookie{
-		ID:   respFromFortune.ID,
-		Text: respFromFortune.Text,
 	}
 
 	c.JSON(200, resp)
@@ -194,7 +63,6 @@ func (h *Handlers) GetFortune(c *gin.Context) {
 }
 
 // thats ok i guess
-
 func (h *Handlers) GetRandomAnek(c *gin.Context) {
 	var req usersdata.GetRandomAnekReq
 	var resp usersdata.GetRandomAnekResp
@@ -204,27 +72,14 @@ func (h *Handlers) GetRandomAnek(c *gin.Context) {
 		c.JSON(400, resp)
 		return
 	}
-	if req.ID == 0 {
-		resp.Err = "id cannot be 0"
-		c.JSON(400, resp)
-		return
-	}
 
-	var respFromAneks aneksdata.GetRandomAnekResp
-	err := communication.MakeReqToAnek(anekscfg.GetRandomAnekURL, nil, &respFromAneks)
+	resp, err := h.Service.GetRandomAnek(req)
 	if err != nil {
-		fmt.Println("handlers.go -> getRandomAnek()-> req error", err.Error())
-		resp.Err = "something went wrong, contact @supperdoggy"
-		c.JSON(400, resp)
-		return
-	}
-	if respFromAneks.Err != "" {
-		resp.Err = respFromAneks.Err
+		fmt.Println("handlers.go -> GetRandomAnek() ->", err.Error())
 		c.JSON(http.StatusBadRequest, resp)
 		return
 	}
-	resp.Id = respFromAneks.ID
-	resp.Text = respFromAneks.Text
+
 	c.JSON(200, resp)
 	if ok := h.DB.SaveAnek(req.ID, resp.Anek); !ok {
 		fmt.Println("Not ok saving anek", req.ID)
@@ -241,28 +96,12 @@ func (h *Handlers) GetRandomTost(c *gin.Context) {
 		return
 	}
 
-	if req.ID == 0 {
-		resp.Err = "binding error"
-		c.JSON(400, resp)
-		return
-	}
-
-	var respFromTost tostdata.GetRandomTostResp
-	err := communication.MakeReqToTost(tostcfg.GetRandomTostURL, nil, &respFromTost)
+	resp, err := h.Service.GetRandomTost(req)
 	if err != nil {
-		fmt.Println("handlers.go -> getRandomTost() -> MakeReqToTost(\"getRandomTost\") error:", err.Error())
-		resp.Err = err.Error()
+		fmt.Println("handlers.go -> GetRandomTost() ->", err.Error())
 		c.JSON(http.StatusBadRequest, resp)
 		return
 	}
-
-	if respFromTost.Err != "" {
-		resp.Err = respFromTost.Err
-		c.JSON(http.StatusBadRequest, resp)
-		return
-	}
-	resp.ID = respFromTost.ID
-	resp.Text = respFromTost.Text
 
 	c.JSON(200, resp)
 	if ok := h.DB.SaveTost(req.ID, resp.Tost); !ok {
@@ -281,25 +120,13 @@ func (h *Handlers) AddFlower(c *gin.Context) {
 		return
 	}
 
-	var reqToFlowers flowersdata.AddNewFlowerReq
-	var respFromFlowers flowersdata.AddNewFlowerResp
-	reqToFlowers.Name = req.Name
-	reqToFlowers.Icon = req.Icon
-	reqToFlowers.Type = req.Type
-	err := communication.MakeReqToFlowers(flowercfg.AddNewFlowerURL, reqToFlowers, &respFromFlowers)
+	resp, err := h.Service.AddFlower(req)
 	if err != nil {
-		fmt.Println("handlers.go -> addFlower() -> MakeReqToFlowers error:", err.Error())
-		resp.Err = "communication error"
-		c.JSON(400, resp)
-		return
-	}
-
-	if !respFromFlowers.OK {
-		resp.Err = respFromFlowers.Err
+		fmt.Println("handlers.go -> AddFlower() ->", err.Error())
 		c.JSON(http.StatusBadRequest, resp)
 		return
 	}
-	resp.OK = true
+
 	c.JSON(200, resp)
 }
 
@@ -313,42 +140,13 @@ func (h *Handlers) Flower(c *gin.Context) {
 		return
 	}
 
-	canGrow, err := canGrowFlower(req.ID)
+	resp, err := h.Service.Flower(req)
 	if err != nil {
-		fmt.Println("handlers.go -> flowerReq() -> canGrowFlower() error:", err.Error())
-		resp.Err = "cant grow flower"
-		c.JSON(400, resp)
+		fmt.Println("handlers.go -> Flower() ->", err.Error())
+		c.JSON(http.StatusBadRequest, resp)
 		return
 	}
 
-	if !canGrow {
-		resp.Err = "cant grow flower"
-		c.JSON(400, resp)
-		return
-	}
-
-	req.MsgCount, err = h.DB.GetUserMsgCount(req.ID)
-	if err != nil {
-		fmt.Println("handlers.go -> flowerReq() -> getUserMsgCount error:", err.Error())
-	}
-	var reqToFlower flowersdata.GrowFlowerReq
-	var respFromFlower flowersdata.GrowFlowerResp
-	reqToFlower.ID = req.ID
-	reqToFlower.NonDying = req.NonDying
-	reqToFlower.MsgCount = req.MsgCount
-	err = communication.MakeReqToFlowers(flowercfg.GrowFlowerURL, reqToFlower, &respFromFlower)
-	if err != nil {
-		fmt.Println("handlers.go -> flowerReq() -> req error:", err.Error())
-		resp.Err = "err req to flowers"
-		c.JSON(400, resp)
-		return
-	}
-
-	resp.Flower = respFromFlower.Flower
-	resp.Up = respFromFlower.Flower.Grew
-	// grew successful
-	resp.Grew = true
-	resp.Extra = respFromFlower.Extra
 	c.JSON(200, resp)
 }
 
@@ -362,17 +160,13 @@ func (h *Handlers) DialogFlow(c *gin.Context) {
 		return
 	}
 
-	if req.Text == "" || req.ID == "" {
-		resp.Err = "fill all the fields"
+	resp, err := h.Service.DialogFlow(req)
+	if err != nil {
+		fmt.Println("handlers.go -> DialogFlow() ->", err.Error())
 		c.JSON(http.StatusBadRequest, resp)
 		return
 	}
 
-	resp = communication.MakeReqToDialogFlow(req)
-	if resp.Err != "" {
-		c.JSON(http.StatusBadRequest, resp)
-		return
-	}
 	c.JSON(200, resp)
 }
 
@@ -385,32 +179,14 @@ func (h *Handlers) MyFlowers(c *gin.Context) {
 		c.JSON(400, resp)
 		return
 	}
-	if req.ID == 0 {
-		fmt.Println("myflowers() -> id is 0")
-		resp.Err = "no id field"
-		c.JSON(400, resp)
+
+	resp, err := h.Service.MyFlowers(req)
+	if err != nil {
+		fmt.Println("handlers.go -> MyFlowers() ->", err.Error())
+		c.JSON(http.StatusBadRequest, resp)
 		return
 	}
 
-	var reqToFlower flowersdata.GetUserFlowersReq
-	var respFromFlower flowersdata.GetUserFlowersResp
-	reqToFlower.ID = req.ID
-	err := communication.MakeReqToFlowers(flowercfg.GetUserFlowersURL, reqToFlower, &respFromFlower)
-	if err != nil {
-		fmt.Println("myflowers() -> MakeHttpReq(getUserFlowers) error:", err.Error())
-		resp.Err = err.Error()
-		c.JSON(400, resp)
-		return
-	}
-	if resp.Err != "" {
-		fmt.Println("myflowers() -> response error:", resp.Err)
-		resp.Err = respFromFlower.Err
-		c.JSON(400, resp)
-		return
-	}
-	resp.Flowers = respFromFlower.Flowers
-	resp.Last = respFromFlower.Last
-	resp.Total = respFromFlower.Total
 	c.JSON(200, resp)
 }
 
@@ -424,32 +200,14 @@ func (h *Handlers) GiveFlower(c *gin.Context) {
 		c.JSON(400, resp)
 		return
 	}
-	if req.Owner == 0 || req.Reciever == 0 || !req.Last && req.ID == 0 {
-		resp.Err = "fill all fields"
-		c.JSON(400, resp)
+
+	resp, err := h.Service.GiveFlower(req)
+	if err != nil {
+		fmt.Println("handlers.go -> GiveFlower() ->", err.Error())
+		c.JSON(http.StatusBadRequest, resp)
 		return
 	}
 
-	var reqToFlowers flowersdata.GiveFlowerReq
-	var respFromFlowers flowersdata.GiveFlowerResp
-	reqToFlowers.ID = req.ID
-	reqToFlowers.Owner = req.Owner
-	reqToFlowers.Reciever = req.Reciever
-	reqToFlowers.Last = true
-	err := communication.MakeReqToFlowers(flowercfg.GiveFlowerURL, reqToFlowers, &respFromFlowers)
-	if err != nil {
-		fmt.Println("handlers.go -> give() -> MakeReqToFlowers error:", err.Error())
-		resp.Err = "err making req"
-		c.JSON(400, resp)
-		return
-	}
-	if respFromFlowers.Err != "" {
-		fmt.Println("handlers.go -> give() -> Unmarshal error:", respFromFlowers.Err)
-		resp.Err = respFromFlowers.Err
-		c.JSON(400, resp)
-		return
-	}
-	resp.OK = true
 	c.JSON(200, resp)
 }
 
@@ -466,71 +224,14 @@ func (h *Handlers) Flowertop(c *gin.Context) {
 		return
 	}
 
-	if req.ChatId == 0 {
-		fmt.Println("flowertop() -> ChatId is 0")
-		resp.Err = "no id field"
-		c.JSON(400, resp)
-		return
-	}
-	// getting chat users
-	users, err := h.DB.GetChatUsers(req.ChatId)
-	fmt.Println(len(users))
+	resp, err := h.Service.Flowertop(req)
 	if err != nil {
-		fmt.Println("flowertop() -> getChatUsers() error:", err.Error(), req.ChatId)
-		resp.Err = "error getting users from chat"
-		c.JSON(400, resp)
-		return
-	}
-	if len(users) == 0 {
-		resp.Err = "no users in chat"
-		c.JSON(400, resp)
+		fmt.Println("handlers.go -> Flowertop() ->", err.Error())
+		c.JSON(http.StatusBadRequest, resp)
 		return
 	}
 
-	// creating map of users and slice of ids
-	m := struct { // map
-		m   map[int]structs.User
-		mut sync.Mutex
-	}{m: map[int]structs.User{}, mut: sync.Mutex{}}
-	ids := []int{} // ids
-
-	m.mut.Lock()
-	for _, v := range users {
-		m.m[v.Telebot.ID] = v
-		ids = append(ids, v.Telebot.ID)
-	}
-	m.mut.Unlock()
-
-	var reqToFlowers flowersdata.UserFlowerSliceReq
-	var respFromFlowers flowersdata.UserFlowerSliceResp
-	reqToFlowers.ID = ids
-	err = communication.MakeReqToFlowers(flowercfg.UserFlowerSliceURL, reqToFlowers, &respFromFlowers)
-	if err != nil {
-		fmt.Println("flowertop() -> MakeReqToFlowers(\"userFlowerSlice\") error:", err.Error())
-		resp.Err = "error making req"
-		c.JSON(400, req)
-		return
-	}
-
-	// so fucking bad
-	// i really dont have any idea how this works i am not joking
-	m.mut.Lock()
-	for i := range respFromFlowers.Result {
-		if user, ok := m.m[respFromFlowers.Result[i].Key]; ok {
-			data := struct {
-				Username string `json:"username"`
-				Total    int    `json:"total"`
-			}{Username: user.Telebot.Username, Total: respFromFlowers.Result[i].Value}
-			if data.Username == "" {
-				data.Username = fmt.Sprintf("%v %v", user.Telebot.FirstName, user.Telebot.LastName)
-			}
-
-			resp.Result = append(resp.Result, data)
-		}
-	}
-	m.mut.Unlock()
 	c.JSON(200, resp)
-
 }
 
 func (h *Handlers) GetRandomNHIE(c *gin.Context) {
@@ -543,47 +244,12 @@ func (h *Handlers) GetRandomNHIE(c *gin.Context) {
 		return
 	}
 
-	var respFromNHIE NHIEdata.GetRandomNHIEResponse
-	data, err := communication.MakeHttpReq(cfg.NHIE_URL+nhiecfg.GetRandomNeverHaveIEverURL, "GET", nil)
+	resp, err := h.Service.GetRandomNHIE(req)
 	if err != nil {
-		log.Println("handlers.go -> getRandomNHIE() -> c.Bind() error:", err.Error())
-		resp.Err = err.Error()
-		c.JSON(400, resp)
+		fmt.Println("handlers.go -> GetRandomNHIE() ->", err.Error())
+		c.JSON(http.StatusBadRequest, resp)
 		return
 	}
-
-	err = json.Unmarshal(data, &respFromNHIE)
-	if err != nil {
-		log.Printf("handlers.go -> getRandomNHIE() -> Unmarshal error:%v, body:%v\n", err.Error(), string(data))
-		resp.Err = "unmarshal error"
-		c.JSON(400, resp)
-		return
-	}
-	resp.Result.Text = respFromNHIE.Text
-	resp.Result.ID = respFromNHIE.ID
 
 	c.JSON(200, resp)
-}
-
-func CanGetFortune(date time.Time) bool {
-	now := time.Now()
-	return date.Day() != now.Day() || date.Month() != now.Month() || date.Year() != now.Year()
-}
-
-func canGrowFlower(id int) (bool, error) {
-	var reqToFlowers flowersdata.CanGrowFlowerReq
-	var respFromFlowers flowersdata.CanGrowFlowerResp
-	reqToFlowers.ID = id
-	err := communication.MakeReqToFlowers(flowercfg.CanGrowFlowerURL, reqToFlowers, &respFromFlowers)
-	if err != nil {
-		fmt.Println("canGrowFlower() -> MakeReqToFlower(canGrowFlower) error:", err.Error())
-		return false, err
-	}
-
-	if respFromFlowers.Err != "" {
-		fmt.Println("canGrowFlower() -> got error from flower:", respFromFlowers.Err)
-		return false, fmt.Errorf(respFromFlowers.Err)
-	}
-	return respFromFlowers.Answer, nil
-
 }
