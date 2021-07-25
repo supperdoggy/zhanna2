@@ -57,9 +57,6 @@ func (h *Handlers) GetFortune(c *gin.Context) {
 	}
 
 	c.JSON(200, resp)
-	if ok := h.DB.SaveFortune(req.ID, resp.Fortune); !ok {
-		fmt.Println("Failed to save fortune for user", req.ID)
-	}
 }
 
 // thats ok i guess
@@ -81,9 +78,6 @@ func (h *Handlers) GetRandomAnek(c *gin.Context) {
 	}
 
 	c.JSON(200, resp)
-	if ok := h.DB.SaveAnek(req.ID, resp.Anek); !ok {
-		fmt.Println("Not ok saving anek", req.ID)
-	}
 }
 
 func (h *Handlers) GetRandomTost(c *gin.Context) {
@@ -104,9 +98,6 @@ func (h *Handlers) GetRandomTost(c *gin.Context) {
 	}
 
 	c.JSON(200, resp)
-	if ok := h.DB.SaveTost(req.ID, resp.Tost); !ok {
-		fmt.Println("not ok saving tost", req.ID)
-	}
 }
 
 func (h *Handlers) AddFlower(c *gin.Context) {

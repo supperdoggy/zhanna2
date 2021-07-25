@@ -34,6 +34,10 @@ type Service struct {
 
 // todo simplify
 func (s *Service) AddOrUpdateUser(req structs.User) (resp usersdata.AddOrUpdateUserResp, err error) {
+	if req.Telebot.ID == 0 || req.Telebot.FirstName == ""{
+		resp.Err = "fill all fields"
+		return resp, errors.New(resp.Err)
+	}
 	old, err := s.DB.GetUserByID(req.Telebot.ID)
 	// if we get mongo error
 	if err != nil && err != mgo.ErrNotFound {
@@ -145,6 +149,11 @@ func (s *Service) GetFortune(req usersdata.GetFortuneReq) (resp usersdata.GetFor
 		ID:   respFromFortune.ID,
 		Text: respFromFortune.Text,
 	}
+
+	// saving fotune
+	if ok := s.DB.SaveFortune(req.ID, resp.Fortune); !ok {
+		fmt.Println("Failed to save fortune for user", req.ID)
+	}
 	return
 }
 
@@ -166,6 +175,10 @@ func (s *Service) GetRandomAnek(req usersdata.GetRandomAnekReq) (resp usersdata.
 	}
 	resp.Id = respFromAneks.ID
 	resp.Text = respFromAneks.Text
+	// saving anek
+	if ok := s.DB.SaveAnek(req.ID, resp.Anek); !ok {
+		fmt.Println("Not ok saving anek", req.ID)
+	}
 	return
 }
 
@@ -188,6 +201,12 @@ func (s *Service) GetRandomTost(req usersdata.GetRandomTostReq) (resp usersdata.
 	}
 	resp.ID = respFromTost.ID
 	resp.Text = respFromTost.Text
+
+	// saving tost
+	if ok := s.DB.SaveTost(req.ID, resp.Tost); !ok {
+		fmt.Println("not ok saving tost", req.ID)
+	}
+
 	return
 }
 

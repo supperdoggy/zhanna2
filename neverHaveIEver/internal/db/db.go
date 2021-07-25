@@ -37,7 +37,7 @@ func init() {
 }
 
 func (d *DBStruct) GetRandomNHIE() structs.NHIE {
-	rand.Seed(time.Now().Unix())
+	rand.Seed(time.Now().UnixNano())
 	d.mut.Lock()
 	result := d.QuestionsCache[rand.Intn(len(d.QuestionsCache))]
 	d.mut.Unlock()

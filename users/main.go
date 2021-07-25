@@ -7,12 +7,13 @@ import (
 	adminHandlers "github.com/supperdoggy/superSecretDevelopement/users/internal/admin_handlers"
 	"github.com/supperdoggy/superSecretDevelopement/users/internal/db"
 	handlers2 "github.com/supperdoggy/superSecretDevelopement/users/internal/handlers"
+	"github.com/supperdoggy/superSecretDevelopement/users/internal/service"
 
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
-	handlers := handlers2.Handlers{DB: &db.DB}
+	handlers := handlers2.Handlers{Service: service.Service{DB: db.DB}}
 	admin_handlers := adminHandlers.AdminHandlers{DB: &db.DB}
 
 	r := gin.Default()
@@ -29,7 +30,7 @@ func main() {
 		apiv1.POST(cfg.MyFlowersURL, handlers.MyFlowers)
 		apiv1.POST(cfg.GiveFlowerURL, handlers.GiveFlower)
 		apiv1.POST(cfg.FlowertopURL, handlers.Flowertop)
-		apiv1.POST(cfg.GetRandomNHIEURL, handlers.GetRandomNHIE) // doesnt work
+		apiv1.POST(cfg.GetRandomNHIEURL, handlers.GetRandomNHIE)
 		// todo add check if user is banned
 	}
 
