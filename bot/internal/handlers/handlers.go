@@ -53,7 +53,7 @@ func (h *Handlers) FortuneCookie(m *telebot.Message) {
 
 // anek() - handles /anek command and sends anek text response
 func (h *Handlers) Anek(m *telebot.Message) {
-	var req = usersdata.GetRandomAnekReq{ID:m.Sender.ID}
+	var req = usersdata.GetRandomAnekReq{ID: m.Sender.ID}
 	var resp usersdata.GetRandomAnekResp
 	err := communication.MakeUserHttpReq(cfg.GetRandomAnekURL, req, &resp)
 	if err != nil {
@@ -155,10 +155,11 @@ func (h *Handlers) GiveOneFlower(m *telebot.Message) {
 		communication.UpdateUser(m, b)
 		return
 	}
+	receiver := m.ReplyTo.Sender
 
 	var req = usersdata.GiveFlowerReq{
 		Owner:    m.Sender.ID,
-		Reciever: m.ReplyTo.Sender.ID,
+		Reciever: receiver.ID,
 		Last:     true,
 	}
 	var resp usersdata.GiveFlowerResp
@@ -171,11 +172,15 @@ func (h *Handlers) GiveOneFlower(m *telebot.Message) {
 	if resp.Err != "" {
 		log.Println(resp.Err)
 	}
-	b, _ := h.Bot.Reply(m, localization.GetLoc("give_flower_good"))
+	var user = receiver.FirstName
+	if receiver.Username != "" {
+		user = receiver.Username
+	}
+	b, _ := h.Bot.Reply(m, fmt.Sprintf(localization.GetLoc("give_flower_good"), user, resp.Flower.Name+" "+resp.Flower.Icon))
 	go communication.UpdateUser(m, b)
 }
 
-// forms user top by total amount of flowers
+// Flowertop - forms user top by total amount of flowers
 // works only in group chats and supergroups
 func (h *Handlers) Flowertop(m *telebot.Message) {
 	// check for private chat

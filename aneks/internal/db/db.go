@@ -60,7 +60,7 @@ func (d *DbStruct) DeleteAnek(id int) (err error) {
 
 func (d *DbStruct) AddAnek(text string) (err error) {
 	a := structs.Anek{
-		Id:   d.m[len(d.m)-1]+1,
+		Id:   d.m[len(d.m)-1] + 1,
 		Text: text,
 	}
 

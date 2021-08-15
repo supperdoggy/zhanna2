@@ -12,7 +12,7 @@ import (
 func main() {
 	handlers := handlers2.Handlers{D: dialogflow.DF}
 	r := gin.Default()
-	
+
 	apiv1 := r.Group(defaultCfg.ApiV1)
 	{
 		apiv1.POST(cfg.GetAnswerURL, handlers.GetAnswer)

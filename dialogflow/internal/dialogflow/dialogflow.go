@@ -11,9 +11,9 @@ import (
 )
 
 type Dialogflow struct {
-	ProjectID string
+	ProjectID    string
 	LanguageCode string
-	Session *dialogflow.SessionsClient
+	Session      *dialogflow.SessionsClient
 }
 
 var DF Dialogflow
@@ -32,7 +32,7 @@ func init() {
 	}
 }
 
-func (d *Dialogflow) DetectIntentText(req dialogflowdata.GetAnswerReq) (dialogflowdata.GetAnswerResp) {
+func (d *Dialogflow) DetectIntentText(req dialogflowdata.GetAnswerReq) dialogflowdata.GetAnswerResp {
 	if req.ID == "" {
 		return dialogflowdata.GetAnswerResp{Err: fmt.Sprintf("Received empty project (%s) or session (%s)", d.ProjectID, req.ID)}
 	}

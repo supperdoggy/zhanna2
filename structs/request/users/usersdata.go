@@ -103,7 +103,7 @@ type FlowerResp struct {
 
 type DialogFlowReq struct {
 	Text string `json:"text"`
-	ID   string    `json:"id"`
+	ID   string `json:"id"`
 }
 
 type DialogFlowResp struct {
@@ -132,8 +132,10 @@ type GiveFlowerReq struct {
 }
 
 type GiveFlowerResp struct {
-	OK  bool   `json:"ok"`
-	Err string `json:"err"`
+	OK bool `json:"ok"`
+	// Flower - flower we give to other user
+	Flower structs.Flower `json:"flower"`
+	Err    string         `json:"err"`
 }
 
 type FlowertopReq struct {
