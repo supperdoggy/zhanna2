@@ -19,7 +19,7 @@ type Dialogflow struct {
 var DF Dialogflow
 
 func init() {
-	os.Setenv("GOOGLE_APPLICATION_CREDENTIALS", cfg.WorkCreds)
+	os.Setenv("GOOGLE_APPLICATION_CREDENTIALS", cfg.ProdServerCreds)
 
 	sessionClient, err := dialogflow.NewSessionsClient(context.Background())
 	if err != nil {
