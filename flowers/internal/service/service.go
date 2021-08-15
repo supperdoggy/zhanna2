@@ -184,7 +184,7 @@ func (s *Service) UserFlowerSlice(req flowersdata.UserFlowerSliceReq) (resp flow
 
 	var result []structs.Flower
 	// TODO: BUG: returns dead flowers check
-	if err := s.DB.UserFlowerDataCollection.Find(obj{"$and": arr{obj{"$or": query}, obj{"dead":false}}}).Select(obj{"owner": 1, "hp": 1}).All(&result); err != nil {
+	if err := s.DB.UserFlowerDataCollection.Find(obj{"$and": arr{obj{"$or": query}, obj{"dead": false}}}).Select(obj{"owner": 1, "hp": 1}).All(&result); err != nil {
 		resp.Err = err.Error()
 		return resp, err
 	}

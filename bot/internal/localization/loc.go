@@ -38,7 +38,7 @@ var (
 				"/addFlower - add new flower type\n" +
 				"/removeFlower - remove flower type\n" +
 				"/allFlowers - returns flower types list\n",
-			"done": "Дело сделано!",
+			"done":         "Дело сделано!",
 			"change_admin": "Пользователь %v admin: %v\n",
 		},
 	}

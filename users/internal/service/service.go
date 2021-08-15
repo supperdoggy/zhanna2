@@ -34,7 +34,7 @@ type Service struct {
 
 // todo simplify
 func (s *Service) AddOrUpdateUser(req structs.User) (resp usersdata.AddOrUpdateUserResp, err error) {
-	if req.Telebot.ID == 0 || req.Telebot.FirstName == ""{
+	if req.Telebot.ID == 0 || req.Telebot.FirstName == "" {
 		resp.Err = "fill all fields"
 		return resp, errors.New(resp.Err)
 	}

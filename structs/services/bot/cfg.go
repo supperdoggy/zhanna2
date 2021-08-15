@@ -15,23 +15,22 @@ const (
 
 	// user
 
-	StartCommand = "/start"
-	FortuneCommand = "/fortune"
-	AnekCommand = "/anek"
-	TostCommand = "/tost"
-	FlowerCommand = "/flower"
-	MyFlowersCommand = "/myflowers"
+	StartCommand      = "/start"
+	FortuneCommand    = "/fortune"
+	AnekCommand       = "/anek"
+	TostCommand       = "/tost"
+	FlowerCommand     = "/flower"
+	MyFlowersCommand  = "/myflowers"
 	GiveFlowerCommand = "/giveoneflower"
-	FlowerTopCommand = "/flowertop"
-	DanetCommand = "/danet"
-	NHIECommand = "/neverhaveiever"
-
+	FlowerTopCommand  = "/flowertop"
+	DanetCommand      = "/danet"
+	NHIECommand       = "/neverhaveiever"
 
 	// admin
 
-	AdminHelpCommand = "/adminHelp"
-	AddFlowerCommand = "/addFlower"
-	AdminCommand = "/admin"
+	AdminHelpCommand  = "/adminHelp"
+	AddFlowerCommand  = "/addFlower"
+	AdminCommand      = "/admin"
 	AllFlowersCommand = "/allFlowers"
-	RemoveFlower = "/removeFlower"
+	RemoveFlower      = "/removeFlower"
 )
