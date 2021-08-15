@@ -176,7 +176,7 @@ func (h *Handlers) GiveOneFlower(m *telebot.Message) {
 	if receiver.Username != "" {
 		user = receiver.Username
 	}
-	b, _ := h.Bot.Reply(m, fmt.Sprintf(localization.GetLoc("give_flower_good"), user, resp.Flower.Name))
+	b, _ := h.Bot.Reply(m, fmt.Sprintf(localization.GetLoc("give_flower_good"), user, resp.Flower.Name + " " + resp.Flower.Icon))
 	go communication.UpdateUser(m, b)
 }
 
