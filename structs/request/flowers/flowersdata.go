@@ -104,6 +104,7 @@ type GiveFlowerReq struct {
 
 type GiveFlowerResp struct {
 	Err string `json:"err"`
+	Flower structs.Flower `json:"flower"`
 }
 
 type GetFlowerTypesResp struct {

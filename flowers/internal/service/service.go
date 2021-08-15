@@ -206,6 +206,7 @@ func (s *Service) UserFlowerSlice(req flowersdata.UserFlowerSliceReq) (resp flow
 	return
 }
 
+// TODO: simplify
 func (s *Service) GiveFlower(req flowersdata.GiveFlowerReq) (resp flowersdata.GiveFlowerResp, err error) {
 	if req.Owner == 0 || req.Reciever == 0 {
 		resp.Err = "empty id"
@@ -242,6 +243,7 @@ func (s *Service) GiveFlower(req flowersdata.GiveFlowerReq) (resp flowersdata.Gi
 		resp.Err = err.Error()
 		return resp, err
 	}
+	resp.Flower = f
 	return
 }
 

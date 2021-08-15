@@ -330,6 +330,7 @@ func (s *Service) GiveFlower(req usersdata.GiveFlowerReq) (resp usersdata.GiveFl
 		return resp, errors.New(resp.Err)
 	}
 	resp.OK = true
+	resp.Flower = respFromFlowers.Flower
 	return
 }
 

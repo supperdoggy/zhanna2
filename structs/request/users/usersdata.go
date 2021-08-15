@@ -133,6 +133,8 @@ type GiveFlowerReq struct {
 
 type GiveFlowerResp struct {
 	OK  bool   `json:"ok"`
+	// Flower - flower we give to other user
+	Flower structs.Flower `json:"flower"`
 	Err string `json:"err"`
 }
 
