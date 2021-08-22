@@ -33,4 +33,8 @@ const (
 	AdminCommand      = "/admin"
 	AllFlowersCommand = "/allFlowers"
 	RemoveFlower      = "/removeFlower"
+
+	// db
+	PicCollection
+
 )
