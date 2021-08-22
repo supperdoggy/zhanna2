@@ -35,6 +35,6 @@ const (
 	RemoveFlower      = "/removeFlower"
 
 	// db
-	PicCollection
-
+	PicCollectionName = "Pic"
+	DBName = "Bot"
 )
