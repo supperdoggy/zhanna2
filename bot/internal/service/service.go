@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"github.com/supperdoggy/superSecretDevelopement/bot/internal/communication"
 	"github.com/supperdoggy/superSecretDevelopement/bot/internal/db"
+	"github.com/supperdoggy/superSecretDevelopement/bot/internal/localization"
 	"gopkg.in/tucnak/telebot.v2"
 )
 
@@ -23,18 +24,18 @@ func (s Service) GetCard(chatId int) ([]*telebot.Photo, error) {
 		}
 		// turn pic type to telebot.Photo type
 		return []*telebot.Photo{
-			{File: telebot.FromReader(bytes.NewReader(logo.Data)), Caption: "logo"},
-			{File: telebot.FromReader(bytes.NewReader(rules.Data)), Caption: "rules"},
+			{File: telebot.FromReader(bytes.NewReader(logo.Data)), Caption: localization.GetLoc("den4ik_logo")},
+			{File: telebot.FromReader(bytes.NewReader(rules.Data)), Caption: localization.GetLoc("den4ik_rules")},
 		}, nil
 	}
 	// todo session end
 	if resp.SessionEnd {
+
 	}
 
-	resp.Card.Suit = s.adjustSuit(resp.Card.Suit)
-	cardID := resp.Card.Value + "_" + resp.Card.Suit
-	// todo add localization for every value we can get to add it as a caption
-	pic, err := s.GetAndFormPicMessage(cardID, "lol test")
+	cardID := resp.Card.Value + "_" + s.adjustSuit(resp.Card.Suit)
+	caption := localization.GetLoc(resp.Card.Value + "_card")
+	pic, err := s.GetAndFormPicMessage(cardID, caption)
 	if err != nil {
 		return nil, err
 	}
