@@ -16,7 +16,10 @@ func (s Service) GetCard(chatId int) (*telebot.Photo, error) {
 	if err != nil {
 		return nil, err
 	}
+	// todo need to add check for if we get a new session we should send rules and logo
+
 	resp.Card.Suit = s.adjustSuit(resp.Card.Suit)
+	// todo add localization for every value we can get to add it as a caption
 	pic, err := s.FormCardMessage(resp.Card.Value+"_"+resp.Card.Suit, "lol test")
 	if err != nil {
 		return nil, err
