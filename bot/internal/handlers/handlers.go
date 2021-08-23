@@ -230,13 +230,15 @@ func (h *Handlers) Neverhaveiever(m *telebot.Message) {
 }
 
 func (h *Handlers) Den4ikGame(m *telebot.Message) {
-	pic, err := h.Service.GetCard(int(m.Chat.ID))
+	pics, err := h.Service.GetCard(int(m.Chat.ID))
 	if err != nil {
 		h.Bot.Reply(m, localization.GetLoc("error"))
 		return
 	}
-	_, err = h.Bot.Send(m.Sender, pic)
-	if err != nil {
-		log.Println(err.Error())
+	for _, v := range pics {
+		_, err = h.Bot.Send(m.Sender, v)
+		if err != nil {
+			log.Println(err.Error())
+		}
 	}
 }

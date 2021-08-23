@@ -50,9 +50,6 @@ func (s Service) GetCard(req den4ikdata.GetCardReq) (resp den4ikdata.GetCardResp
 	}else if err == mgo.ErrNotFound { // if we cant find session, we create it
 		log.Println("creating session", req.SessionID)
 		session = s.createNewSession(req.SessionID)
-		// pop 1 element
-		resp.Card = session.Cards[0]
-		session.Cards = session.Cards[1:]
 		// putting session into db
 		log.Println("inserting session", req.SessionID)
 		err = s.DB.InsertGameSession(session)
@@ -72,6 +69,7 @@ func (s Service) GetCard(req den4ikdata.GetCardReq) (resp den4ikdata.GetCardResp
 		log.Println("session is older than 1 day...creating new session", req.SessionID)
 		session = s.createNewSession(req.SessionID)
 		resp.SessionIsNew = true
+		return
 	}else {
 		log.Println("session exists", req.SessionID)
 	}

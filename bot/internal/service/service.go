@@ -11,23 +11,35 @@ type Service struct {
 	DB *db.DbStruct
 }
 
-func (s Service) GetCard(chatId int) (*telebot.Photo, error) {
+func (s Service) GetCard(chatId int) ([]*telebot.Photo, error) {
 	resp, err := communication.GetCard(chatId)
 	if err != nil {
 		return nil, err
 	}
-	// todo need to add check for if we get a new session we should send rules and logo
+	if resp.SessionIsNew {
+		logo, rules, err := s.DB.GetLogoAndRules()
+		if err != nil {
+			return nil, err
+		}
+		// turn pic type to telebot.Photo type
+		return []*telebot.Photo{
+			{File: telebot.FromReader(bytes.NewReader(logo.Data)), Caption: "logo"},
+			{File: telebot.FromReader(bytes.NewReader(rules.Data)), Caption: "rules"},
+		}, nil
+	}
+	// todo session end
+	if resp.SessionEnd {}
 
 	resp.Card.Suit = s.adjustSuit(resp.Card.Suit)
 	// todo add localization for every value we can get to add it as a caption
-	pic, err := s.FormCardMessage(resp.Card.Value+"_"+resp.Card.Suit, "lol test")
+	pic, err := s.GetAndFormPicMessage(resp.Card.Value+"_"+resp.Card.Suit, "lol test")
 	if err != nil {
 		return nil, err
 	}
-	return pic, nil
+	return []*telebot.Photo{pic}, nil
 }
 
-func (s Service) FormCardMessage(id, caption string) (*telebot.Photo, error) {
+func (s Service) GetAndFormPicMessage(id, caption string) (*telebot.Photo, error) {
 	p, err := s.DB.GetPicFromDB(id)
 	if err != nil {
 		return nil, err
