@@ -1,0 +1,54 @@
+package service
+
+import (
+	"bytes"
+	"github.com/supperdoggy/superSecretDevelopement/bot/internal/communication"
+	"github.com/supperdoggy/superSecretDevelopement/bot/internal/db"
+	"gopkg.in/tucnak/telebot.v2"
+)
+
+type Service struct {
+	DB *db.DbStruct
+}
+
+func (s Service) GetCard(chatId int) (*telebot.Photo, error) {
+	resp, err := communication.GetCard(chatId)
+	if err != nil {
+		return nil, err
+	}
+	resp.Card.Suit = s.adjustSuit(resp.Card.Suit)
+	pic, err := s.FormCardMessage(resp.Card.Value+"_"+resp.Card.Suit, "lol test")
+	if err != nil {
+		return nil, err
+	}
+	return pic, nil
+}
+
+func (s Service) FormCardMessage(id, caption string) (*telebot.Photo, error) {
+	p, err := s.DB.GetPicFromDB(id)
+	if err != nil {
+		return nil, err
+	}
+	photo := telebot.Photo{
+		File: telebot.FromReader(bytes.NewReader(p.Data)),
+		Caption: caption,
+	}
+	return &photo, nil
+}
+
+// adjustSuit made because we have different names for suits in bot db and service db
+func (s Service) adjustSuit(suit string) string {
+	switch suit {
+	case "diamonds":
+		suit = "red"
+	case "spades":
+		suit = "purple"
+	case "hearts":
+		suit = "green"
+	case "clubs":
+		suit = "yellow"
+	default:
+		suit = ""
+	}
+	return suit
+}

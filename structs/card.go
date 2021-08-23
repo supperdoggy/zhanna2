@@ -1,30 +1,27 @@
 package structs
 
 type Card struct {
-	Suit  Suit
-	Value Value
+	Suit  string
+	Value string
 }
-
-type Suit string
-type Value string
 
 const (
 	// Suit
-	SuitDiamonds Suit = "diamonds"
-	SuitHearts   Suit = "hearts"
-	SuitSpades   Suit = "spades"
-	SuitClubs    Suit = "clubs"
+	SuitDiamonds string = "diamonds"
+	SuitHearts   string = "hearts"
+	SuitSpades   string = "spades"
+	SuitClubs    string = "clubs"
 
 	// Card Value
-	ValueSix   Value = "6"
-	ValueSeven Value = "7"
-	ValueEight Value = "8"
-	ValueNine  Value = "9"
-	ValueTen   Value = "10"
-	ValueJack  Value = "j"
-	ValueQueen Value = "q"
-	ValueKing  Value = "k"
-	ValueAce   Value = "a"
+	ValueSix   string = "6"
+	ValueSeven string = "7"
+	ValueEight string = "8"
+	ValueNine  string = "9"
+	ValueTen   string = "10"
+	ValueJack  string = "j"
+	ValueQueen string = "q"
+	ValueKing  string = "k"
+	ValueAce   string = "a"
 )
 
 var (

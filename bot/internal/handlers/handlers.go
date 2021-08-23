@@ -1,12 +1,10 @@
 package handlers
 
 import (
-	"bytes"
 	"fmt"
 	"github.com/supperdoggy/superSecretDevelopement/bot/internal/communication"
-	"github.com/supperdoggy/superSecretDevelopement/bot/internal/db"
 	"github.com/supperdoggy/superSecretDevelopement/bot/internal/localization"
-	"github.com/supperdoggy/superSecretDevelopement/structs"
+	service "github.com/supperdoggy/superSecretDevelopement/bot/internal/service"
 	usersdata "github.com/supperdoggy/superSecretDevelopement/structs/request/users"
 	Cfg "github.com/supperdoggy/superSecretDevelopement/structs/services/bot"
 	cfg "github.com/supperdoggy/superSecretDevelopement/structs/services/users"
@@ -16,10 +14,9 @@ import (
 	"gopkg.in/tucnak/telebot.v2"
 )
 
-type obj map[string]interface{}
 type Handlers struct {
 	Bot *telebot.Bot
-	DB *db.DbStruct
+	Service service.Service
 }
 
 // Start - handles /start command and sends text response
@@ -233,47 +230,13 @@ func (h *Handlers) Neverhaveiever(m *telebot.Message) {
 }
 
 func (h *Handlers) Den4ikGame(m *telebot.Message) {
-	resp, err := communication.GetCard(int(m.Chat.ID))
+	pic, err := h.Service.GetCard(int(m.Chat.ID))
 	if err != nil {
-		log.Println(err.Error())
-		return
-	}
-	value := fmt.Sprintf("%v", resp.Card.Value)
-	suit := fmt.Sprintf("%v", resp.Card.Suit)
-	switch suit {
-	case "diamonds":
-		suit = "red"
-	case "spades":
-		suit = "purple"
-	case "hearts":
-		suit = "green"
-	case "clubs":
-		suit = "yellow"
-	default:
-		return
-	}
-	pic, err := h.getCardPicture(fmt.Sprintf("%v_%v", value, suit), "lol test")
-	if err != nil {
-		log.Println(err.Error())
+		h.Bot.Reply(m, localization.GetLoc("error"))
 		return
 	}
 	_, err = h.Bot.Send(m.Sender, pic)
 	if err != nil {
 		log.Println(err.Error())
 	}
-
-}
-
-func (h *Handlers) getCardPicture(id, caption string) (*telebot.Photo, error){
-	var p structs.Pic
-	fmt.Println(id)
-	err := db.DB.PicCollection.Find(obj{"_id": id}).One(&p)
-	if err != nil {
-		return nil, err
-	}
-	photo := telebot.Photo{
-		File: telebot.FromReader(bytes.NewReader(p.Data)),
-		Caption: caption,
-	}
-	return &photo, nil
 }

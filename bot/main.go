@@ -5,6 +5,7 @@ import (
 	admin_handlers2 "github.com/supperdoggy/superSecretDevelopement/bot/internal/admin_handlers"
 	"github.com/supperdoggy/superSecretDevelopement/bot/internal/db"
 	handlers2 "github.com/supperdoggy/superSecretDevelopement/bot/internal/handlers"
+	"github.com/supperdoggy/superSecretDevelopement/bot/internal/service"
 	Cfg "github.com/supperdoggy/superSecretDevelopement/structs/services/bot"
 	"log"
 	"time"
@@ -32,7 +33,10 @@ func init() {
 }
 
 func main() {
-	handlers := handlers2.Handlers{Bot: bot, DB: &db.DB}
+	handlers := handlers2.Handlers{
+		Bot: bot,
+		Service: service.Service{DB: &db.DB},
+	}
 	admin_handlers := admin_handlers2.AdminHandlers{Bot: bot}
 	// handlers
 	bot.Handle(Cfg.StartCommand, handlers.Start)
