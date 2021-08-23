@@ -36,5 +36,5 @@ const (
 
 	// db
 	PicCollectionName = "Pic"
-	DBName = "Bot"
+	DBName            = "Bot"
 )

@@ -34,7 +34,7 @@ func init() {
 
 func main() {
 	handlers := handlers2.Handlers{
-		Bot: bot,
+		Bot:     bot,
 		Service: service.Service{DB: &db.DB},
 	}
 	admin_handlers := admin_handlers2.AdminHandlers{Bot: bot}

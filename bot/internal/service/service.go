@@ -28,11 +28,13 @@ func (s Service) GetCard(chatId int) ([]*telebot.Photo, error) {
 		}, nil
 	}
 	// todo session end
-	if resp.SessionEnd {}
+	if resp.SessionEnd {
+	}
 
 	resp.Card.Suit = s.adjustSuit(resp.Card.Suit)
+	cardID := resp.Card.Value + "_" + resp.Card.Suit
 	// todo add localization for every value we can get to add it as a caption
-	pic, err := s.GetAndFormPicMessage(resp.Card.Value+"_"+resp.Card.Suit, "lol test")
+	pic, err := s.GetAndFormPicMessage(cardID, "lol test")
 	if err != nil {
 		return nil, err
 	}
@@ -45,7 +47,7 @@ func (s Service) GetAndFormPicMessage(id, caption string) (*telebot.Photo, error
 		return nil, err
 	}
 	photo := telebot.Photo{
-		File: telebot.FromReader(bytes.NewReader(p.Data)),
+		File:    telebot.FromReader(bytes.NewReader(p.Data)),
 		Caption: caption,
 	}
 	return &photo, nil

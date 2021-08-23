@@ -11,7 +11,7 @@ type obj map[string]interface{}
 type arr []interface{}
 
 type DbStruct struct {
-	DbSession *mgo.Session
+	DbSession              *mgo.Session
 	GameSessionsCollection *mgo.Collection
 }
 

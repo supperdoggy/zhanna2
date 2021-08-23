@@ -15,7 +15,7 @@ import (
 )
 
 type Handlers struct {
-	Bot *telebot.Bot
+	Bot     *telebot.Bot
 	Service service.Service
 }
 

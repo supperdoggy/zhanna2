@@ -9,7 +9,7 @@ import (
 )
 
 type DbStruct struct {
-	DbSession *mgo.Session
+	DbSession     *mgo.Session
 	PicCollection *mgo.Collection
 }
 
@@ -18,9 +18,9 @@ type obj map[string]interface{}
 var DB DbStruct
 
 const (
-	purpleLogoID = "logo_purple"
+	purpleLogoID  = "logo_purple"
 	purpleRulesID = "rules_purple"
-	yellowLogoID = "logo_yellow"
+	yellowLogoID  = "logo_yellow"
 	yellowRulesID = "rules_yellow"
 )
 
@@ -47,7 +47,7 @@ func (db DbStruct) GetPicFromDB(id string) (*structs.Pic, error) {
 }
 
 // GetLogoAndRules - returns logo and rules according to time now
-func (db DbStruct) GetLogoAndRules() (logo *structs.Pic, rules *structs.Pic, err error){
+func (db DbStruct) GetLogoAndRules() (logo *structs.Pic, rules *structs.Pic, err error) {
 	hour := time.Now().Hour()
 	if hour > 19 && hour < 10 {
 		// then pick dark logo and rules

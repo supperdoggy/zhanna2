@@ -33,7 +33,6 @@ func (s Service) createNewSession(id int) structs.Session {
 	return session
 }
 
-
 func (s Service) GetCard(req den4ikdata.GetCardReq) (resp den4ikdata.GetCardResp, err error) {
 	if req.SessionID == 0 {
 		err = errors.New("session can not be 0")
@@ -47,7 +46,7 @@ func (s Service) GetCard(req den4ikdata.GetCardReq) (resp den4ikdata.GetCardResp
 	if err != nil && err != mgo.ErrNotFound {
 		resp.Err = err.Error()
 		return resp, err
-	}else if err == mgo.ErrNotFound { // if we cant find session, we create it
+	} else if err == mgo.ErrNotFound { // if we cant find session, we create it
 		log.Println("creating session", req.SessionID)
 		session = s.createNewSession(req.SessionID)
 		// putting session into db
@@ -70,7 +69,7 @@ func (s Service) GetCard(req den4ikdata.GetCardReq) (resp den4ikdata.GetCardResp
 		session = s.createNewSession(req.SessionID)
 		resp.SessionIsNew = true
 		return
-	}else {
+	} else {
 		log.Println("session exists", req.SessionID)
 	}
 

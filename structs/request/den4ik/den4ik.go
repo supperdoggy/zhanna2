@@ -7,8 +7,8 @@ type GetCardReq struct {
 }
 
 type GetCardResp struct {
-	Card structs.Card `json:"card"`
-	SessionIsNew bool `json:"session_is_new"`
-	SessionEnd bool `json:"session_end"`
-	Err  string `json:"err"`
+	Card         structs.Card `json:"card"`
+	SessionIsNew bool         `json:"session_is_new"`
+	SessionEnd   bool         `json:"session_end"`
+	Err          string       `json:"err"`
 }
