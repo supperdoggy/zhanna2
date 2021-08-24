@@ -24,8 +24,8 @@ func (s Service) GetCard(chatId int) ([]*telebot.Photo, error) {
 		}
 		// turn pic type to telebot.Photo type
 		return []*telebot.Photo{
-			{File: telebot.FromReader(bytes.NewReader(logo.Data)), Caption: localization.GetLoc("den4ik_logo")},
-			{File: telebot.FromReader(bytes.NewReader(rules.Data)), Caption: localization.GetLoc("den4ik_rules")},
+			{File: telebot.FromReader(bytes.NewReader(logo.Data))},
+			{File: telebot.FromReader(bytes.NewReader(rules.Data))},
 		}, nil
 	}
 	// todo session end
