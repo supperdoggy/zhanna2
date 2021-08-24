@@ -231,12 +231,20 @@ func (h *Handlers) Neverhaveiever(m *telebot.Message) {
 
 func (h *Handlers) Den4ikGame(m *telebot.Message) {
 	pics, err := h.Service.GetCard(int(m.Chat.ID))
-	if err != nil {
-		h.Bot.Reply(m, localization.GetLoc("error"))
+	if err != nil && err != service.ErrSessionEnded {
+		if _, err := h.Bot.Send(m.Chat, localization.GetLoc("error")); err != nil {
+			log.Println(err.Error())
+		}
+		return
+		// check if session is ended
+	} else if err == service.ErrSessionEnded {
+		if _, err := h.Bot.Send(m.Chat, localization.GetLoc("den4ik_game_end")); err != nil {
+			log.Println(err.Error())
+		}
 		return
 	}
 	for _, v := range pics {
-		_, err = h.Bot.Send(m.Sender, v)
+		_, err = h.Bot.Send(m.Chat, v)
 		if err != nil {
 			log.Println(err.Error())
 		}

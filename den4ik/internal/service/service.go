@@ -1,7 +1,6 @@
 package service
 
 import (
-	"errors"
 	"github.com/supperdoggy/superSecretDevelopement/den4ik/internal/db"
 	"github.com/supperdoggy/superSecretDevelopement/structs"
 	den4ikdata "github.com/supperdoggy/superSecretDevelopement/structs/request/den4ik"
@@ -34,12 +33,6 @@ func (s Service) createNewSession(id int) structs.Session {
 }
 
 func (s Service) GetCard(req den4ikdata.GetCardReq) (resp den4ikdata.GetCardResp, err error) {
-	if req.SessionID == 0 {
-		err = errors.New("session can not be 0")
-		resp.Err = err.Error()
-		return resp, err
-	}
-
 	// first of all we look for the session
 	log.Println("getting session", req.SessionID)
 	session, err := s.DB.GetSession(req.SessionID)
@@ -51,8 +44,7 @@ func (s Service) GetCard(req den4ikdata.GetCardReq) (resp den4ikdata.GetCardResp
 		session = s.createNewSession(req.SessionID)
 		// putting session into db
 		log.Println("inserting session", req.SessionID)
-		err = s.DB.InsertGameSession(session)
-		if err != nil {
+		if err = s.DB.InsertGameSession(session); err != nil {
 			resp.Err = err.Error()
 			resp.Card = structs.Card{}
 			return
@@ -66,31 +58,40 @@ func (s Service) GetCard(req den4ikdata.GetCardReq) (resp den4ikdata.GetCardResp
 	// if it is we create new session
 	if !time.Now().Before(session.CreationTime.AddDate(0, 0, 1)) {
 		log.Println("session is older than 1 day...creating new session", req.SessionID)
-		session = s.createNewSession(req.SessionID)
+		if err = s.DB.UpdateSession(req.SessionID, s.createNewSession(req.SessionID)); err != nil {
+			resp.Err = err.Error()
+			return
+		}
 		resp.SessionIsNew = true
 		return
-	} else {
-		log.Println("session exists", req.SessionID)
+	}
+
+	// check if we have cards left in structs
+	if len(session.Cards) == 0 {
+		resp.SessionEnd = true
+		if err = s.DB.UpdateSession(req.SessionID, s.createNewSession(req.SessionID)); err != nil {
+			resp.Err = err.Error()
+			return
+		}
+		return
 	}
 
 	resp.Card = session.Cards[0]
 	// if we got only card left, which we already took, we create new session, but do not send session_is_new = true
 	if len(session.Cards) == 1 {
 		log.Println("only 1 card left", req.SessionID)
-		err = s.DB.UpdateSession(req.SessionID, s.createNewSession(req.SessionID))
-		if err != nil {
+		session.Cards = []structs.Card{}
+		if err = s.DB.UpdateSession(req.SessionID, session); err != nil {
 			resp.Card = structs.Card{}
 			resp.Err = err.Error()
 			return
 		}
-		resp.SessionEnd = true
 		return
 	}
 	// removing first card from deck
 	session.Cards = session.Cards[1:]
 	log.Println("updating session", req.SessionID)
-	err = s.DB.UpdateSession(req.SessionID, session)
-	if err != nil {
+	if err = s.DB.UpdateSession(req.SessionID, session); err != nil {
 		resp.Err = err.Error()
 		resp.Card = structs.Card{}
 		return

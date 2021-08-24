@@ -2,6 +2,7 @@ package service
 
 import (
 	"bytes"
+	"errors"
 	"github.com/supperdoggy/superSecretDevelopement/bot/internal/communication"
 	"github.com/supperdoggy/superSecretDevelopement/bot/internal/db"
 	"github.com/supperdoggy/superSecretDevelopement/bot/internal/localization"
@@ -11,6 +12,10 @@ import (
 type Service struct {
 	DB *db.DbStruct
 }
+
+var (
+	ErrSessionEnded = errors.New("session ended")
+)
 
 func (s Service) GetCard(chatId int) ([]*telebot.Photo, error) {
 	resp, err := communication.GetCard(chatId)
@@ -28,9 +33,9 @@ func (s Service) GetCard(chatId int) ([]*telebot.Photo, error) {
 			{File: telebot.FromReader(bytes.NewReader(rules.Data))},
 		}, nil
 	}
-	// todo session end
-	if resp.SessionEnd {
 
+	if resp.SessionEnd {
+		return nil, ErrSessionEnded
 	}
 
 	cardID := resp.Card.Value + "_" + s.adjustSuit(resp.Card.Suit)
