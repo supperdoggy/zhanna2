@@ -3,11 +3,14 @@ package communication
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/supperdoggy/superSecretDevelopement/bot/internal/localization"
 	"github.com/supperdoggy/superSecretDevelopement/structs"
+	den4ikdata "github.com/supperdoggy/superSecretDevelopement/structs/request/den4ik"
 	usersdata "github.com/supperdoggy/superSecretDevelopement/structs/request/users"
 	Cfg "github.com/supperdoggy/superSecretDevelopement/structs/services/bot"
+	den4ikcfg "github.com/supperdoggy/superSecretDevelopement/structs/services/den4ik"
 	cfg "github.com/supperdoggy/superSecretDevelopement/structs/services/users"
 	"io/ioutil"
 	"log"
@@ -191,4 +194,29 @@ func MakeAdminHTTPReq(method string, req, resp interface{}) (err error) {
 		return
 	}
 	return json.Unmarshal(dataresp, resp)
+}
+
+func GetCard(id int) (den4ikdata.GetCardResp, error) {
+	var req den4ikdata.GetCardReq
+	var resp den4ikdata.GetCardResp
+	req.SessionID = id
+
+	data, err := json.Marshal(req)
+	if err != nil {
+		return resp, err
+	}
+
+	dataresp, err := MakeHttpReq(den4ikcfg.URL+den4ikcfg.GetCardURL, "POST", data)
+	if err != nil {
+		return resp, err
+	}
+
+	err = json.Unmarshal(dataresp, &resp)
+	if err != nil {
+		return resp, err
+	}
+	if resp.Err != "" {
+		return resp, errors.New(resp.Err)
+	}
+	return resp, nil
 }

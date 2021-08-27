@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/supperdoggy/superSecretDevelopement/bot/internal/communication"
 	"github.com/supperdoggy/superSecretDevelopement/bot/internal/localization"
+	service "github.com/supperdoggy/superSecretDevelopement/bot/internal/service"
 	usersdata "github.com/supperdoggy/superSecretDevelopement/structs/request/users"
 	Cfg "github.com/supperdoggy/superSecretDevelopement/structs/services/bot"
 	cfg "github.com/supperdoggy/superSecretDevelopement/structs/services/users"
@@ -14,7 +15,8 @@ import (
 )
 
 type Handlers struct {
-	Bot *telebot.Bot
+	Bot     *telebot.Bot
+	Service service.Service
 }
 
 // Start - handles /start command and sends text response
@@ -225,4 +227,26 @@ func (h *Handlers) Neverhaveiever(m *telebot.Message) {
 	}
 
 	h.Bot.Reply(m, resp.Result.Text)
+}
+
+func (h *Handlers) Den4ikGame(m *telebot.Message) {
+	pics, err := h.Service.GetCard(int(m.Chat.ID))
+	if err != nil && err != service.ErrSessionEnded {
+		if _, err := h.Bot.Send(m.Chat, localization.GetLoc("error")); err != nil {
+			log.Println(err.Error())
+		}
+		return
+		// check if session is ended
+	} else if err == service.ErrSessionEnded {
+		if _, err := h.Bot.Send(m.Chat, localization.GetLoc("den4ik_game_end")); err != nil {
+			log.Println(err.Error())
+		}
+		return
+	}
+	for _, v := range pics {
+		_, err = h.Bot.Send(m.Chat, v)
+		if err != nil {
+			log.Println(err.Error())
+		}
+	}
 }

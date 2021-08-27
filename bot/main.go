@@ -3,7 +3,9 @@ package main
 import (
 	"fmt"
 	admin_handlers2 "github.com/supperdoggy/superSecretDevelopement/bot/internal/admin_handlers"
+	"github.com/supperdoggy/superSecretDevelopement/bot/internal/db"
 	handlers2 "github.com/supperdoggy/superSecretDevelopement/bot/internal/handlers"
+	"github.com/supperdoggy/superSecretDevelopement/bot/internal/service"
 	Cfg "github.com/supperdoggy/superSecretDevelopement/structs/services/bot"
 	"log"
 	"time"
@@ -19,7 +21,7 @@ var (
 func init() {
 	timeout := time.Second
 	bot, err = telebot.NewBot(telebot.Settings{
-		Token:  prodToken,
+		Token:  testToken,
 		Poller: &telebot.LongPoller{Timeout: timeout},
 	})
 	if err != nil {
@@ -31,7 +33,10 @@ func init() {
 }
 
 func main() {
-	handlers := handlers2.Handlers{Bot: bot}
+	handlers := handlers2.Handlers{
+		Bot:     bot,
+		Service: service.Service{DB: &db.DB},
+	}
 	admin_handlers := admin_handlers2.AdminHandlers{Bot: bot}
 	// handlers
 	bot.Handle(Cfg.StartCommand, handlers.Start)
@@ -45,6 +50,7 @@ func main() {
 	bot.Handle(Cfg.DanetCommand, handlers.Danet)
 	bot.Handle(Cfg.NHIECommand, handlers.Neverhaveiever)
 	bot.Handle(telebot.OnText, handlers.OnTextHandler)
+	bot.Handle("/testPic", handlers.Den4ikGame)
 
 	// admin handlers
 	bot.Handle(Cfg.AdminHelpCommand, admin_handlers.AdminHelp)
