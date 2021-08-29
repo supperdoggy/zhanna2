@@ -25,6 +25,7 @@ const (
 	FlowerTopCommand  = "/flowertop"
 	DanetCommand      = "/danet"
 	NHIECommand       = "/neverhaveiever"
+	Den4ikGameCommand = "/go"
 
 	// admin
 

@@ -56,3 +56,30 @@ func IOReadDir(root string) ([]string, error) {
 func removejpg(s string) string {
 	return s[:len(s)-4]
 }
+
+func LoadPicsFrombot() {
+	db, err := mgo.Dial("")
+	if err != nil {
+		panic("error when connecting to db: " + err.Error())
+	}
+	collection := db.DB(cfg.DBName).C(cfg.PicCollectionName)
+
+	files := []string{"logo_purple.jpg", "rules_purple.jpg", "rules_yellow.jpg", "logo_yellow.jpg"}
+
+	for _, v := range files {
+		data, err := ioutil.ReadFile("/Users/mmarchy/go/src/github.com/supperdoggy/zhanna2/bot/" + v)
+		if err != nil {
+			log.Println(err.Error())
+			continue
+		}
+		p := structs.Pic{
+			ID:          removejpg(v),
+			Data:        data,
+			TimeCreated: time.Now(),
+		}
+		err = collection.Insert(p)
+		if err != nil {
+			log.Println(err.Error())
+		}
+	}
+}

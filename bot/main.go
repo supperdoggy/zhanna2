@@ -50,7 +50,7 @@ func main() {
 	bot.Handle(Cfg.DanetCommand, handlers.Danet)
 	bot.Handle(Cfg.NHIECommand, handlers.Neverhaveiever)
 	bot.Handle(telebot.OnText, handlers.OnTextHandler)
-	bot.Handle("/testPic", handlers.Den4ikGame)
+	bot.Handle(Cfg.Den4ikGameCommand, handlers.Den4ikGame)
 
 	// admin handlers
 	bot.Handle(Cfg.AdminHelpCommand, admin_handlers.AdminHelp)
