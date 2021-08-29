@@ -26,6 +26,7 @@ const (
 	DanetCommand      = "/danet"
 	NHIECommand       = "/neverhaveiever"
 	Den4ikGameCommand = "/go"
+	Den4ikGameReset = "/resetDen4ik"
 
 	// admin
 

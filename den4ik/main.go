@@ -21,6 +21,7 @@ func main() {
 	apiv1 := r.Group(defaultCfg.ApiV1)
 	{
 		apiv1.POST(den4ikcfg.GetCardURL, handlers.GetCard)
+		apiv1.POST(den4ikcfg.SessionReset, handlers.ResetSession)
 	}
 
 	if err := r.Run(den4ikcfg.Port); err != nil {

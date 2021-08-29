@@ -220,3 +220,26 @@ func GetCard(id int) (den4ikdata.GetCardResp, error) {
 	}
 	return resp, nil
 }
+
+func ResetDen4ik(sessionID int) (resp den4ikdata.ResetSessionResp, err error) {
+	var req = den4ikdata.ResetSessionReq{SessionID: sessionID}
+
+	data, err := json.Marshal(req)
+	if err != nil {
+		return resp, err
+	}
+
+	dataresp, err := MakeHttpReq(den4ikcfg.URL+den4ikcfg.SessionReset, "POST", data)
+	if err != nil {
+		return resp, err
+	}
+
+	err = json.Unmarshal(dataresp, &resp)
+	if err != nil {
+		return resp, err
+	}
+	if resp.Err != "" {
+		return resp, errors.New(resp.Err)
+	}
+	return resp, nil
+}

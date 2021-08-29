@@ -250,3 +250,20 @@ func (h *Handlers) Den4ikGame(m *telebot.Message) {
 		}
 	}
 }
+
+func (h *Handlers) ResetDen4ik(m *telebot.Message) {
+	msg, err := h.Service.ResetDen4ik(int(m.Chat.ID))
+	if err != nil {
+		log.Println(err.Error())
+		if _, err := h.Bot.Send(m.Chat, localization.GetLoc("error")); err != nil {
+			log.Println(err.Error())
+		}
+		return
+	}
+	botmsg, err := h.Bot.Send(m.Chat, msg)
+	if err != nil {
+		log.Println(err.Error())
+		return
+	}
+	communication.UpdateUser(m, botmsg)
+}

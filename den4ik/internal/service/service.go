@@ -99,3 +99,13 @@ func (s Service) GetCard(req den4ikdata.GetCardReq) (resp den4ikdata.GetCardResp
 	return
 
 }
+
+func (s Service) ResetSession(req den4ikdata.ResetSessionReq) (resp den4ikdata.ResetSessionResp, err error) {
+	err = s.DB.DeleteSession(req.SessionID)
+	if err != nil {
+		resp.Err = err.Error()
+		return
+	}
+	resp.OK = true
+	return
+}
