@@ -75,3 +75,15 @@ func (s Service) adjustSuit(suit string) string {
 	}
 	return suit
 }
+
+func (s Service) ResetDen4ik(id int) (msg string, err error) {
+	resp, err := communication.ResetDen4ik(id)
+	if err != nil {
+		return "", err
+	}
+	if !resp.OK {
+		return "", errors.New(resp.Err)
+	}
+
+	return localization.GetLoc("reset_ok"), nil
+}

@@ -12,3 +12,12 @@ type GetCardResp struct {
 	SessionEnd   bool         `json:"session_end"`
 	Err          string       `json:"err"`
 }
+
+type ResetSessionReq struct {
+	SessionID int `json:"session_id"`
+}
+
+type ResetSessionResp struct {
+	OK bool `json:"ok"`
+	Err string `json:"err"`
+}

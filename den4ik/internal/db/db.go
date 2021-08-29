@@ -43,3 +43,9 @@ func (d *DbStruct) UpdateSession(id int, session structs.Session) error {
 	err := d.GameSessionsCollection.Update(obj{"_id": id}, session)
 	return err
 }
+
+func (d *DbStruct) DeleteSession(id int) error {
+	err := d.GameSessionsCollection.Remove(obj{"_id": id})
+	return err
+}
+

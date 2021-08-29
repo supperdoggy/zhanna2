@@ -29,3 +29,22 @@ func (h Handlers) GetCard(c *gin.Context) {
 
 	c.JSON(http.StatusOK, resp)
 }
+
+func (h Handlers) ResetSession(c *gin.Context) {
+	var req den4ikdata.ResetSessionReq
+	var resp den4ikdata.ResetSessionResp
+
+	if err := c.Bind(&req); err != nil {
+		resp.Err = err.Error()
+		c.JSON(http.StatusBadRequest, resp)
+		return
+	}
+
+	resp, err := h.Service.ResetSession(req)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, resp)
+		return
+	}
+
+	c.JSON(http.StatusOK, resp)
+}
