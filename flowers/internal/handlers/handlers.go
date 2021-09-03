@@ -89,7 +89,7 @@ func (h Handlers) GetUserFlowers(c *gin.Context) {
 
 	resp, err := h.Service.GetUserFlowers(req)
 	if err != nil {
-		fmt.Println("handlers.go -> GetUserFlower() ->", err.Error())
+		fmt.Println("handlers.go -> GetUserCurrentFlower() ->", err.Error())
 		c.JSON(http.StatusBadRequest, resp)
 		return
 	}

@@ -53,7 +53,7 @@ func (s *Service) RemoveFlower(req flowersdata.RemoveFlowerReq) (resp flowersdat
 }
 
 func (s *Service) GrowFlower(req flowersdata.GrowFlowerReq) (resp flowersdata.GrowFlowerResp, err error) {
-	flower, err := s.DB.GetUserFlower(req.ID)
+	flower, err := s.DB.GetUserCurrentFlower(req.ID)
 	if err != nil && err.Error() != "not found" {
 		resp.Err = "error getting flower"
 		return
@@ -94,27 +94,46 @@ func (s *Service) GrowFlower(req flowersdata.GrowFlowerReq) (resp flowersdata.Gr
 }
 
 func (s *Service) GetUserFlowers(req flowersdata.GetUserFlowersReq) (resp flowersdata.GetUserFlowersResp, err error) {
-	flowers, err := s.DB.GetAllUserFlowersMap(req.ID)
+	flowers, err := s.DB.GetAllUserFlowers(req.ID)
 	if err != nil {
 		resp.Err = "error getting flowers"
 		return
 	}
 
-	var total int
+	count := map[string]int{}
+	// only to check what flowers we have
+	types := map[string]bool{}
+
 	for _, v := range flowers {
+		count[v.Name+v.Icon]++
+		types[v.Name+v.Icon] = true
+	}
+
+	for _, v := range flowers {
+		if find := types[v.Name+v.Icon]; !find {
+			continue
+		}
+		resp.Flowers = append(resp.Flowers, struct {
+			Name string `json:"name"`
+			Amount int `json:"amount"`
+		}{Name: v.Icon+" "+v.Name, Amount: count[v.Name+v.Icon]})
+		types[v.Name+v.Icon] = false
+	}
+
+	var total int
+	for _, v := range count {
 		total += v
 	}
 	var last uint8
-	flower, _ := s.DB.GetUserFlower(req.ID)
+	flower, _ := s.DB.GetUserCurrentFlower(req.ID)
 	last = flower.HP
-	resp.Flowers = flowers
 	resp.Total = total
 	resp.Last = last
 	return
 }
 
 func (s *Service) CanGrowFlower(req flowersdata.CanGrowFlowerReq) (resp flowersdata.CanGrowFlowerResp, err error) {
-	flower, err := s.DB.GetUserFlower(req.ID)
+	flower, err := s.DB.GetUserCurrentFlower(req.ID)
 	if err != nil {
 		// if we cant find flower in the collection we return true
 		if err.Error() == "not found" {
@@ -162,7 +181,7 @@ func (s *Service) GetUserFlowerTotal(req flowersdata.GetUserFlowerTotalReq) (res
 }
 
 func (s *Service) GetLastFlower(req flowersdata.GetLastFlowerReq) (resp flowersdata.GetLastFlowerResp, err error) {
-	flower, err := s.DB.GetUserFlower(req.ID)
+	flower, err := s.DB.GetUserCurrentFlower(req.ID)
 	if err != nil {
 		resp.Err = "error getting flowers"
 		return
@@ -183,7 +202,6 @@ func (s *Service) UserFlowerSlice(req flowersdata.UserFlowerSliceReq) (resp flow
 	}
 
 	var result []structs.Flower
-	// TODO: BUG: returns dead flowers check
 	if err := s.DB.UserFlowerDataCollection.Find(obj{"$and": arr{obj{"$or": query}, obj{"dead": false}}}).Select(obj{"owner": 1, "hp": 1}).All(&result); err != nil {
 		resp.Err = err.Error()
 		return resp, err
