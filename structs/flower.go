@@ -23,7 +23,7 @@ type Flower struct {
 }
 
 func FlowerDies() bool {
-	rand.Seed(time.Now().Unix())
+	rand.Seed(time.Now().UnixNano())
 	var num int = rand.Intn(101)
 	return num <= cfg.DyingChance
 }

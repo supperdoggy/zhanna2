@@ -144,8 +144,8 @@ func (h *Handlers) MyFlowers(m *telebot.Message) {
 	}
 
 	var answerstr = fmt.Sprintf(localization.GetLoc("my_flower"), resp.Total, resp.Last)
-	for k, v := range resp.Flowers {
-		answerstr += fmt.Sprintf("%v - %v\n", k, v)
+	for _, v := range resp.Flowers {
+		answerstr += fmt.Sprintf("%v - %v\n", v.Name, v.Amount)
 	}
 	botmsg, _ := h.Bot.Reply(m, answerstr)
 	go communication.UpdateUser(m, botmsg)

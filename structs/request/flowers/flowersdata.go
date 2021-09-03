@@ -39,7 +39,10 @@ type GetUserFlowersReq struct {
 }
 
 type GetUserFlowersResp struct {
-	Flowers map[string]int `json:"flowers"`
+	Flowers []struct{
+		Name string `json:"name"`
+		Amount int `json:"amount"`
+	} `json:"flowers"`
 	Total   int            `json:"total"`
 	Last    uint8          `json:"last"`
 	Err     string         `json:"err"`

@@ -91,37 +91,13 @@ func (d *DbStruct) GetRandomFlower() (result structs.Flower, err error) {
 }
 
 // returns growing user flower
-func (d *DbStruct) GetUserFlower(owner int) (result structs.Flower, err error) {
+func (d *DbStruct) GetUserCurrentFlower(owner int) (result structs.Flower, err error) {
 	err = d.UserFlowerDataCollection.Find(obj{"owner": owner, "hp": obj{"$ne": 100}, "dead": false}).One(&result)
 	return
 }
 
-// returns map of flower name and count
-func (d *DbStruct) GetAllUserFlowersMap(owner int) (map[string]int, error) {
-	resultMap := make(map[string]int)
-	resultSlice := []structs.Flower{}
-	if err := d.UserFlowerDataCollection.Find(obj{"owner": owner, "hp": 100, "dead": false}).All(&resultSlice); err != nil {
-		return nil, err
-	}
-
-	if len(resultSlice) == 0 {
-		return resultMap, nil
-	}
-
-	for _, v := range resultSlice {
-		resultMap[v.Icon+" "+v.Name]++
-	}
-	return resultMap, nil
-}
-
 func (d *DbStruct) CountFlowers(owner int) (total int, err error) {
-	flowers, err := DB.GetAllUserFlowersMap(owner)
-	if err != nil {
-		return
-	}
-	for _, v := range flowers {
-		total += v
-	}
+	total, err = DB.UserFlowerDataCollection.Find(obj{"owner":owner}).Count()
 	return
 }
 
@@ -143,7 +119,7 @@ func (d *DbStruct) EditUserFlower(id uint64, f structs.Flower) (err error) {
 }
 
 func (d *DbStruct) GetRandomID() uint64 {
-	rand.Seed(time.Now().Unix())
+	rand.Seed(time.Now().UnixNano())
 	d.mut.Lock()
 	id := d.m[rand.Intn(len(d.m))]
 	d.mut.Unlock()
