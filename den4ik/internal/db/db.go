@@ -48,4 +48,3 @@ func (d *DbStruct) DeleteSession(id int) error {
 	err := d.GameSessionsCollection.Remove(obj{"_id": id})
 	return err
 }
-

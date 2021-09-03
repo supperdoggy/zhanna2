@@ -18,6 +18,6 @@ type ResetSessionReq struct {
 }
 
 type ResetSessionResp struct {
-	OK bool `json:"ok"`
+	OK  bool   `json:"ok"`
 	Err string `json:"err"`
 }

@@ -97,7 +97,7 @@ func (d *DbStruct) GetUserCurrentFlower(owner int) (result structs.Flower, err e
 }
 
 func (d *DbStruct) CountFlowers(owner int) (total int, err error) {
-	total, err = DB.UserFlowerDataCollection.Find(obj{"owner":owner}).Count()
+	total, err = DB.UserFlowerDataCollection.Find(obj{"owner": owner}).Count()
 	return
 }
 
