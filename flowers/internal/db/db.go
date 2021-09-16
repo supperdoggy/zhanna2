@@ -113,9 +113,14 @@ func (d *DbStruct) GetAllUserFlowers(owner int) ([]structs.Flower, error) {
 	return result, err
 }
 
+func (d *DbStruct) RemoveUserFlower(flowerID uint64) error {
+	return d.UserFlowerDataCollection.Remove(obj{"id": flowerID})
+}
+
 // edit user flower
 func (d *DbStruct) EditUserFlower(id uint64, f structs.Flower) (err error) {
-	return d.UserFlowerDataCollection.Update(obj{"_id": id}, obj{"$set": f})
+	_, err = d.UserFlowerDataCollection.Upsert(obj{"_id": id}, obj{"$set": f})
+	return
 }
 
 func (d *DbStruct) GetRandomID() uint64 {

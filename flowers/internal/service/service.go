@@ -71,6 +71,23 @@ func (s *Service) GrowFlower(req flowersdata.GrowFlowerReq) (resp flowersdata.Gr
 		flower.HP += flower.Grew
 	}
 
+	// check if flower died
+	if !req.NonDying {
+		rand.Seed(time.Now().UnixNano())
+		num := rand.Intn(101)
+		died := num >= 0 && num <= cfg.DyingChance
+		if died {
+			resp.Err = "flower died"
+			flower.Dead = true
+			resp.Flower = flower
+			if err := s.DB.EditUserFlower(flower.ID, flower); err != nil {
+				resp.Err = err.Error()
+				return resp, err
+			}
+			return
+		}
+	}
+
 	// add extra grow output for user
 	extraGrow := int(math.Round(float64(req.MsgCount) * cfg.Message_multiplyer))
 	if extraGrow > 20 {
@@ -84,7 +101,7 @@ func (s *Service) GrowFlower(req flowersdata.GrowFlowerReq) (resp flowersdata.Gr
 	}
 	flower.LastTimeGrow = time.Now()
 
-	if _, err := s.DB.UserFlowerDataCollection.Upsert(obj{"_id": flower.ID}, flower); err != nil {
+	if err := s.DB.EditUserFlower(flower.ID, flower); err != nil {
 		resp.Err = err.Error()
 		return resp, err
 	}
