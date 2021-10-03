@@ -2,18 +2,22 @@ package main
 
 import (
 	"fmt"
+	"github.com/supperdoggy/parallel_running"
 	defaultCfg "github.com/supperdoggy/superSecretDevelopement/structs/request/default"
 	cfg "github.com/supperdoggy/superSecretDevelopement/structs/services/users"
 	adminHandlers "github.com/supperdoggy/superSecretDevelopement/users/internal/admin_handlers"
 	"github.com/supperdoggy/superSecretDevelopement/users/internal/db"
 	handlers2 "github.com/supperdoggy/superSecretDevelopement/users/internal/handlers"
 	"github.com/supperdoggy/superSecretDevelopement/users/internal/service"
+	"go.uber.org/zap"
 
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
-	handlers := handlers2.Handlers{Service: service.Service{DB: db.DB}}
+	logger := zap.L()
+	parallelRunning := parallel_running.InitUserParallelRunning(*logger)
+	handlers := handlers2.Handlers{Service: service.Service{DB: db.DB}, ParallelRunning: parallelRunning}
 	admin_handlers := adminHandlers.AdminHandlers{DB: &db.DB}
 
 	r := gin.Default()

@@ -2,9 +2,11 @@ package handlers
 
 import (
 	"fmt"
+	"github.com/supperdoggy/parallel_running"
 	"github.com/supperdoggy/superSecretDevelopement/structs"
 	usersdata "github.com/supperdoggy/superSecretDevelopement/structs/request/users"
 	"github.com/supperdoggy/superSecretDevelopement/users/internal/service"
+	"gopkg.in/night-codes/types.v1"
 	"io/ioutil"
 	"net/http"
 
@@ -14,10 +16,11 @@ import (
 
 type Handlers struct {
 	Service service.Service
+	ParallelRunning *parallel_running.UserParallelRunning
 }
 
 func (h *Handlers) AddOrUpdateUser(c *gin.Context) {
-	// todo tink of something new
+	// todo think of something new
 	var req structs.User
 	var resp usersdata.AddOrUpdateUserResp
 	if err := c.Bind(&req); err != nil {
@@ -37,7 +40,6 @@ func (h *Handlers) AddOrUpdateUser(c *gin.Context) {
 	c.JSON(200, resp)
 }
 
-// todo simplify
 func (h *Handlers) GetFortune(c *gin.Context) {
 	var req usersdata.GetFortuneReq
 	var resp usersdata.GetFortuneResp
@@ -48,6 +50,10 @@ func (h *Handlers) GetFortune(c *gin.Context) {
 		c.JSON(400, resp)
 		return
 	}
+
+	// check parallel running
+	h.ParallelRunning.Lock("fortune", types.String(req.ID))
+	defer h.ParallelRunning.Unlock("fortune", types.String(req.ID))
 
 	resp, err := h.Service.GetFortune(req)
 	if err != nil {
@@ -131,6 +137,10 @@ func (h *Handlers) Flower(c *gin.Context) {
 		return
 	}
 
+	h.ParallelRunning.Lock("flower", types.String(req.ID))
+
+	defer h.ParallelRunning.Unlock("flower", types.String(req.ID))
+
 	resp, err := h.Service.Flower(req)
 	if err != nil {
 		fmt.Println("handlers.go -> Flower() ->", err.Error())
@@ -203,8 +213,6 @@ func (h *Handlers) GiveFlower(c *gin.Context) {
 }
 
 // Flowertop - finds all users in chat and forms top users by total flowers
-// TODO Simplify
-// TODO dude rewrite this for the love of god
 func (h *Handlers) Flowertop(c *gin.Context) {
 	var req usersdata.FlowertopReq
 	var resp usersdata.FlowertopResp
