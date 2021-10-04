@@ -3,8 +3,8 @@ package db
 import (
 	"github.com/supperdoggy/superSecretDevelopement/structs"
 	cfg "github.com/supperdoggy/superSecretDevelopement/structs/services/bot"
+	"go.uber.org/zap"
 	"gopkg.in/mgo.v2"
-	"log"
 	"time"
 )
 
@@ -25,15 +25,16 @@ const (
 )
 
 func init() {
+	logger, _ := zap.NewDevelopment()
 	db, err := mgo.Dial("")
 	if err != nil {
-		panic("error when connecting to db: " + err.Error())
+		logger.Fatal("error when connecting to db", zap.Error(err))
 	}
 	DB = DbStruct{
 		DbSession:     db,
 		PicCollection: db.DB(cfg.DBName).C(cfg.PicCollectionName),
 	}
-	log.Println("connected to db")
+	logger.Info("connected to db")
 }
 
 func (db DbStruct) GetPicFromDB(id string) (*structs.Pic, error) {
