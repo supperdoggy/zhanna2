@@ -6,3 +6,4 @@ const (
 )
 
 type Obj map[string]interface{}
+type Arr []interface{}

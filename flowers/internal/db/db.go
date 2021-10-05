@@ -2,11 +2,13 @@ package db
 
 import (
 	"errors"
+	ai "github.com/night-codes/mgo-ai"
 	"github.com/supperdoggy/superSecretDevelopement/structs"
+	defaultCfg "github.com/supperdoggy/superSecretDevelopement/structs/request/default"
 	cfg "github.com/supperdoggy/superSecretDevelopement/structs/services/flowers"
+	"go.uber.org/zap"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/night-codes/types.v1"
-	"log"
 	"math/rand"
 	"sync"
 	"time"
@@ -16,39 +18,46 @@ type obj map[string]interface{}
 
 type DbStruct struct {
 	DbSession                *mgo.Session
-	UserFlowerDataCollection *mgo.Collection
-	FlowerCollection         *mgo.Collection
+	Logger *zap.Logger
+	userFlowerDataCollection *mgo.Collection
+	flowerCollection         *mgo.Collection
 	mut                      sync.Mutex
 	m                        []uint64
 }
 
-var DB DbStruct
+var DB = getDB()
 
-func init() {
+func getDB() *DbStruct {
+	logger, _ := zap.NewDevelopment()
 	s, err := mgo.Dial("")
 	if err != nil {
-		panic("Init error:" + err.Error())
+		logger.Fatal("error dialing with db", zap.Error(err))
 	}
 
-	DB = DbStruct{
+	DB := DbStruct{
 		DbSession:                s,
-		UserFlowerDataCollection: s.DB(cfg.DBName).C(cfg.UserFlowerDataCollection),
-		FlowerCollection:         s.DB(cfg.DBName).C(cfg.FlowerCollection),
+		userFlowerDataCollection: s.DB(cfg.DBName).C(cfg.UserFlowerDataCollection),
+		flowerCollection:         s.DB(cfg.DBName).C(cfg.FlowerCollection),
+		Logger: logger,
 	}
+	ai.Connect(DB.flowerCollection)
+	ai.Connect(DB.userFlowerDataCollection)
 
 	var allFlowerIDs []obj
-	if err := DB.FlowerCollection.Find(nil).All(&allFlowerIDs); err != nil {
-		panic(err.Error())
+	if err := DB.flowerCollection.Find(nil).All(&allFlowerIDs); err != nil {
+		logger.Fatal("error finding all flower ids", zap.Error(err), zap.Any("db", DB))
 	}
 	DB.mut.Lock()
 	for _, v := range allFlowerIDs {
 		DB.m = append(DB.m, types.Uint64(v["_id"]))
 	}
 	DB.mut.Unlock()
+	return &DB
 }
 
 func (d *DbStruct) AddFlower(f structs.Flower) (err error) {
-	err = d.FlowerCollection.Insert(f)
+	f.ID = ai.Next(d.flowerCollection.Name)
+	err = d.flowerCollection.Insert(f)
 	if err != nil {
 		return
 	}
@@ -59,67 +68,70 @@ func (d *DbStruct) AddFlower(f structs.Flower) (err error) {
 }
 
 func (d *DbStruct) RemoveFlower(id uint64) (err error) {
-	err = d.FlowerCollection.Remove(obj{"_id": id})
+	err = d.flowerCollection.Remove(obj{"_id": id})
 	if err != nil {
 		return err
 	}
 	err = d.removeIDFromCache(id)
 	if err != nil {
-		log.Println("error removing id from cache " + err.Error())
+		d.Logger.Error("error removing id from cache", zap.Error(err), zap.Any("id", id))
 	}
 	return err
 }
 
 func (d *DbStruct) EditFlower(id uint64, f structs.Flower) (err error) {
-	return d.FlowerCollection.Update(obj{"_id": id}, obj{"$set": f})
+	return d.flowerCollection.Update(obj{"_id": id}, obj{"$set": f})
 }
 
 func (d *DbStruct) GetFlower(id uint64, f structs.Flower) (result structs.Flower, err error) {
-	err = d.FlowerCollection.Find(obj{"_id": id}).One(&f)
+	err = d.flowerCollection.Find(obj{"_id": id}).One(&f)
 	return f, err
 }
 
 // getAllFlowers - returns all flower types
 func (d *DbStruct) GetAllFlowers() (result []structs.Flower, err error) {
-	err = d.FlowerCollection.Find(nil).All(&result)
+	err = d.flowerCollection.Find(nil).All(&result)
 	return
 }
 
 func (d *DbStruct) GetRandomFlower() (result structs.Flower, err error) {
-	err = d.FlowerCollection.Find(obj{"_id": d.GetRandomID()}).One(&result)
+	err = d.flowerCollection.Find(obj{"_id": d.GetRandomID()}).One(&result)
 	return
 }
 
 // returns growing user flower
 func (d *DbStruct) GetUserCurrentFlower(owner int) (result structs.Flower, err error) {
-	err = d.UserFlowerDataCollection.Find(obj{"owner": owner, "hp": obj{"$ne": 100}, "dead": false}).One(&result)
+	err = d.userFlowerDataCollection.Find(obj{"owner": owner, "hp": obj{"$ne": 100}, "dead": false}).One(&result)
 	return
 }
 
 func (d *DbStruct) CountFlowers(owner int) (total int, err error) {
-	total, err = DB.UserFlowerDataCollection.Find(obj{"owner": owner}).Count()
+	total, err = DB.userFlowerDataCollection.Find(obj{"owner": owner}).Count()
 	return
 }
 
 func (d *DbStruct) GetUserFlowerById(id uint64) (structs.Flower, error) {
 	var f structs.Flower
-	err := d.UserFlowerDataCollection.Find(obj{"id": id}).One(&f)
+	err := d.userFlowerDataCollection.Find(obj{"id": id}).One(&f)
 	return f, err
 }
 
 func (d *DbStruct) GetAllUserFlowers(owner int) ([]structs.Flower, error) {
 	var result []structs.Flower
-	err := d.UserFlowerDataCollection.Find(obj{"owner": owner, "hp": 100, "dead": false}).All(&result)
+	err := d.userFlowerDataCollection.Find(obj{"owner": owner, "hp": 100, "dead": false}).All(&result)
 	return result, err
 }
 
-func (d *DbStruct) RemoveUserFlower(flowerID uint64) error {
-	return d.UserFlowerDataCollection.Remove(obj{"id": flowerID})
+func (d *DbStruct) RemoveUserFlower(cryteria defaultCfg.Obj) error {
+	return d.userFlowerDataCollection.Remove(cryteria)
 }
 
 // edit user flower
-func (d *DbStruct) EditUserFlower(id uint64, f structs.Flower) (err error) {
-	_, err = d.UserFlowerDataCollection.Upsert(obj{"_id": id}, obj{"$set": f})
+func (d *DbStruct) EditUserFlower(f structs.Flower) (err error) {
+	if f.ID == 0 {
+		f.ID = ai.Next(d.flowerCollection.Name)
+	}
+	_, err = d.userFlowerDataCollection.Upsert(obj{"_id": f.ID}, obj{"$set": f})
 	return
 }
 
@@ -135,6 +147,7 @@ func (d *DbStruct) removeIDFromCache(val uint64) error {
 	var i int
 	var ok bool
 	d.mut.Lock()
+	// kinda slow but I assume we wont have more than 300 elements in slice
 	for k, v := range d.m {
 		if val == v {
 			i = k
@@ -146,8 +159,19 @@ func (d *DbStruct) removeIDFromCache(val uint64) error {
 		return errors.New("no such element in slice")
 	}
 
+	// removing element
 	d.m[len(d.m)-1], d.m[i] = d.m[i], d.m[len(d.m)-1]
 	d.m = d.m[:len(d.m)-1]
 	d.mut.Unlock()
 	return nil
+}
+
+func (d *DbStruct) UserFlowerSlice(ids []int) (result []structs.Flower, err error) {
+	// building query for request to mongo
+	query := make([]defaultCfg.Obj, 1)
+	for _, v := range ids {
+		query = append(query, defaultCfg.Obj{"owner": v})
+	}
+	err = d.userFlowerDataCollection.Find(obj{"$and": defaultCfg.Arr{obj{"$or": query}, obj{"dead": false}}}).Select(obj{"owner": 1, "hp": 1}).All(&result)
+	return
 }
