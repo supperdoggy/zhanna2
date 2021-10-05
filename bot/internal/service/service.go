@@ -11,7 +11,7 @@ import (
 )
 
 type Service struct {
-	DB *db.DbStruct
+	DB     *db.DbStruct
 	Logger *zap.Logger
 }
 

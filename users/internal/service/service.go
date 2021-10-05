@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/supperdoggy/superSecretDevelopement/structs"
 	aneksdata "github.com/supperdoggy/superSecretDevelopement/structs/request/aneks"
+	defaultCfg "github.com/supperdoggy/superSecretDevelopement/structs/request/default"
 	flowersdata "github.com/supperdoggy/superSecretDevelopement/structs/request/flowers"
 	fortunedata "github.com/supperdoggy/superSecretDevelopement/structs/request/fortune"
 	NHIEdata "github.com/supperdoggy/superSecretDevelopement/structs/request/nhie"
@@ -19,9 +20,9 @@ import (
 	cfg "github.com/supperdoggy/superSecretDevelopement/structs/services/users"
 	"github.com/supperdoggy/superSecretDevelopement/users/internal/communication"
 	"github.com/supperdoggy/superSecretDevelopement/users/internal/db"
+	"go.uber.org/zap"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/tucnak/telebot.v2"
-	"log"
 	"sync"
 	"time"
 )
@@ -29,7 +30,8 @@ import (
 type obj map[string]interface{}
 
 type Service struct {
-	DB db.DbStruct
+	DB     db.DbStruct
+	Logger *zap.Logger
 }
 
 // todo simplify
@@ -46,7 +48,7 @@ func (s *Service) AddOrUpdateUser(req structs.User) (resp usersdata.AddOrUpdateU
 		// if we dont s.ve this user in db
 	} else if err == mgo.ErrNotFound {
 		// inserting
-		err = s.DB.UsersCollection.Insert(req)
+		err = s.DB.InserUser(req)
 		if err != nil {
 			resp.Err = err.Error()
 			return
@@ -73,7 +75,10 @@ func (s *Service) AddOrUpdateUser(req structs.User) (resp usersdata.AddOrUpdateU
 	if len(req.MessagesUserSent) != 0 {
 		err = s.DB.WriteMessage(req.MessagesUserSent[0], req.MessagesZhannaSent[0])
 		if err != nil {
-			log.Println("handlers.go -> addOrUpdateUserReq() -> DB.writeMessage() error:", err.Error())
+			s.Logger.Error("error writing message", zap.Error(err),
+				zap.Any("user_msg", req.MessagesUserSent[0]),
+				zap.Any("bot_msg", req.MessagesZhannaSent[0]),
+			)
 		}
 	}
 
@@ -86,7 +91,7 @@ func (s *Service) AddOrUpdateUser(req structs.User) (resp usersdata.AddOrUpdateU
 		"telebot.last_name":  req.Telebot.LastName,
 	}
 
-	if err := s.DB.UsersCollection.Update(obj{"telebot.id": req.Telebot.ID}, obj{"$set": fieldsToSet}); err != nil {
+	if err := s.DB.UpdateUserWithFields(defaultCfg.Obj{"telebot.id": req.Telebot.ID}, defaultCfg.Obj{"$set": fieldsToSet}); err != nil {
 		resp.Err = err.Error()
 		return resp, err
 	}
@@ -102,9 +107,9 @@ func (s *Service) GetFortune(req usersdata.GetFortuneReq) (resp usersdata.GetFor
 		return
 	}
 	if !exists {
-		err = s.DB.UsersCollection.Insert(structs.User{Telebot: telebot.User{ID: req.ID}})
+		err = s.DB.InserUser(structs.User{Telebot: telebot.User{ID: req.ID}})
 		if err != nil {
-			fmt.Println("handlers.go -> addOrUpdateUserReq() -> insert error:", err.Error())
+			s.Logger.Error("error inserting user", zap.Error(err), zap.Any("request", req))
 			resp.Err = err.Error()
 			return
 		}
@@ -112,7 +117,7 @@ func (s *Service) GetFortune(req usersdata.GetFortuneReq) (resp usersdata.GetFor
 
 	u, err := s.DB.GetUserByID(req.ID)
 	if err != nil {
-		fmt.Println("handlers.go -> getFortune() -> cant find user:", err.Error())
+		s.Logger.Error("cant find user", zap.Error(err), zap.Any("request", req))
 		resp.Err = "cant find user"
 		return
 	}
@@ -127,12 +132,16 @@ func (s *Service) GetFortune(req usersdata.GetFortuneReq) (resp usersdata.GetFor
 
 	data, err := communication.MakeHttpReq(cfg.FortuneCookieURL+fortunecfg.GetRandomFortuneCookieURL, "GET", nil)
 	if err != nil {
-		fmt.Println("error making req:", err.Error())
+		s.Logger.Error("error making req", zap.Error(err), zap.Any("request", req))
 		resp.Err = err.Error()
 		return
 	}
 	if err = json.Unmarshal(data, &respFromFortune); err != nil {
-		fmt.Println("fortune cookie unmarshal error")
+		s.Logger.Error("fortune cookie unmarshal error",
+			zap.Error(err),
+			zap.Any("request", req),
+			zap.Any("data", data),
+		)
 		resp.Err = "unmarshal error"
 		return
 	}
@@ -141,7 +150,10 @@ func (s *Service) GetFortune(req usersdata.GetFortuneReq) (resp usersdata.GetFor
 		return resp, errors.New(resp.Err)
 	}
 	if err = s.DB.UpdateLastTimeFortune(req.ID); err != nil {
-		fmt.Println("error updating last time fortune:", err.Error())
+		s.Logger.Error("error updating last time fortune",
+			zap.Error(err),
+			zap.Any("request", req),
+		)
 		resp.Err = err.Error()
 		return
 	}
@@ -151,8 +163,12 @@ func (s *Service) GetFortune(req usersdata.GetFortuneReq) (resp usersdata.GetFor
 	}
 
 	// saving fotune
-	if ok := s.DB.SaveFortune(req.ID, resp.Fortune); !ok {
-		fmt.Println("Failed to save fortune for user", req.ID)
+	if err := s.DB.SaveFortune(req.ID, resp.Fortune); err != nil {
+		s.Logger.Error("Failed to save fortune for user",
+			zap.Error(err),
+			zap.Any("request", req),
+			zap.Any("resp", resp),
+		)
 	}
 	return
 }
@@ -166,18 +182,24 @@ func (s *Service) GetRandomAnek(req usersdata.GetRandomAnekReq) (resp usersdata.
 	var respFromAneks aneksdata.GetRandomAnekResp
 	err = communication.MakeReqToAnek(anekscfg.GetRandomAnekURL, nil, &respFromAneks)
 	if err != nil {
-		resp.Err = "something went wrong, contact @supperdoggy"
+		s.Logger.Error("error making request to anek", zap.Error(err), zap.Any("request", req))
+		resp.Err = "error making request to anek"
 		return
 	}
 	if respFromAneks.Err != "" {
+		s.Logger.Error("got error from anek", zap.Any("response", respFromAneks), zap.Any("request", req))
 		resp.Err = respFromAneks.Err
 		return resp, errors.New(resp.Err)
 	}
 	resp.Id = respFromAneks.ID
 	resp.Text = respFromAneks.Text
 	// saving anek
-	if ok := s.DB.SaveAnek(req.ID, resp.Anek); !ok {
-		fmt.Println("Not ok saving anek", req.ID)
+	if err := s.DB.SaveAnek(req.ID, resp.Anek); err != nil {
+		s.Logger.Error("got when saving anek",
+			zap.Any("response", resp),
+			zap.Any("request", req),
+			zap.Error(err),
+		)
 	}
 	return
 }
@@ -191,11 +213,13 @@ func (s *Service) GetRandomTost(req usersdata.GetRandomTostReq) (resp usersdata.
 	var respFromTost tostdata.GetRandomTostResp
 	err = communication.MakeReqToTost(tostcfg.GetRandomTostURL, nil, &respFromTost)
 	if err != nil {
+		s.Logger.Error("error making request to tost", zap.Error(err), zap.Any("request", req))
 		resp.Err = err.Error()
 		return
 	}
 
 	if respFromTost.Err != "" {
+		s.Logger.Error("got error from tost", zap.Any("response", respFromTost), zap.Any("request", req))
 		resp.Err = respFromTost.Err
 		return
 	}
@@ -204,7 +228,10 @@ func (s *Service) GetRandomTost(req usersdata.GetRandomTostReq) (resp usersdata.
 
 	// saving tost
 	if ok := s.DB.SaveTost(req.ID, resp.Tost); !ok {
-		fmt.Println("not ok saving tost", req.ID)
+		s.Logger.Error("got when saving anek",
+			zap.Any("response", resp),
+			zap.Any("request", req),
+			zap.Error(err))
 	}
 
 	return
@@ -218,11 +245,19 @@ func (s *Service) AddFlower(req usersdata.AddFlowerReq) (resp usersdata.AddFlowe
 	reqToFlowers.Type = req.Type
 	err = communication.MakeReqToFlowers(flowercfg.AddNewFlowerURL, reqToFlowers, &respFromFlowers)
 	if err != nil {
+		s.Logger.Error("error making request to flowers",
+			zap.Error(err),
+			zap.Any("request", req),
+			zap.Any("reqToFlowers", reqToFlowers),
+		)
 		resp.Err = "communication error"
 		return
 	}
 
 	if !respFromFlowers.OK {
+		s.Logger.Error("got error from flowers",
+			zap.Any("resp from flowers", respFromFlowers),
+			zap.Any("request", reqToFlowers))
 		resp.Err = respFromFlowers.Err
 		return resp, errors.New(resp.Err)
 	}
@@ -233,7 +268,7 @@ func (s *Service) AddFlower(req usersdata.AddFlowerReq) (resp usersdata.AddFlowe
 func (s *Service) Flower(req usersdata.FlowerReq) (resp usersdata.FlowerResp, err error) {
 	canGrow, err := s.CanGrowFlower(req.ID)
 	if err != nil {
-		fmt.Println("handlers.go -> flowerReq() -> canGrowFlower() error:", err.Error())
+		s.Logger.Error("can grow flower error", zap.Error(err), zap.Any("request", req))
 		resp.Err = "cant grow flower"
 		return
 	}
@@ -245,7 +280,7 @@ func (s *Service) Flower(req usersdata.FlowerReq) (resp usersdata.FlowerResp, er
 
 	req.MsgCount, err = s.DB.GetUserMsgCount(req.ID)
 	if err != nil {
-		fmt.Println("handlers.go -> flowerReq() -> getUserMsgCount error:", err.Error())
+		s.Logger.Error("canUserMsgCount error", zap.Error(err), zap.Any("request", req))
 	}
 	var reqToFlower flowersdata.GrowFlowerReq
 	var respFromFlower flowersdata.GrowFlowerResp
@@ -254,7 +289,7 @@ func (s *Service) Flower(req usersdata.FlowerReq) (resp usersdata.FlowerResp, er
 	reqToFlower.MsgCount = req.MsgCount
 	err = communication.MakeReqToFlowers(flowercfg.GrowFlowerURL, reqToFlower, &respFromFlower)
 	if err != nil {
-		fmt.Println("handlers.go -> flowerReq() -> req error:", err.Error())
+		s.Logger.Error("error making request to flowers", zap.Error(err), zap.Any("request", reqToFlower))
 		resp.Err = "err req to flowers"
 		return
 	}
@@ -273,8 +308,9 @@ func (s *Service) DialogFlow(req usersdata.DialogFlowReq) (resp usersdata.Dialog
 		return resp, errors.New(resp.Err)
 	}
 
-	resp = communication.MakeReqToDialogFlow(req)
+	resp = communication.MakeReqToDialogFlow(s.Logger, req)
 	if resp.Err != "" {
+		s.Logger.Error("error making request to dialogflow", zap.Error(err), zap.Any("request", req))
 		return resp, errors.New(resp.Err)
 	}
 	return
@@ -282,7 +318,6 @@ func (s *Service) DialogFlow(req usersdata.DialogFlowReq) (resp usersdata.Dialog
 
 func (s *Service) MyFlowers(req usersdata.MyFlowersReq) (resp usersdata.MyFlowersResp, err error) {
 	if req.ID == 0 {
-		fmt.Println("myflowers() -> id is 0")
 		resp.Err = "no id field"
 		return resp, errors.New(resp.Err)
 	}
@@ -292,11 +327,16 @@ func (s *Service) MyFlowers(req usersdata.MyFlowersReq) (resp usersdata.MyFlower
 	reqToFlower.ID = req.ID
 	err = communication.MakeReqToFlowers(flowercfg.GetUserFlowersURL, reqToFlower, &respFromFlower)
 	if err != nil {
+		s.Logger.Error("error making request to flowers", zap.Error(err), zap.Any("request", reqToFlower))
 		resp.Err = err.Error()
 		return
 	}
 	if resp.Err != "" {
-		fmt.Println("myflowers() -> response error:", resp.Err)
+		s.Logger.Error("got response from flowers",
+			zap.Error(err),
+			zap.Any("request", reqToFlower),
+			zap.Any("response", resp),
+		)
 		resp.Err = respFromFlower.Err
 		return resp, errors.New(resp.Err)
 	}
@@ -320,12 +360,16 @@ func (s *Service) GiveFlower(req usersdata.GiveFlowerReq) (resp usersdata.GiveFl
 	reqToFlowers.Last = true
 	err = communication.MakeReqToFlowers(flowercfg.GiveFlowerURL, reqToFlowers, &respFromFlowers)
 	if err != nil {
-		fmt.Println("handlers.go -> give() -> MakeReqToFlowers error:", err.Error())
+		s.Logger.Error("error making request to flowers", zap.Error(err), zap.Any("request", reqToFlowers))
 		resp.Err = "err making req"
 		return
 	}
 	if respFromFlowers.Err != "" {
-		fmt.Println("handlers.go -> give() -> Unmarshal error:", respFromFlowers.Err)
+		s.Logger.Error("got response from flowers",
+			zap.Error(err),
+			zap.Any("request", reqToFlowers),
+			zap.Any("response", respFromFlowers),
+		)
 		resp.Err = respFromFlowers.Err
 		return resp, errors.New(resp.Err)
 	}
@@ -336,15 +380,13 @@ func (s *Service) GiveFlower(req usersdata.GiveFlowerReq) (resp usersdata.GiveFl
 
 func (s *Service) Flowertop(req usersdata.FlowertopReq) (resp usersdata.FlowertopResp, err error) {
 	if req.ChatId == 0 {
-		fmt.Println("flowertop() -> ChatId is 0")
 		resp.Err = "no id field"
 		return resp, errors.New(resp.Err)
 	}
 	// getting chat users
 	users, err := s.DB.GetChatUsers(req.ChatId)
-	fmt.Println(len(users))
 	if err != nil {
-		fmt.Println("flowertop() -> getChatUsers() error:", err.Error(), req.ChatId)
+		s.Logger.Error("error when getting chat users", zap.Error(err), zap.Any("req", req))
 		resp.Err = "error getting users from chat"
 		return
 	}
@@ -372,7 +414,7 @@ func (s *Service) Flowertop(req usersdata.FlowertopReq) (resp usersdata.Flowerto
 	reqToFlowers.ID = ids
 	err = communication.MakeReqToFlowers(flowercfg.UserFlowerSliceURL, reqToFlowers, &respFromFlowers)
 	if err != nil {
-		fmt.Println("flowertop() -> MakeReqToFlowers(\"userFlowerSlice\") error:", err.Error())
+		s.Logger.Error("error making request to flowers", zap.Error(err), zap.Any("request", reqToFlowers))
 		resp.Err = "error making req"
 		return
 	}
@@ -401,14 +443,14 @@ func (s *Service) GetRandomNHIE(req usersdata.GetRandomNHIEreq) (resp usersdata.
 	var respFromNHIE NHIEdata.GetRandomNHIEResponse
 	data, err := communication.MakeHttpReq(cfg.NHIE_URL+nhiecfg.GetRandomNeverHaveIEverURL, "GET", nil)
 	if err != nil {
-		log.Println("handlers.go -> getRandomNHIE() -> c.Bind() error:", err.Error())
+		s.Logger.Error("error making request to NHIE", zap.Error(err), zap.Any("request", req))
 		resp.Err = err.Error()
 		return
 	}
 
 	err = json.Unmarshal(data, &respFromNHIE)
 	if err != nil {
-		log.Printf("handlers.go -> getRandomNHIE() -> Unmarshal error:%v, body:%v\n", err.Error(), string(data))
+		s.Logger.Error("error when unmarshal", zap.Error(err), zap.Any("resp", string(data)))
 		resp.Err = "unmarshal error"
 		return
 	}
@@ -428,12 +470,16 @@ func (s *Service) CanGrowFlower(id int) (bool, error) {
 	reqToFlowers.ID = id
 	err := communication.MakeReqToFlowers(flowercfg.CanGrowFlowerURL, reqToFlowers, &respFromFlowers)
 	if err != nil {
-		fmt.Println("canGrowFlower() -> MakeReqToFlower(canGrowFlower) error:", err.Error())
+		s.Logger.Error("error making request to flowers", zap.Error(err), zap.Any("request", reqToFlowers))
 		return false, err
 	}
 
 	if respFromFlowers.Err != "" {
-		fmt.Println("canGrowFlower() -> got error from flower:", respFromFlowers.Err)
+		s.Logger.Error("got response from flowers",
+			zap.Error(err),
+			zap.Any("request", reqToFlowers),
+			zap.Any("response", respFromFlowers),
+		)
 		return false, fmt.Errorf(respFromFlowers.Err)
 	}
 	return respFromFlowers.Answer, nil

@@ -8,13 +8,24 @@ import (
 	"github.com/supperdoggy/superSecretDevelopement/users/internal/db"
 	handlers2 "github.com/supperdoggy/superSecretDevelopement/users/internal/handlers"
 	"github.com/supperdoggy/superSecretDevelopement/users/internal/service"
+	"go.uber.org/zap"
 
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
-	handlers := handlers2.Handlers{Service: service.Service{DB: db.DB}}
-	admin_handlers := adminHandlers.AdminHandlers{DB: &db.DB}
+	logger, _ := zap.NewDevelopment()
+	handlers := handlers2.Handlers{
+		Service: service.Service{
+			DB:     db.DB,
+			Logger: logger,
+		},
+		Logger: logger,
+	}
+	admin_handlers := adminHandlers.AdminHandlers{
+		DB:     &db.DB,
+		Logger: logger,
+	}
 
 	r := gin.Default()
 

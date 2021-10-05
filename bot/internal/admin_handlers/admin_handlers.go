@@ -16,7 +16,7 @@ import (
 )
 
 type AdminHandlers struct {
-	Bot *telebot.Bot
+	Bot    *telebot.Bot
 	Logger *zap.Logger
 }
 

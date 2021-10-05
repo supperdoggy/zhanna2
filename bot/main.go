@@ -30,9 +30,9 @@ func main() {
 	logger.Info("Bot created!", zap.Any("timeout", timeout))
 
 	handlers := handlers2.Handlers{
-		Bot:     bot,
+		Bot: bot,
 		Service: service.Service{
-			DB: &db.DB,
+			DB:     &db.DB,
 			Logger: logger,
 		},
 		Logger: logger,

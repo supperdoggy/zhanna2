@@ -16,7 +16,7 @@ import (
 type Handlers struct {
 	Bot     *telebot.Bot
 	Service service.Service
-	Logger *zap.Logger
+	Logger  *zap.Logger
 }
 
 // Start - handles /start command and sends text response

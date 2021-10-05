@@ -1,19 +1,19 @@
 package handlers
 
 import (
-	"fmt"
 	"github.com/supperdoggy/superSecretDevelopement/structs"
 	usersdata "github.com/supperdoggy/superSecretDevelopement/structs/request/users"
 	"github.com/supperdoggy/superSecretDevelopement/users/internal/service"
+	"go.uber.org/zap"
 	"io/ioutil"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"log"
 )
 
 type Handlers struct {
 	Service service.Service
+	Logger  *zap.Logger
 }
 
 func (h *Handlers) AddOrUpdateUser(c *gin.Context) {
@@ -21,7 +21,9 @@ func (h *Handlers) AddOrUpdateUser(c *gin.Context) {
 	var req structs.User
 	var resp usersdata.AddOrUpdateUserResp
 	if err := c.Bind(&req); err != nil {
-		fmt.Println("handlers.go -> addOrUpdateUserReq() -> binding error:", err.Error())
+		d, _ := ioutil.ReadAll(c.Request.Body)
+		h.Logger.Error("error binding request body", zap.Error(err), zap.String("body", string(d)))
+
 		resp.Err = err.Error()
 		c.JSON(400, resp)
 		return
@@ -29,7 +31,7 @@ func (h *Handlers) AddOrUpdateUser(c *gin.Context) {
 
 	resp, err := h.Service.AddOrUpdateUser(req)
 	if err != nil {
-		fmt.Println("handlers.go -> AddOrUpdateUser() ->", err.Error())
+		h.Logger.Error("add or update error", zap.Error(err), zap.Any("request", req))
 		c.JSON(http.StatusBadRequest, resp)
 		return
 	}
@@ -43,7 +45,9 @@ func (h *Handlers) GetFortune(c *gin.Context) {
 	var resp usersdata.GetFortuneResp
 
 	if err := c.Bind(&req); err != nil {
-		fmt.Println("handlers.go -> getFortune() -> binding error:", err.Error())
+		d, _ := ioutil.ReadAll(c.Request.Body)
+		h.Logger.Error("error binding request body", zap.Error(err), zap.String("body", string(d)))
+
 		resp.Err = err.Error()
 		c.JSON(400, resp)
 		return
@@ -51,7 +55,7 @@ func (h *Handlers) GetFortune(c *gin.Context) {
 
 	resp, err := h.Service.GetFortune(req)
 	if err != nil {
-		fmt.Println("handlers.go -> GetFortune() ->", err.Error())
+		h.Logger.Error("GetFortune error", zap.Error(err), zap.Any("request", req))
 		c.JSON(http.StatusBadRequest, resp)
 		return
 	}
@@ -64,7 +68,9 @@ func (h *Handlers) GetRandomAnek(c *gin.Context) {
 	var req usersdata.GetRandomAnekReq
 	var resp usersdata.GetRandomAnekResp
 	if err := c.Bind(&req); err != nil {
-		fmt.Println("binding error -> getRandomAnek():", err.Error())
+		d, _ := ioutil.ReadAll(c.Request.Body)
+		h.Logger.Error("error binding request body", zap.Error(err), zap.String("body", string(d)))
+
 		resp.Err = err.Error()
 		c.JSON(400, resp)
 		return
@@ -72,7 +78,7 @@ func (h *Handlers) GetRandomAnek(c *gin.Context) {
 
 	resp, err := h.Service.GetRandomAnek(req)
 	if err != nil {
-		fmt.Println("handlers.go -> GetRandomAnek() ->", err.Error())
+		h.Logger.Error("GetRandomAnek error", zap.Error(err), zap.Any("request", req))
 		c.JSON(http.StatusBadRequest, resp)
 		return
 	}
@@ -84,7 +90,9 @@ func (h *Handlers) GetRandomTost(c *gin.Context) {
 	var req usersdata.GetRandomTostReq
 	var resp usersdata.GetRandomTostResp
 	if err := c.Bind(&req); err != nil {
-		fmt.Println("handlers.go -> getRandomTost() -> c.Bind() error:", err.Error())
+		d, _ := ioutil.ReadAll(c.Request.Body)
+		h.Logger.Error("error binding request body", zap.Error(err), zap.String("body", string(d)))
+
 		resp.Err = err.Error()
 		c.JSON(400, resp)
 		return
@@ -92,7 +100,7 @@ func (h *Handlers) GetRandomTost(c *gin.Context) {
 
 	resp, err := h.Service.GetRandomTost(req)
 	if err != nil {
-		fmt.Println("handlers.go -> GetRandomTost() ->", err.Error())
+		h.Logger.Error("GetRandomTost error", zap.Error(err), zap.Any("request", req))
 		c.JSON(http.StatusBadRequest, resp)
 		return
 	}
@@ -104,8 +112,9 @@ func (h *Handlers) AddFlower(c *gin.Context) {
 	var req usersdata.AddFlowerReq
 	var resp usersdata.AddFlowerResp
 	if err := c.Bind(&req); err != nil {
-		d, err := ioutil.ReadAll(c.Request.Body)
-		fmt.Println("handlers.go -> addFlower() -> binding error:", err.Error(), string(d))
+		d, _ := ioutil.ReadAll(c.Request.Body)
+		h.Logger.Error("error binding request body", zap.Error(err), zap.String("body", string(d)))
+
 		resp.Err = err.Error()
 		c.JSON(400, resp)
 		return
@@ -113,7 +122,7 @@ func (h *Handlers) AddFlower(c *gin.Context) {
 
 	resp, err := h.Service.AddFlower(req)
 	if err != nil {
-		fmt.Println("handlers.go -> AddFlower() ->", err.Error())
+		h.Logger.Error("AddFlower error", zap.Error(err), zap.Any("request", req))
 		c.JSON(http.StatusBadRequest, resp)
 		return
 	}
@@ -125,7 +134,9 @@ func (h *Handlers) Flower(c *gin.Context) {
 	var req usersdata.FlowerReq
 	var resp usersdata.FlowerResp
 	if err := c.Bind(&req); err != nil {
-		fmt.Println("handlers.go -> flowerReq() -> binding error:", err.Error())
+		d, _ := ioutil.ReadAll(c.Request.Body)
+		h.Logger.Error("error binding request body", zap.Error(err), zap.String("body", string(d)))
+
 		resp.Err = "binding error"
 		c.JSON(400, resp)
 		return
@@ -133,7 +144,7 @@ func (h *Handlers) Flower(c *gin.Context) {
 
 	resp, err := h.Service.Flower(req)
 	if err != nil {
-		fmt.Println("handlers.go -> Flower() ->", err.Error())
+		h.Logger.Error("Flower error", zap.Error(err), zap.Any("request", req))
 		c.JSON(http.StatusBadRequest, resp)
 		return
 	}
@@ -145,7 +156,9 @@ func (h *Handlers) DialogFlow(c *gin.Context) {
 	var req usersdata.DialogFlowReq
 	var resp usersdata.DialogFlowResp
 	if err := c.Bind(&req); err != nil {
-		fmt.Println("dialogFlowReq() -> c.Bind() error", err.Error())
+		d, _ := ioutil.ReadAll(c.Request.Body)
+		h.Logger.Error("error binding request body", zap.Error(err), zap.String("body", string(d)))
+
 		resp.Err = "binding error"
 		c.JSON(http.StatusBadRequest, resp)
 		return
@@ -153,7 +166,7 @@ func (h *Handlers) DialogFlow(c *gin.Context) {
 
 	resp, err := h.Service.DialogFlow(req)
 	if err != nil {
-		fmt.Println("handlers.go -> DialogFlow() ->", err.Error())
+		h.Logger.Error("DialogFlow error", zap.Error(err), zap.Any("request", req))
 		c.JSON(http.StatusBadRequest, resp)
 		return
 	}
@@ -165,7 +178,9 @@ func (h *Handlers) MyFlowers(c *gin.Context) {
 	var req usersdata.MyFlowersReq
 	var resp usersdata.MyFlowersResp
 	if err := c.Bind(&req); err != nil {
-		fmt.Println("myflowers() -> c.Bind() error", err.Error())
+		d, _ := ioutil.ReadAll(c.Request.Body)
+		h.Logger.Error("error binding request body", zap.Error(err), zap.String("body", string(d)))
+
 		resp.Err = "binding error"
 		c.JSON(400, resp)
 		return
@@ -173,7 +188,7 @@ func (h *Handlers) MyFlowers(c *gin.Context) {
 
 	resp, err := h.Service.MyFlowers(req)
 	if err != nil {
-		fmt.Println("handlers.go -> MyFlowers() ->", err.Error())
+		h.Logger.Error("MyFlowers error", zap.Error(err), zap.Any("request", req))
 		c.JSON(http.StatusBadRequest, resp)
 		return
 	}
@@ -186,7 +201,9 @@ func (h *Handlers) GiveFlower(c *gin.Context) {
 	var req usersdata.GiveFlowerReq
 	var resp usersdata.GiveFlowerResp
 	if err := c.Bind(&req); err != nil {
-		fmt.Println("handlers.go -> give() -> binding error:", err.Error())
+		d, _ := ioutil.ReadAll(c.Request.Body)
+		h.Logger.Error("error binding request body", zap.Error(err), zap.String("body", string(d)))
+
 		resp.Err = "binding error"
 		c.JSON(400, resp)
 		return
@@ -194,7 +211,7 @@ func (h *Handlers) GiveFlower(c *gin.Context) {
 
 	resp, err := h.Service.GiveFlower(req)
 	if err != nil {
-		fmt.Println("handlers.go -> GiveFlower() ->", err.Error())
+		h.Logger.Error("GiveFlower error", zap.Error(err), zap.Any("request", req))
 		c.JSON(http.StatusBadRequest, resp)
 		return
 	}
@@ -209,7 +226,9 @@ func (h *Handlers) Flowertop(c *gin.Context) {
 	var req usersdata.FlowertopReq
 	var resp usersdata.FlowertopResp
 	if err := c.Bind(&req); err != nil {
-		fmt.Println("flowertop() -> c.Bind() error", err.Error())
+		d, _ := ioutil.ReadAll(c.Request.Body)
+		h.Logger.Error("error binding request body", zap.Error(err), zap.String("body", string(d)))
+
 		resp.Err = "binding error"
 		c.JSON(400, resp)
 		return
@@ -217,7 +236,7 @@ func (h *Handlers) Flowertop(c *gin.Context) {
 
 	resp, err := h.Service.Flowertop(req)
 	if err != nil {
-		fmt.Println("handlers.go -> Flowertop() ->", err.Error())
+		h.Logger.Error("Flowertop error", zap.Error(err), zap.Any("request", req))
 		c.JSON(http.StatusBadRequest, resp)
 		return
 	}
@@ -229,7 +248,9 @@ func (h *Handlers) GetRandomNHIE(c *gin.Context) {
 	var req usersdata.GetRandomNHIEreq
 	var resp usersdata.GetRandomNHIEresp
 	if err := c.Bind(&req); err != nil {
-		log.Println("handlers.go -> getRandomNHIE() -> c.Bind() error:", err.Error())
+		d, _ := ioutil.ReadAll(c.Request.Body)
+		h.Logger.Error("error binding request body", zap.Error(err), zap.String("body", string(d)))
+
 		resp.Err = err.Error()
 		c.JSON(400, resp)
 		return
@@ -237,7 +258,7 @@ func (h *Handlers) GetRandomNHIE(c *gin.Context) {
 
 	resp, err := h.Service.GetRandomNHIE(req)
 	if err != nil {
-		fmt.Println("handlers.go -> GetRandomNHIE() ->", err.Error())
+		h.Logger.Error("GetRandomNHIE error", zap.Error(err), zap.Any("request", req))
 		c.JSON(http.StatusBadRequest, resp)
 		return
 	}
