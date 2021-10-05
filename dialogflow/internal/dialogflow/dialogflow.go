@@ -6,6 +6,7 @@ import (
 	"fmt"
 	dialogflowdata "github.com/supperdoggy/superSecretDevelopement/structs/request/dialogflow"
 	cfg "github.com/supperdoggy/superSecretDevelopement/structs/services/dialogflow"
+	"go.uber.org/zap"
 	dialogflowpb "google.golang.org/genproto/googleapis/cloud/dialogflow/v2"
 	"os"
 )
@@ -14,11 +15,13 @@ type Dialogflow struct {
 	ProjectID    string
 	LanguageCode string
 	Session      *dialogflow.SessionsClient
+	Logger *zap.Logger
 }
 
 var DF Dialogflow
 
 func init() {
+	logger, _ := zap.NewDevelopment()
 	os.Setenv("GOOGLE_APPLICATION_CREDENTIALS", cfg.ProdServerCreds)
 
 	sessionClient, err := dialogflow.NewSessionsClient(context.Background())
@@ -29,6 +32,7 @@ func init() {
 		ProjectID:    "small-talk-qsespi",
 		LanguageCode: "ru-RU",
 		Session:      sessionClient,
+		Logger: logger,
 	}
 }
 
@@ -45,6 +49,7 @@ func (d *Dialogflow) DetectIntentText(req dialogflowdata.GetAnswerReq) dialogflo
 
 	response, err := d.Session.DetectIntent(context.Background(), &request)
 	if err != nil {
+		d.Logger.Error("DetectIntent error", zap.Error(err), zap.Any("req", req))
 		return dialogflowdata.GetAnswerResp{Err: err.Error()}
 	}
 
