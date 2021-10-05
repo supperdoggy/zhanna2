@@ -92,7 +92,6 @@ func MakeReqToDialogFlow(logger *zap.Logger, req usersdata.DialogFlowReq) (resp 
 
 	if resp.Err != "" {
 		logger.Error("got error from dialogflow", zap.Any("response", resp), zap.Any("request", resp))
-		fmt.Println("MakeReqToDialogFlow() -> got an error from dialogflow:", resp.Err)
 		return resp
 	}
 	return resp

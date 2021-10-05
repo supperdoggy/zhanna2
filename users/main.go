@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	defaultCfg "github.com/supperdoggy/superSecretDevelopement/structs/request/default"
 	cfg "github.com/supperdoggy/superSecretDevelopement/structs/services/users"
 	adminHandlers "github.com/supperdoggy/superSecretDevelopement/users/internal/admin_handlers"
@@ -55,6 +54,6 @@ func main() {
 	}
 
 	if err := r.Run(cfg.Port); err != nil {
-		fmt.Println(err.Error())
+		logger.Error("error running service", zap.Error(err))
 	}
 }
