@@ -25,7 +25,7 @@ func (h *Handlers) Start(m *telebot.Message) {
 	// todo: create id checker and answer variations for different users
 	response = localization.GetLoc("prod_welcome")
 	botmsg, err := h.Bot.Reply(m, response)
-	if err == nil {
+	if err != nil {
 		h.Logger.Error("error replying to message", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
 		return
 	}
