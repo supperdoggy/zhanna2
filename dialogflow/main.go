@@ -13,7 +13,7 @@ import (
 func main() {
 	logger, _ := zap.NewDevelopment()
 	handlers := handlers2.Handlers{
-		D: dialogflow.DF,
+		D:      dialogflow.DF,
 		Logger: logger,
 	}
 	r := gin.Default()

@@ -18,7 +18,7 @@ type obj map[string]interface{}
 type arr []interface{}
 
 type Service struct {
-	DB *db.DbStruct
+	DB     *db.DbStruct
 	Logger *zap.Logger
 }
 
@@ -90,7 +90,7 @@ func (s *Service) GrowFlower(req flowersdata.GrowFlowerReq) (resp flowersdata.Gr
 					zap.Error(err),
 					zap.Any("req", req),
 					zap.Any("flower", flower),
-					)
+				)
 
 				resp.Err = err.Error()
 				return resp, err

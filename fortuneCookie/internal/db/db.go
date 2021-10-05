@@ -14,7 +14,7 @@ type obj map[string]interface{}
 
 type DbStruct struct {
 	DbSession        *mgo.Session
-	Logger *zap.Logger
+	Logger           *zap.Logger
 	cookieCollection *mgo.Collection
 	m                []int32
 }
@@ -31,7 +31,7 @@ func getDB() *DbStruct {
 	}
 	DB := DbStruct{
 		DbSession:        s,
-		Logger: logger,
+		Logger:           logger,
 		cookieCollection: s.DB(cfg2.DBName).C(cfg2.FortuneCollection),
 		m:                make([]int32, 0),
 	}

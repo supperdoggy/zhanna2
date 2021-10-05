@@ -15,7 +15,7 @@ func main() {
 	logger, _ := zap.NewDevelopment()
 	h := handlers.Handlers{
 		Service: fortune.Service{
-			DB: *db.DB,
+			DB:     *db.DB,
 			Logger: logger,
 		},
 		Logger: logger,

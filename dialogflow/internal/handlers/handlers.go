@@ -10,7 +10,7 @@ import (
 )
 
 type Handlers struct {
-	D dialogflow.Dialogflow
+	D      dialogflow.Dialogflow
 	Logger *zap.Logger
 }
 

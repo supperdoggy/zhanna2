@@ -13,7 +13,7 @@ type obj map[string]interface{}
 
 type Handlers struct {
 	Service service.Service
-	Logger *zap.Logger
+	Logger  *zap.Logger
 }
 
 // adds new flower type

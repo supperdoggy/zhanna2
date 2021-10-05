@@ -18,7 +18,7 @@ type obj map[string]interface{}
 
 type DbStruct struct {
 	DbSession                *mgo.Session
-	Logger *zap.Logger
+	Logger                   *zap.Logger
 	userFlowerDataCollection *mgo.Collection
 	flowerCollection         *mgo.Collection
 	mut                      sync.Mutex
@@ -38,7 +38,7 @@ func getDB() *DbStruct {
 		DbSession:                s,
 		userFlowerDataCollection: s.DB(cfg.DBName).C(cfg.UserFlowerDataCollection),
 		flowerCollection:         s.DB(cfg.DBName).C(cfg.FlowerCollection),
-		Logger: logger,
+		Logger:                   logger,
 	}
 	ai.Connect(DB.flowerCollection)
 	ai.Connect(DB.userFlowerDataCollection)

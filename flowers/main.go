@@ -16,7 +16,7 @@ func main() {
 	r := gin.Default()
 	handlers := handlers2.Handlers{
 		Service: service.Service{
-			DB: db.DB,
+			DB:     db.DB,
 			Logger: logger,
 		},
 		Logger: logger,

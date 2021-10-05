@@ -11,7 +11,7 @@ type obj map[string]interface{}
 
 type Handlers struct {
 	Service fortune.Service
-	Logger *zap.Logger
+	Logger  *zap.Logger
 }
 
 func (h *Handlers) GetRandomFortuneCookieReq(c *gin.Context) {

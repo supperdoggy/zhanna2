@@ -15,7 +15,7 @@ type Dialogflow struct {
 	ProjectID    string
 	LanguageCode string
 	Session      *dialogflow.SessionsClient
-	Logger *zap.Logger
+	Logger       *zap.Logger
 }
 
 var DF Dialogflow
@@ -32,7 +32,7 @@ func init() {
 		ProjectID:    "small-talk-qsespi",
 		LanguageCode: "ru-RU",
 		Session:      sessionClient,
-		Logger: logger,
+		Logger:       logger,
 	}
 }
 
