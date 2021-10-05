@@ -20,7 +20,7 @@ func main() {
 	logger, _ := zap.NewDevelopment()
 	timeout := time.Second
 	bot, err = telebot.NewBot(telebot.Settings{
-		Token:  testToken,
+		Token:  prodToken,
 		Poller: &telebot.LongPoller{Timeout: timeout},
 	})
 	if err != nil {
