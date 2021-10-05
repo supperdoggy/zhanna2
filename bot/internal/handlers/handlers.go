@@ -9,6 +9,7 @@ import (
 	Cfg "github.com/supperdoggy/superSecretDevelopement/structs/services/bot"
 	cfg "github.com/supperdoggy/superSecretDevelopement/structs/services/users"
 	"go.uber.org/zap"
+	"gopkg.in/mgo.v2"
 	"gopkg.in/night-codes/types.v1"
 	"gopkg.in/tucnak/telebot.v2"
 )
@@ -277,7 +278,7 @@ func (h *Handlers) Den4ikGame(m *telebot.Message) {
 
 func (h *Handlers) ResetDen4ik(m *telebot.Message) {
 	msg, err := h.Service.ResetDen4ik(int(m.Chat.ID))
-	if err != nil {
+	if err != nil && err != mgo.ErrNotFound {
 		h.Logger.Error("reset den4ik error", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
 		if _, err := h.Bot.Send(m.Chat, localization.GetLoc("error")); err != nil {
 			h.Logger.Error("Error replying", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
