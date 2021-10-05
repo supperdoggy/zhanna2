@@ -1,18 +1,25 @@
 package main
 
 import (
-	"fmt"
 	"github.com/supperdoggy/superSecretDevelopement/fortuneCookie/internal/db"
 	"github.com/supperdoggy/superSecretDevelopement/fortuneCookie/internal/fortune"
 	"github.com/supperdoggy/superSecretDevelopement/fortuneCookie/internal/handlers"
 	defaultCfg "github.com/supperdoggy/superSecretDevelopement/structs/request/default"
 	cfg "github.com/supperdoggy/superSecretDevelopement/structs/services/fortune"
+	"go.uber.org/zap"
 
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
-	h := handlers.Handlers{Service: fortune.Service{DB: db.DB}}
+	logger, _ := zap.NewDevelopment()
+	h := handlers.Handlers{
+		Service: fortune.Service{
+			DB:     *db.DB,
+			Logger: logger,
+		},
+		Logger: logger,
+	}
 	r := gin.Default()
 
 	apiv1 := r.Group(defaultCfg.ApiV1)
@@ -21,6 +28,6 @@ func main() {
 	}
 
 	if err := r.Run(cfg.Port); err != nil {
-		fmt.Println("error running server!")
+		logger.Error("error running server", zap.Error(err))
 	}
 }

@@ -6,11 +6,13 @@ import (
 	"github.com/supperdoggy/superSecretDevelopement/bot/internal/communication"
 	"github.com/supperdoggy/superSecretDevelopement/bot/internal/db"
 	"github.com/supperdoggy/superSecretDevelopement/bot/internal/localization"
+	"go.uber.org/zap"
 	"gopkg.in/tucnak/telebot.v2"
 )
 
 type Service struct {
-	DB *db.DbStruct
+	DB     *db.DbStruct
+	Logger *zap.Logger
 }
 
 var (
@@ -20,11 +22,13 @@ var (
 func (s Service) GetCard(chatId int) ([]*telebot.Photo, error) {
 	resp, err := communication.GetCard(chatId)
 	if err != nil {
+		s.Logger.Error("error getting card", zap.Error(err), zap.Int("chat_id", chatId))
 		return nil, err
 	}
 	if resp.SessionIsNew {
 		logo, rules, err := s.DB.GetLogoAndRules()
 		if err != nil {
+			s.Logger.Error("error getting logo and rules", zap.Error(err), zap.Int("chat_id", chatId))
 			return nil, err
 		}
 		// turn pic type to telebot.Photo type
@@ -42,6 +46,11 @@ func (s Service) GetCard(chatId int) ([]*telebot.Photo, error) {
 	caption := localization.GetLoc(resp.Card.Value + "_card")
 	pic, err := s.GetAndFormPicMessage(cardID, caption)
 	if err != nil {
+		s.Logger.Error("error getting and forming pic message",
+			zap.Error(err),
+			zap.Int("chat_id", chatId),
+			zap.String("card_id", cardID),
+			zap.String("caprion", caption))
 		return nil, err
 	}
 	return []*telebot.Photo{pic}, nil
@@ -50,6 +59,7 @@ func (s Service) GetCard(chatId int) ([]*telebot.Photo, error) {
 func (s Service) GetAndFormPicMessage(id, caption string) (*telebot.Photo, error) {
 	p, err := s.DB.GetPicFromDB(id)
 	if err != nil {
+		s.Logger.Error("error getting card", zap.Error(err), zap.String("chat_id", id))
 		return nil, err
 	}
 	photo := telebot.Photo{
@@ -79,9 +89,11 @@ func (s Service) adjustSuit(suit string) string {
 func (s Service) ResetDen4ik(id int) (msg string, err error) {
 	resp, err := communication.ResetDen4ik(id)
 	if err != nil {
+		s.Logger.Error("error resetting den4ik", zap.Error(err), zap.Int("id", id))
 		return "", err
 	}
 	if !resp.OK {
+		s.Logger.Error("got error in response", zap.String("error", resp.Err), zap.Int("id", id))
 		return "", errors.New(resp.Err)
 	}
 

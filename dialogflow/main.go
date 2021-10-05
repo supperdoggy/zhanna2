@@ -6,11 +6,16 @@ import (
 	handlers2 "github.com/supperdoggy/superSecretDevelopement/dialogflow/internal/handlers"
 	defaultCfg "github.com/supperdoggy/superSecretDevelopement/structs/request/default"
 	cfg "github.com/supperdoggy/superSecretDevelopement/structs/services/dialogflow"
+	"go.uber.org/zap"
 	"log"
 )
 
 func main() {
-	handlers := handlers2.Handlers{D: dialogflow.DF}
+	logger, _ := zap.NewDevelopment()
+	handlers := handlers2.Handlers{
+		D:      dialogflow.DF,
+		Logger: logger,
+	}
 	r := gin.Default()
 
 	apiv1 := r.Group(defaultCfg.ApiV1)

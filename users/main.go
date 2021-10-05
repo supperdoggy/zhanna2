@@ -1,20 +1,30 @@
 package main
 
 import (
-	"fmt"
 	defaultCfg "github.com/supperdoggy/superSecretDevelopement/structs/request/default"
 	cfg "github.com/supperdoggy/superSecretDevelopement/structs/services/users"
 	adminHandlers "github.com/supperdoggy/superSecretDevelopement/users/internal/admin_handlers"
 	"github.com/supperdoggy/superSecretDevelopement/users/internal/db"
 	handlers2 "github.com/supperdoggy/superSecretDevelopement/users/internal/handlers"
 	"github.com/supperdoggy/superSecretDevelopement/users/internal/service"
+	"go.uber.org/zap"
 
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
-	handlers := handlers2.Handlers{Service: service.Service{DB: db.DB}}
-	admin_handlers := adminHandlers.AdminHandlers{DB: &db.DB}
+	logger, _ := zap.NewDevelopment()
+	handlers := handlers2.Handlers{
+		Service: service.Service{
+			DB:     db.DB,
+			Logger: logger,
+		},
+		Logger: logger,
+	}
+	admin_handlers := adminHandlers.AdminHandlers{
+		DB:     &db.DB,
+		Logger: logger,
+	}
 
 	r := gin.Default()
 
@@ -44,6 +54,6 @@ func main() {
 	}
 
 	if err := r.Run(cfg.Port); err != nil {
-		fmt.Println(err.Error())
+		logger.Error("error running service", zap.Error(err))
 	}
 }

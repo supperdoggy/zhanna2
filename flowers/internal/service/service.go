@@ -2,11 +2,12 @@ package service
 
 import (
 	"errors"
-	ai "github.com/night-codes/mgo-ai"
 	"github.com/supperdoggy/superSecretDevelopement/flowers/internal/db"
 	"github.com/supperdoggy/superSecretDevelopement/structs"
+	defaultCfg "github.com/supperdoggy/superSecretDevelopement/structs/request/default"
 	flowersdata "github.com/supperdoggy/superSecretDevelopement/structs/request/flowers"
 	cfg "github.com/supperdoggy/superSecretDevelopement/structs/services/flowers"
+	"go.uber.org/zap"
 	"math"
 	"math/rand"
 	"sort"
@@ -17,7 +18,8 @@ type obj map[string]interface{}
 type arr []interface{}
 
 type Service struct {
-	DB *db.DbStruct
+	DB     *db.DbStruct
+	Logger *zap.Logger
 }
 
 func (s *Service) AddNewFlower(req flowersdata.AddNewFlowerReq) (resp flowersdata.AddNewFlowerResp, err error) {
@@ -27,7 +29,6 @@ func (s *Service) AddNewFlower(req flowersdata.AddNewFlowerReq) (resp flowersdat
 	}
 
 	flowerToAdd := structs.Flower{
-		ID:           ai.Next(s.DB.FlowerCollection.Name),
 		Name:         req.Name,
 		Icon:         req.Icon,
 		Type:         req.Type,
@@ -35,6 +36,7 @@ func (s *Service) AddNewFlower(req flowersdata.AddNewFlowerReq) (resp flowersdat
 	}
 
 	if err := s.DB.AddFlower(flowerToAdd); err != nil {
+		s.Logger.Error("error when AddFlower", zap.Error(err), zap.Any("req", req))
 		resp.Err = err.Error()
 		return resp, err
 	}
@@ -45,6 +47,7 @@ func (s *Service) AddNewFlower(req flowersdata.AddNewFlowerReq) (resp flowersdat
 func (s *Service) RemoveFlower(req flowersdata.RemoveFlowerReq) (resp flowersdata.RemoveFlowerResp, err error) {
 	err = s.DB.RemoveFlower(req.ID)
 	if err != nil {
+		s.Logger.Error("error when RemoveFlower", zap.Error(err), zap.Any("req", req))
 		resp.Err = err.Error()
 		return
 	}
@@ -52,20 +55,21 @@ func (s *Service) RemoveFlower(req flowersdata.RemoveFlowerReq) (resp flowersdat
 	return
 }
 
+//goland:noinspection GoNilness
 func (s *Service) GrowFlower(req flowersdata.GrowFlowerReq) (resp flowersdata.GrowFlowerResp, err error) {
 	flower, err := s.DB.GetUserCurrentFlower(req.ID)
 	if err != nil && err.Error() != "not found" {
+		s.Logger.Error("error getting flower GetUserCurrentFlower", zap.Error(err), zap.Any("req", req))
 		resp.Err = "error getting flower"
 		return
-	}
-	// not found flower, creating new
-	if err != nil && err.Error() == "not found" {
+	} else if err != nil && err.Error() == "not found" { // not found flower, creating new
+		s.Logger.Info("creating new flower to grow", zap.Any("req", req))
 		flower, err = s.DB.GetRandomFlower()
 		if err != nil {
+			s.Logger.Error("error getting random flower", zap.Error(err), zap.Any("req", req))
 			resp.Err = err.Error()
 			return
 		}
-		flower.ID = ai.Next(s.DB.UserFlowerDataCollection.Name)
 		flower.Owner = req.ID
 		flower.Grew = uint8(rand.Intn(31)) + 1 // so its not possible to get 0
 		flower.HP += flower.Grew
@@ -77,16 +81,24 @@ func (s *Service) GrowFlower(req flowersdata.GrowFlowerReq) (resp flowersdata.Gr
 		num := rand.Intn(101)
 		died := num >= 0 && num <= cfg.DyingChance
 		if died {
+			s.Logger.Info("flower died", zap.Any("req", req), zap.Any("flower", flower))
 			resp.Err = "flower died"
 			flower.Dead = true
 			resp.Flower = flower
-			if err := s.DB.EditUserFlower(flower.ID, flower); err != nil {
+			if err := s.DB.EditUserFlower(flower); err != nil {
+				s.Logger.Error("error EditUserFlower",
+					zap.Error(err),
+					zap.Any("req", req),
+					zap.Any("flower", flower),
+				)
+
 				resp.Err = err.Error()
 				return resp, err
 			}
 			return
 		}
 	}
+	// if did not die
 
 	// add extra grow output for user
 	extraGrow := int(math.Round(float64(req.MsgCount) * cfg.Message_multiplyer))
@@ -101,7 +113,13 @@ func (s *Service) GrowFlower(req flowersdata.GrowFlowerReq) (resp flowersdata.Gr
 	}
 	flower.LastTimeGrow = time.Now()
 
-	if err := s.DB.EditUserFlower(flower.ID, flower); err != nil {
+	if err := s.DB.EditUserFlower(flower); err != nil {
+		s.Logger.Error("error EditUserFlower",
+			zap.Error(err),
+			zap.Any("req", req),
+			zap.Any("flower", flower),
+		)
+
 		resp.Err = err.Error()
 		return resp, err
 	}
@@ -113,6 +131,7 @@ func (s *Service) GrowFlower(req flowersdata.GrowFlowerReq) (resp flowersdata.Gr
 func (s *Service) GetUserFlowers(req flowersdata.GetUserFlowersReq) (resp flowersdata.GetUserFlowersResp, err error) {
 	flowers, err := s.DB.GetAllUserFlowers(req.ID)
 	if err != nil {
+		s.Logger.Error("error GetAllUserFlowers", zap.Error(err), zap.Any("req", req))
 		resp.Err = "error getting flowers"
 		return
 	}
@@ -142,7 +161,10 @@ func (s *Service) GetUserFlowers(req flowersdata.GetUserFlowersReq) (resp flower
 		total += v
 	}
 	var last uint8
-	flower, _ := s.DB.GetUserCurrentFlower(req.ID)
+	flower, err := s.DB.GetUserCurrentFlower(req.ID)
+	if err != nil {
+		s.Logger.Error("error when GetUserCurrentFlower", zap.Error(err), zap.Any("req", req))
+	}
 	last = flower.HP
 	resp.Total = total
 	resp.Last = last
@@ -158,6 +180,7 @@ func (s *Service) CanGrowFlower(req flowersdata.CanGrowFlowerReq) (resp flowersd
 			err = nil
 			return
 		}
+		s.Logger.Error("error GetUserCurrentFlower", zap.Error(err), zap.Any("req", req))
 		// if we cant find due to mongo error then return error
 		resp.Err = "got flower error"
 		return
@@ -174,8 +197,9 @@ func (s *Service) RemoveUserFlower(req flowersdata.RemoveUserFlowerReq) (resp fl
 		return resp, errors.New("no id field")
 	}
 	if req.Current {
-		err := s.DB.UserFlowerDataCollection.Remove(obj{"owner": req.ID, "hp": obj{"$ne": 100}})
+		err := s.DB.RemoveUserFlower(defaultCfg.Obj{"owner": req.ID, "hp": obj{"$ne": 100}})
 		if err != nil {
+			s.Logger.Error("error RemoveUserFlower", zap.Error(err), zap.Any("req", req))
 			resp.Err = "error removing"
 			return resp, err
 		}
@@ -190,6 +214,7 @@ func (s *Service) RemoveUserFlower(req flowersdata.RemoveUserFlowerReq) (resp fl
 func (s *Service) GetUserFlowerTotal(req flowersdata.GetUserFlowerTotalReq) (resp flowersdata.GetUserFlowerTotalResp, err error) {
 	flowersCount, err := s.DB.CountFlowers(req.ID)
 	if err != nil {
+		s.Logger.Error("error CountFlowers", zap.Error(err), zap.Any("req", req))
 		resp.Err = "error getting flowers"
 		return
 	}
@@ -200,6 +225,7 @@ func (s *Service) GetUserFlowerTotal(req flowersdata.GetUserFlowerTotalReq) (res
 func (s *Service) GetLastFlower(req flowersdata.GetLastFlowerReq) (resp flowersdata.GetLastFlowerResp, err error) {
 	flower, err := s.DB.GetUserCurrentFlower(req.ID)
 	if err != nil {
+		s.Logger.Error("error GetUserCurrentFlower", zap.Error(err), zap.Any("req", req))
 		resp.Err = "error getting flowers"
 		return
 	}
@@ -212,14 +238,9 @@ func (s *Service) UserFlowerSlice(req flowersdata.UserFlowerSliceReq) (resp flow
 		resp.Err = "empty id slice"
 		return resp, errors.New(resp.Err)
 	}
-	// building query for request to mongo
-	query := []obj{}
-	for _, v := range req.ID {
-		query = append(query, obj{"owner": v})
-	}
-
-	var result []structs.Flower
-	if err := s.DB.UserFlowerDataCollection.Find(obj{"$and": arr{obj{"$or": query}, obj{"dead": false}}}).Select(obj{"owner": 1, "hp": 1}).All(&result); err != nil {
+	result, err := s.DB.UserFlowerSlice(req.ID)
+	if err != nil {
+		s.Logger.Error("error UserFlowerSlice", zap.Error(err), zap.Any("req", req))
 		resp.Err = err.Error()
 		return resp, err
 	}
@@ -253,6 +274,8 @@ func (s *Service) GiveFlower(req flowersdata.GiveFlowerReq) (resp flowersdata.Gi
 		// getting flowers
 		flowers, err := s.DB.GetAllUserFlowers(req.Owner)
 		if err != nil { // if has no flower
+			s.Logger.Error("error GetAllUserFlowers", zap.Error(err), zap.Any("req", req))
+
 			resp.Err = "user has no flowers"
 			return resp, errors.New("user has no flowers")
 		}
@@ -274,7 +297,9 @@ func (s *Service) GiveFlower(req flowersdata.GiveFlowerReq) (resp flowersdata.Gi
 		f.Owner = req.Reciever
 	}
 
-	if err := s.DB.EditUserFlower(f.ID, f); err != nil {
+	if err := s.DB.EditUserFlower(f); err != nil {
+		s.Logger.Error("error EditUserFlower", zap.Error(err), zap.Any("req", req), zap.Any("flower", f))
+
 		resp.Err = err.Error()
 		return resp, err
 	}
@@ -285,6 +310,8 @@ func (s *Service) GiveFlower(req flowersdata.GiveFlowerReq) (resp flowersdata.Gi
 func (s *Service) GetFlowerTypes() (resp flowersdata.GetFlowerTypesResp, err error) {
 	flowers, err := s.DB.GetAllFlowers()
 	if err != nil {
+		s.Logger.Error("error GetAllFlowers", zap.Error(err))
+
 		resp.Err = err.Error()
 		return
 	}

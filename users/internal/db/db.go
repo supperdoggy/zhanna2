@@ -3,7 +3,9 @@ package db
 import (
 	"fmt"
 	"github.com/supperdoggy/superSecretDevelopement/structs"
+	defaultCfg "github.com/supperdoggy/superSecretDevelopement/structs/request/default"
 	cfg "github.com/supperdoggy/superSecretDevelopement/structs/services/users"
+	"go.uber.org/zap"
 	"time"
 
 	"gopkg.in/tucnak/telebot.v2"
@@ -14,36 +16,38 @@ import (
 // DbStruct - the main aneks struct
 type DbStruct struct {
 	DbSession         *mgo.Session
-	UsersCollection   *mgo.Collection
-	AdminCollection   *mgo.Collection
-	MessageCollection *mgo.Collection
+	usersCollection   *mgo.Collection
+	adminCollection   *mgo.Collection
+	messageCollection *mgo.Collection
+	Logger            *zap.Logger
 }
 
-type obj map[string]interface{}
+var DB = NewDB()
 
-var DB DbStruct
-
-func init() {
+func NewDB() DbStruct {
+	logger, _ := zap.NewDevelopment()
 	d, err := mgo.Dial("")
 	if err != nil || d == nil {
-		panic(err)
+		logger.Fatal("error connecting to db", zap.Error(err))
 	}
-	DB = DbStruct{
+	DB := DbStruct{
 		DbSession:         d,
-		UsersCollection:   d.DB(cfg.DBName).C("users"),
-		AdminCollection:   d.DB(cfg.DBName).C("admin"),
-		MessageCollection: d.DB(cfg.DBName).C("messages"),
+		usersCollection:   d.DB(cfg.DBName).C("users"),
+		adminCollection:   d.DB(cfg.DBName).C("admin"),
+		messageCollection: d.DB(cfg.DBName).C("messages"),
+		Logger:            logger,
 	}
+	return DB
 }
 
 func (d *DbStruct) GetUserByID(id int) (result structs.User, err error) {
-	err = d.UsersCollection.Find(obj{"telebot.id": id, "statuses.isBanned": false}).One(&result)
+	err = d.usersCollection.Find(defaultCfg.Obj{"telebot.id": id, "statuses.isBanned": false}).One(&result)
 	return
 }
 
 func (d *DbStruct) UserExists(id int) (bool, error) {
 	var u structs.User
-	if err := d.UsersCollection.Find(obj{"telebot.id": id}).One(&u); err != nil {
+	if err := d.usersCollection.Find(defaultCfg.Obj{"telebot.id": id}).One(&u); err != nil {
 		if err.Error() == "not found" {
 			return false, nil
 		}
@@ -53,17 +57,21 @@ func (d *DbStruct) UserExists(id int) (bool, error) {
 }
 
 func (d *DbStruct) UpdateLastTimeFortune(id int) error {
-	return d.UsersCollection.Update(obj{"telebot.id": id}, obj{"$set": obj{"lastTimeGotFortuneCookie": time.Now().Unix(), "lastTimeGotFortuneCookieTime": time.Now()}})
+	return d.usersCollection.Update(defaultCfg.Obj{"telebot.id": id}, defaultCfg.Obj{"$set": defaultCfg.Obj{"lastTimeGotFortuneCookie": time.Now().Unix(), "lastTimeGotFortuneCookieTime": time.Now()}})
 }
 
 func (d *DbStruct) UpdateUser(u structs.User) error {
-	return d.UsersCollection.Update(obj{"telebot.id": u.Telebot.ID, "statuses.isBanned": false}, u)
+	return d.usersCollection.Update(defaultCfg.Obj{"telebot.id": u.Telebot.ID, "statuses.isBanned": false}, u)
+}
+
+func (d *DbStruct) UpdateUserWithFields(search, set defaultCfg.Obj) error {
+	return d.usersCollection.Update(search, set)
 }
 
 // getChatUsersIDs - returns all users ids which are in given chat
 func (d *DbStruct) GetChatUsersIDs(chatid int) (ids []int, err error) {
 	var users []structs.User
-	err = d.UsersCollection.Find(obj{"chats.telebot.id": chatid}).Select(obj{"telebot.id": 1}).All(&users)
+	err = d.usersCollection.Find(defaultCfg.Obj{"chats.telebot.id": chatid}).Select(defaultCfg.Obj{"telebot.id": 1}).All(&users)
 	if err != nil {
 		return
 	}
@@ -75,7 +83,7 @@ func (d *DbStruct) GetChatUsersIDs(chatid int) (ids []int, err error) {
 
 // getChatUsers - returns all users which are in given chat
 func (d *DbStruct) GetChatUsers(chatid int) (users []structs.User, err error) {
-	err = d.UsersCollection.Find(obj{"chats.telebot.id": chatid}).All(&users)
+	err = d.usersCollection.Find(defaultCfg.Obj{"chats.telebot.id": chatid}).All(&users)
 	return
 }
 
@@ -84,12 +92,12 @@ func (d *DbStruct) WriteMessage(userMsg, botMsg telebot.Message) error {
 		return fmt.Errorf("user id is 0")
 	}
 	var msg structs.Message = structs.Message{UserID: userMsg.Sender.ID, Message: userMsg, Reply: botMsg, Time: time.Now()}
-	return d.MessageCollection.Insert(msg)
+	return d.messageCollection.Insert(msg)
 }
 
 // getUserMsgCount - returns number of msgs user wrote to zhanna :p
 func (d *DbStruct) GetUserMsgCount(userID int) (int, error) {
-	if count, err := d.MessageCollection.Find(obj{"userID": userID}).Count(); err != nil {
+	if count, err := d.messageCollection.Find(defaultCfg.Obj{"userID": userID}).Count(); err != nil {
 		return 0, err
 	} else {
 		return count, nil
@@ -97,49 +105,53 @@ func (d *DbStruct) GetUserMsgCount(userID int) (int, error) {
 }
 
 // appends anek to anek slice and saves user
-func (d *DbStruct) SaveAnek(userID int, a structs.Anek) bool {
+func (d *DbStruct) SaveAnek(userID int, a structs.Anek) error {
 	u, err := d.GetUserByID(userID)
 	if err != nil {
-		fmt.Println("Failed to get user", err.Error())
-		return false
+		d.Logger.Error("Failed to get user by id", zap.Error(err), zap.Any("user_id", userID), zap.Any("anek", a))
+		return err
 	}
 	u.Aneks = append(u.Aneks, a)
 	u.LastTimeGotAnek = time.Now().Unix()
 	u.LastTimeGotAnekTime = time.Now()
 	err = d.UpdateUser(u)
 	if err != nil {
-		fmt.Println("Failed to save anek to user")
-		return false
+		d.Logger.Error("Failed to save anek", zap.Error(err), zap.Any("user", u))
+		return err
 	}
-	return true
+	return err
 }
 
-func (d *DbStruct) SaveFortune(userID int, a structs.Cookie) bool {
+func (d *DbStruct) SaveFortune(userID int, a structs.Cookie) error {
 	u, err := d.GetUserByID(userID)
 	if err != nil {
-		fmt.Println("failed to get user in saveFortune", err.Error())
-		return false
+		d.Logger.Error("failed to get user in saveFortune", zap.Error(err), zap.Any("user_id", userID), zap.Any("cookie", a))
+		return err
 	}
 	u.FortuneCookies = append(u.FortuneCookies, a)
 	err = d.UpdateUser(u)
 	if err != nil {
-		fmt.Println("error updating user saving fortune")
-		return false
+		d.Logger.Error("error updating user saving fortune", zap.Error(err), zap.Any("user", u))
+		return err
 	}
-	return true
+	return err
 }
 
 func (d *DbStruct) SaveTost(userID int, a structs.Tost) bool {
 	u, err := d.GetUserByID(userID)
 	if err != nil {
-		fmt.Println("failed to get user in saveTost", err.Error())
+		d.Logger.Error("failed to get user in saveTost", zap.Error(err), zap.Any("user_id", userID), zap.Any("tost", a))
 		return false
 	}
 	u.Tosts = append(u.Tosts, a)
 	err = DB.UpdateUser(u)
 	if err != nil {
-		fmt.Println("error updating user saving tost", err.Error())
+		d.Logger.Error("error updating user saving tost", zap.Error(err), zap.Any("user", u))
 		return false
 	}
 	return true
+}
+
+func (d *DbStruct) InserUser(u structs.User) error {
+	return d.usersCollection.Insert(u)
 }

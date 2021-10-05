@@ -9,6 +9,7 @@ import (
 	flowerscfg "github.com/supperdoggy/superSecretDevelopement/structs/services/flowers"
 	tostcfg "github.com/supperdoggy/superSecretDevelopement/structs/services/tost"
 	cfg "github.com/supperdoggy/superSecretDevelopement/structs/services/users"
+	"go.uber.org/zap"
 	"io/ioutil"
 	"net/http"
 )
@@ -71,26 +72,26 @@ func MakeReqToFlowers(method string, req, resp interface{}) (err error) {
 
 // returns string
 // todo refactor dude
-func MakeReqToDialogFlow(req usersdata.DialogFlowReq) (resp usersdata.DialogFlowResp) {
+func MakeReqToDialogFlow(logger *zap.Logger, req usersdata.DialogFlowReq) (resp usersdata.DialogFlowResp) {
 	reqdata, err := json.Marshal(req)
 	if err != nil {
-		fmt.Println("MakeReqToDialogFlow() -> json.Marshal error:", err.Error())
+		logger.Error("marshal error", zap.Error(err), zap.Any("req", req))
 		return
 	}
 
 	respdata, err := MakeHttpReq(cfg.DialogFlowURL+"/getAnswer", "POST", reqdata)
 	if err != nil {
-		fmt.Println("MakeReqToDialogFlow() -> makeHttpReq(/getAnswer) error:", err.Error())
+		logger.Error("make http error dialogflow /getAnswer", zap.Error(err), zap.Any("req", req))
 		return
 	}
 
 	if err := json.Unmarshal(respdata, &resp); err != nil {
-		fmt.Println("MakeReqToDialogFlow() -> unmarshal error:", err.Error())
+		logger.Error("unmarshal error", zap.Error(err), zap.Any("data", string(respdata)))
 		return resp
 	}
 
 	if resp.Err != "" {
-		fmt.Println("MakeReqToDialogFlow() -> got an error from dialogflow:", resp.Err)
+		logger.Error("got error from dialogflow", zap.Any("response", resp), zap.Any("request", resp))
 		return resp
 	}
 	return resp

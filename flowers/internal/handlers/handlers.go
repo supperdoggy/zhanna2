@@ -1,10 +1,11 @@
 package handlers
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/supperdoggy/superSecretDevelopement/flowers/internal/service"
 	flowersdata "github.com/supperdoggy/superSecretDevelopement/structs/request/flowers"
+	"go.uber.org/zap"
+	"io/ioutil"
 	"net/http"
 )
 
@@ -12,6 +13,7 @@ type obj map[string]interface{}
 
 type Handlers struct {
 	Service service.Service
+	Logger  *zap.Logger
 }
 
 // adds new flower type
@@ -19,7 +21,9 @@ func (h Handlers) AddNewFlower(c *gin.Context) {
 	var req flowersdata.AddNewFlowerReq
 	var resp flowersdata.AddNewFlowerResp
 	if err := c.Bind(&req); err != nil {
-		fmt.Println("handlers.go -> addNewFlower() -> binding error:", err.Error())
+		data, _ := ioutil.ReadAll(c.Request.Body)
+		h.Logger.Error("error binding req", zap.Error(err), zap.Any("body", string(data)))
+
 		resp.Err = err.Error()
 		c.JSON(http.StatusBadRequest, resp)
 		return
@@ -27,7 +31,7 @@ func (h Handlers) AddNewFlower(c *gin.Context) {
 
 	resp, err := h.Service.AddNewFlower(req)
 	if err != nil {
-		fmt.Println("handlers.go -> AddNewFlower() ->", err.Error())
+		h.Logger.Error("error AddNewFlower", zap.Error(err), zap.Any("req", req))
 		c.JSON(http.StatusBadRequest, resp)
 		return
 	}
@@ -40,6 +44,9 @@ func (h Handlers) RemoveFlower(c *gin.Context) {
 	var req flowersdata.RemoveFlowerReq
 	var resp flowersdata.RemoveFlowerResp
 	if err := c.Bind(&req); err != nil {
+		data, _ := ioutil.ReadAll(c.Request.Body)
+		h.Logger.Error("error binding req", zap.Error(err), zap.Any("body", string(data)))
+
 		resp.Err = err.Error()
 		c.JSON(http.StatusBadRequest, resp)
 		return
@@ -47,7 +54,7 @@ func (h Handlers) RemoveFlower(c *gin.Context) {
 
 	resp, err := h.Service.RemoveFlower(req)
 	if err != nil {
-		fmt.Println("handlers.go -> RemoveFlower() ->", err.Error())
+		h.Logger.Error("error RemoveFlower", zap.Error(err), zap.Any("req", req))
 		c.JSON(http.StatusBadRequest, resp)
 		return
 	}
@@ -59,7 +66,9 @@ func (h Handlers) GrowFlower(c *gin.Context) {
 	var req flowersdata.GrowFlowerReq
 	var resp flowersdata.GrowFlowerResp
 	if err := c.Bind(&req); err != nil {
-		fmt.Println("handlers.go -> growFlowerReq) -> binding error:", err.Error())
+		data, _ := ioutil.ReadAll(c.Request.Body)
+		h.Logger.Error("error binding req", zap.Error(err), zap.Any("body", string(data)))
+
 		resp.Err = "binding error"
 		c.JSON(http.StatusBadRequest, resp)
 		return
@@ -67,7 +76,7 @@ func (h Handlers) GrowFlower(c *gin.Context) {
 
 	resp, err := h.Service.GrowFlower(req)
 	if err != nil {
-		fmt.Println("handlers.go -> GrowFlower ->", err.Error())
+		h.Logger.Error("error GrowFlower", zap.Error(err), zap.Any("req", req))
 		c.JSON(http.StatusBadRequest, resp)
 		return
 	}
@@ -81,7 +90,9 @@ func (h Handlers) GetUserFlowers(c *gin.Context) {
 	var req flowersdata.GetUserFlowersReq
 	var resp flowersdata.GetUserFlowersResp
 	if err := c.Bind(&req); err != nil {
-		fmt.Println("handlers.go -> getUserFlowers() -> binding error:", err.Error())
+		data, _ := ioutil.ReadAll(c.Request.Body)
+		h.Logger.Error("error binding req", zap.Error(err), zap.Any("body", string(data)))
+
 		resp.Err = "binding error"
 		c.JSON(http.StatusBadRequest, resp)
 		return
@@ -89,7 +100,7 @@ func (h Handlers) GetUserFlowers(c *gin.Context) {
 
 	resp, err := h.Service.GetUserFlowers(req)
 	if err != nil {
-		fmt.Println("handlers.go -> GetUserCurrentFlower() ->", err.Error())
+		h.Logger.Error("error GetUserFlowers", zap.Error(err), zap.Any("req", req))
 		c.JSON(http.StatusBadRequest, resp)
 		return
 	}
@@ -102,7 +113,9 @@ func (h Handlers) CanGrowFlower(c *gin.Context) {
 	var req flowersdata.CanGrowFlowerReq
 	var resp flowersdata.CanGrowFlowerResp
 	if err := c.Bind(&req); err != nil {
-		fmt.Println("handlers.go -> canGrowFlower() -> binding error:", err.Error())
+		data, _ := ioutil.ReadAll(c.Request.Body)
+		h.Logger.Error("error binding req", zap.Error(err), zap.Any("body", string(data)))
+
 		resp.Err = "binding error"
 		c.JSON(http.StatusBadRequest, resp)
 		return
@@ -110,7 +123,7 @@ func (h Handlers) CanGrowFlower(c *gin.Context) {
 
 	resp, err := h.Service.CanGrowFlower(req)
 	if err != nil {
-		fmt.Println("handlers.go -> CanGrowFlower() ->", err.Error())
+		h.Logger.Error("error CanGrowFlower", zap.Error(err), zap.Any("req", req))
 		c.JSON(http.StatusBadRequest, resp)
 		return
 	}
@@ -124,7 +137,9 @@ func (h Handlers) RemoveUserFlower(c *gin.Context) {
 	var resp flowersdata.RemoveUserFlowerResp
 
 	if err := c.Bind(&req); err != nil {
-		fmt.Println("handlers.go -> removeUserFlower() -> c.Bind() error:", err.Error())
+		data, _ := ioutil.ReadAll(c.Request.Body)
+		h.Logger.Error("error binding req", zap.Error(err), zap.Any("body", string(data)))
+
 		resp.Err = "binding error"
 		c.JSON(http.StatusBadRequest, resp)
 		return
@@ -132,7 +147,7 @@ func (h Handlers) RemoveUserFlower(c *gin.Context) {
 
 	resp, err := h.Service.RemoveUserFlower(req)
 	if err != nil {
-		fmt.Println("handlers.go -> RemoveUserFlower() ->", err.Error())
+		h.Logger.Error("error RemoveUserFlower", zap.Error(err), zap.Any("req", req))
 		c.JSON(http.StatusBadRequest, resp)
 		return
 	}
@@ -145,7 +160,9 @@ func (h Handlers) GetUserFlowerTotal(c *gin.Context) {
 	var req flowersdata.GetUserFlowerTotalReq
 	var resp flowersdata.GetUserFlowerTotalResp
 	if err := c.Bind(&req); err != nil {
-		fmt.Println("handlers.go -> getUserFlowerTotal() -> binding error:", err.Error())
+		data, _ := ioutil.ReadAll(c.Request.Body)
+		h.Logger.Error("error binding req", zap.Error(err), zap.Any("body", string(data)))
+
 		resp.Err = "binding error"
 		c.JSON(http.StatusBadRequest, resp)
 		return
@@ -153,7 +170,7 @@ func (h Handlers) GetUserFlowerTotal(c *gin.Context) {
 
 	resp, err := h.Service.GetUserFlowerTotal(req)
 	if err != nil {
-		fmt.Println("handlers.go -> GetUserFlowerTotal() ->", err.Error())
+		h.Logger.Error("error GetUserFlowerTotal", zap.Error(err), zap.Any("req", req))
 		c.JSON(http.StatusBadRequest, resp)
 		return
 	}
@@ -165,7 +182,9 @@ func (h Handlers) GetLastFlower(c *gin.Context) {
 	var req flowersdata.GetLastFlowerReq
 	var resp flowersdata.GetLastFlowerResp
 	if err := c.Bind(&req); err != nil {
-		fmt.Println("handlers.go -> GetLastFlower() -> binding error:", err.Error())
+		data, _ := ioutil.ReadAll(c.Request.Body)
+		h.Logger.Error("error binding req", zap.Error(err), zap.Any("body", string(data)))
+
 		resp.Err = "binding error"
 		c.JSON(http.StatusBadRequest, resp)
 		return
@@ -173,7 +192,7 @@ func (h Handlers) GetLastFlower(c *gin.Context) {
 
 	resp, err := h.Service.GetLastFlower(req)
 	if err != nil {
-		fmt.Println("handlers.go -> GetLastFlower() ->", err.Error())
+		h.Logger.Error("error GetLastFlower", zap.Error(err), zap.Any("req", req))
 		c.JSON(http.StatusBadRequest, resp)
 		return
 	}
@@ -186,7 +205,9 @@ func (h Handlers) UserFlowerSlice(c *gin.Context) {
 	var req flowersdata.UserFlowerSliceReq
 	var resp flowersdata.UserFlowerSliceResp
 	if err := c.Bind(&req); err != nil {
-		fmt.Println("handlers.go -> getUserFlowerTotal() -> binding error:", err.Error())
+		data, _ := ioutil.ReadAll(c.Request.Body)
+		h.Logger.Error("error binding req", zap.Error(err), zap.Any("body", string(data)))
+
 		resp.Err = "binding error"
 		c.JSON(http.StatusBadRequest, resp)
 		return
@@ -194,7 +215,7 @@ func (h Handlers) UserFlowerSlice(c *gin.Context) {
 
 	resp, err := h.Service.UserFlowerSlice(req)
 	if err != nil {
-		fmt.Println("handlers.go -> UserFlowerSlice() ->", err.Error())
+		h.Logger.Error("error UserFlowerSlice", zap.Error(err), zap.Any("req", req))
 		c.JSON(http.StatusBadRequest, resp)
 		return
 	}
@@ -207,7 +228,9 @@ func (h Handlers) GiveFlower(c *gin.Context) {
 	var req flowersdata.GiveFlowerReq
 	var resp flowersdata.GiveFlowerResp
 	if err := c.Bind(&req); err != nil {
-		fmt.Println("handlers.go -> giveRandomFlower() -> binding error:", err.Error())
+		data, _ := ioutil.ReadAll(c.Request.Body)
+		h.Logger.Error("error binding req", zap.Error(err), zap.Any("body", string(data)))
+
 		resp.Err = "binding error"
 		c.JSON(http.StatusBadRequest, resp)
 		return
@@ -215,7 +238,7 @@ func (h Handlers) GiveFlower(c *gin.Context) {
 
 	resp, err := h.Service.GiveFlower(req)
 	if err != nil {
-		fmt.Println("handlers.go -> GiveFlower() ->", err.Error())
+		h.Logger.Error("error GiveFlower", zap.Error(err), zap.Any("req", req))
 		c.JSON(http.StatusBadRequest, resp)
 		return
 	}
@@ -227,7 +250,7 @@ func (h Handlers) GiveFlower(c *gin.Context) {
 func (h Handlers) GetFlowerTypes(c *gin.Context) {
 	resp, err := h.Service.GetFlowerTypes()
 	if err != nil {
-		fmt.Println("handlers.go -> GetFlowerTypes() ->", err.Error())
+		h.Logger.Error("error GetFlowerTypes", zap.Error(err))
 		c.JSON(http.StatusBadRequest, resp)
 		return
 	}

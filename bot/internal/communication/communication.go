@@ -12,8 +12,8 @@ import (
 	Cfg "github.com/supperdoggy/superSecretDevelopement/structs/services/bot"
 	den4ikcfg "github.com/supperdoggy/superSecretDevelopement/structs/services/den4ik"
 	cfg "github.com/supperdoggy/superSecretDevelopement/structs/services/users"
+	"go.uber.org/zap"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"time"
 
@@ -57,7 +57,7 @@ func MakeUserHttpReq(method string, req, resp interface{}) (err error) {
 	return json.Unmarshal(answer, resp)
 }
 
-func UpdateUser(usermsg, botmsg *telebot.Message) {
+func UpdateUser(logger *zap.Logger, usermsg, botmsg *telebot.Message) {
 	if usermsg == nil || botmsg == nil {
 		fmt.Println("got nil botmsg or usermsg")
 		return
@@ -74,17 +74,17 @@ func UpdateUser(usermsg, botmsg *telebot.Message) {
 	var resp usersdata.AddOrUpdateUserResp
 	data, err := json.Marshal(req)
 	if err != nil {
-		fmt.Println("communication -> UpdateUser() -> marshal error:", err.Error())
+		logger.Error("error unmarshalling", zap.Error(err))
 		return
 	}
 	respdata, err := MakeHttpReq(cfg.UserURL+cfg.AddOrUpdateUserURL, "POST", data)
 	if err != nil {
-		fmt.Println("communication -> UpdateUser() -> req error:", err.Error())
+		logger.Error("error making req", zap.Error(err))
 		return
 	}
 	err = json.Unmarshal(respdata, &resp)
 	if err != nil {
-		fmt.Println("communication -> UpdateUser() -> unmarshal error:", err, string(respdata))
+		logger.Error("unmarshal error", zap.Error(err), zap.String("body", string(respdata)))
 		return
 	}
 	if !resp.OK {
@@ -122,17 +122,14 @@ func MakeFlowerReq(id int, chatId int64) (msg string, err error) {
 
 	marshaled, err := json.Marshal(req)
 	if err != nil {
-		fmt.Printf("communication.go -> flowerReq() -> json.Marshal() error: %v user %v\n", err.Error(), req.ID)
 		return "communication error", err
 	}
 	respdata, err := MakeHttpReq(cfg.UserURL+cfg.FlowerURL, "POST", marshaled)
 	if err != nil {
-		fmt.Println("communication.go -> flowerReq() -> json.MakeHttpReq() error", err.Error())
 		return "communication error", err
 	}
 
 	if err := json.Unmarshal(respdata, &resp); err != nil {
-		fmt.Printf("communication.go -> flowerReq() -> json.Unmarshal() error: %v body %v\n", err.Error(), string(respdata))
 		return "communication error", err
 	}
 	// making request to my flowers to get total and last
@@ -141,12 +138,12 @@ func MakeFlowerReq(id int, chatId int64) (msg string, err error) {
 	// getting total and last
 	err = MakeUserHttpReq(cfg.MyFlowersURL, myflowersReq, &myflowersResp)
 	if err != nil {
-		log.Println("handlers.go -> flower() -> myflowers error:", err.Error())
+		return "communication error", err
 	}
 
 	var replymsg string
 	if myflowersResp.Err != "" {
-		log.Println("handlers.go -> flower() myflowers error:", myflowersResp.Err)
+		return "communiction error", errors.New(myflowersResp.Err)
 	} else {
 		replymsg = fmt.Sprintf(localization.GetLoc("flower_already_have"), myflowersResp.Total, myflowersResp.Last)
 	}
@@ -156,7 +153,6 @@ func MakeFlowerReq(id int, chatId int64) (msg string, err error) {
 	}
 
 	if resp.Err != "" {
-		fmt.Println("communication.go -> flowerReq() -> answer.Err != '', err:", resp.Err)
 		return "communication error", err
 	}
 	if resp.Dead {

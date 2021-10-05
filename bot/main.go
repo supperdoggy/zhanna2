@@ -1,16 +1,14 @@
 package main
 
 import (
-	"fmt"
 	admin_handlers2 "github.com/supperdoggy/superSecretDevelopement/bot/internal/admin_handlers"
 	"github.com/supperdoggy/superSecretDevelopement/bot/internal/db"
 	handlers2 "github.com/supperdoggy/superSecretDevelopement/bot/internal/handlers"
 	"github.com/supperdoggy/superSecretDevelopement/bot/internal/service"
 	Cfg "github.com/supperdoggy/superSecretDevelopement/structs/services/bot"
-	"log"
-	"time"
-
+	"go.uber.org/zap"
 	"gopkg.in/tucnak/telebot.v2"
+	"time"
 )
 
 var (
@@ -18,7 +16,8 @@ var (
 	err error
 )
 
-func init() {
+func main() {
+	logger, _ := zap.NewDevelopment()
 	timeout := time.Second
 	bot, err = telebot.NewBot(telebot.Settings{
 		Token:  prodToken,
@@ -28,14 +27,15 @@ func init() {
 		panic(err.Error())
 	}
 
-	fmt.Println("Bot created!")
-	fmt.Println("Timeout:", timeout)
-}
+	logger.Info("Bot created!", zap.Any("timeout", timeout))
 
-func main() {
 	handlers := handlers2.Handlers{
-		Bot:     bot,
-		Service: service.Service{DB: &db.DB},
+		Bot: bot,
+		Service: service.Service{
+			DB:     &db.DB,
+			Logger: logger,
+		},
+		Logger: logger,
 	}
 	admin_handlers := admin_handlers2.AdminHandlers{Bot: bot}
 	// handlers
@@ -60,6 +60,5 @@ func main() {
 	bot.Handle(Cfg.AllFlowersCommand, admin_handlers.AllFlowers)
 	bot.Handle(Cfg.RemoveFlower, admin_handlers.RemoveFlower)
 
-	log.Println("Bot is running...")
 	bot.Start()
 }

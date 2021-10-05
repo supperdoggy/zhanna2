@@ -6,14 +6,16 @@ import (
 	flowerscfg "github.com/supperdoggy/superSecretDevelopement/structs/services/flowers"
 	"github.com/supperdoggy/superSecretDevelopement/users/internal/communication"
 	"github.com/supperdoggy/superSecretDevelopement/users/internal/db"
-	"log"
+	"go.uber.org/zap"
+	"io/ioutil"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
 type AdminHandlers struct {
-	DB *db.DbStruct
+	DB     *db.DbStruct
+	Logger *zap.Logger
 }
 
 func (ah *AdminHandlers) IsAdmin(c *gin.Context) {
@@ -21,13 +23,17 @@ func (ah *AdminHandlers) IsAdmin(c *gin.Context) {
 	var resp usersdata.IsAdminResp
 	err := c.Bind(&req)
 	if err != nil || req.ID == 0 {
+		data, _ := ioutil.ReadAll(c.Request.Body)
+		ah.Logger.Error("binding error is admin", zap.Error(err), zap.Any("data", string(data)))
 		resp.Err = "no id field"
 		c.JSON(http.StatusBadRequest, resp)
 		return
 	}
+	ah.Logger.Info("ADMIN req: isAdmin", zap.Any("req", req))
 
 	u, err := ah.DB.GetUserByID(req.ID)
 	if err != nil {
+		ah.Logger.Error("error getting user by id admin", zap.Error(err), zap.Any("req", req))
 		resp.Err = err.Error()
 		c.JSON(http.StatusBadRequest, resp)
 		return
@@ -42,13 +48,18 @@ func (ah *AdminHandlers) ChangeAdmin(c *gin.Context) {
 	var resp usersdata.AdminResp
 	err := c.Bind(&req)
 	if err != nil || req.ID == 0 {
+		data, _ := ioutil.ReadAll(c.Request.Body)
+		ah.Logger.Error("binding error is admin", zap.Error(err), zap.Any("data", string(data)))
+
 		resp.Err = "no id field"
 		c.JSON(http.StatusBadRequest, resp)
 		return
 	}
+	ah.Logger.Info("ADMIN req: ChangeAdmin", zap.Any("req", req))
 
 	u, err := ah.DB.GetUserByID(req.ID)
 	if err != nil {
+		ah.Logger.Error("error getting user by id", zap.Error(err), zap.Any("req", req))
 		resp.Err = err.Error()
 		c.JSON(http.StatusBadRequest, resp)
 		return
@@ -57,12 +68,15 @@ func (ah *AdminHandlers) ChangeAdmin(c *gin.Context) {
 	u.Statuses.IsAdmin = !u.Statuses.IsAdmin
 	err = ah.DB.UpdateUser(u)
 	if err != nil {
+		ah.Logger.Error("error updating user", zap.Error(err), zap.Any("user", u))
 		resp.Err = err.Error()
 		c.JSON(http.StatusBadRequest, resp)
 		return
 	}
 	resp.Admin = u.Statuses.IsAdmin
 	resp.OK = true
+	ah.Logger.Info("ADMIN req: ChangeAdmin", zap.Any("req", req), zap.Any("resp", resp))
+
 	c.JSON(http.StatusOK, resp)
 }
 
@@ -71,14 +85,14 @@ func (ah *AdminHandlers) GetAllFlowerTypes(c *gin.Context) {
 	var resp usersdata.GetAllFlowerTypesResp
 	err := communication.MakeReqToFlowers(flowerscfg.GetFlowerTypesURL, nil, &resp)
 	if err != nil {
-		log.Println("handlers_admin.go -> getAllFlowerTypes() error:", err.Error())
+		ah.Logger.Error("error making req to flowers getAllFlowerTypes", zap.Error(err))
 		resp.Err = err.Error()
 		c.JSON(http.StatusBadRequest, resp)
 		return
 	}
 
 	if resp.Err != "" {
-		log.Printf("handlers_admin.go -> getAllFlowerTypes() -> unmarshal error:%v body: %v\n", resp.Err)
+		ah.Logger.Error("unmarshal error", zap.Error(err), zap.Any("resp", resp))
 		resp.Err = "failed to make request to flowers"
 		c.JSON(http.StatusBadRequest, resp)
 		return
@@ -90,7 +104,9 @@ func (ah *AdminHandlers) RemoveFlower(c *gin.Context) {
 	var req flowersdata.RemoveFlowerReq
 	var resp flowersdata.RemoveFlowerResp
 	if err := c.Bind(&req); err != nil {
-		log.Println("handlers_admin.go -> removeFlower() -> binding error:", err.Error())
+		data, _ := ioutil.ReadAll(c.Request.Body)
+		ah.Logger.Error("binding error is admin", zap.Error(err), zap.Any("data", string(data)))
+
 		resp.Err = "no id field"
 		c.JSON(http.StatusBadRequest, resp)
 		return
@@ -100,13 +116,19 @@ func (ah *AdminHandlers) RemoveFlower(c *gin.Context) {
 	respFromFlowers := flowersdata.RemoveFlowerResp{}
 	err := communication.MakeReqToFlowers(flowerscfg.RemoveFlowerURL, reqToFlowers, &respFromFlowers)
 	if err != nil {
-		log.Println("handlers_admin.go -> removeFlower() -> removeFlower req error:", err.Error())
+		ah.Logger.Error("error making req to flowers RemoveFlowerURL", zap.Error(err), zap.Any("req", req))
 		resp.Err = err.Error()
 		c.JSON(http.StatusBadRequest, resp)
 		return
 	}
 
 	if !respFromFlowers.OK {
+		ah.Logger.Error("got error from flowers RemoveFlowerURL",
+			zap.Error(err),
+			zap.Any("req", req),
+			zap.Any("resp", respFromFlowers),
+		)
+
 		resp.Err = respFromFlowers.Err
 		c.JSON(http.StatusBadRequest, resp)
 		return
