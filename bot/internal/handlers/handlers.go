@@ -62,7 +62,7 @@ func (h *Handlers) FortuneCookie(m *telebot.Message) {
 	go communication.UpdateUser(h.logger, m, botmsg)
 }
 
-// anek() - handles /anek command and sends anek text response
+// Anek - handles /anek command and sends anek text response
 func (h *Handlers) Anek(m *telebot.Message) {
 	var req = usersdata.GetRandomAnekReq{ID: m.Sender.ID}
 	var resp usersdata.GetRandomAnekResp
