@@ -27,17 +27,11 @@ func main() {
 		panic(err.Error())
 	}
 
-	logger.Info("Bot created!", zap.Any("timeout", timeout))
-
-	handlers := handlers2.Handlers{
-		Bot: bot,
-		Service: service.Service{
-			DB:     &db.DB,
-			Logger: logger,
-		},
-		Logger: logger,
-	}
-	admin_handlers := admin_handlers2.AdminHandlers{Bot: bot}
+	logger.Info("bot created!", zap.Any("timeout", timeout))
+	DB := db.NewDbStruct(logger, "", Cfg.DBName, Cfg.PicCollectionName)
+	Service := *service.NewService(logger, DB)
+	handlers := handlers2.NewHandlers(bot, Service, logger)
+	adminHandlers := admin_handlers2.NewAdminHandlers(bot, logger)
 	// handlers
 	bot.Handle(Cfg.StartCommand, handlers.Start)
 	bot.Handle(Cfg.FortuneCommand, handlers.FortuneCookie)
@@ -54,11 +48,11 @@ func main() {
 	bot.Handle(Cfg.Den4ikGameReset, handlers.ResetDen4ik)
 
 	// admin handlers
-	bot.Handle(Cfg.AdminHelpCommand, admin_handlers.AdminHelp)
-	bot.Handle(Cfg.AddFlowerCommand, admin_handlers.AddFlower)
-	bot.Handle(Cfg.AdminCommand, admin_handlers.Admin)
-	bot.Handle(Cfg.AllFlowersCommand, admin_handlers.AllFlowers)
-	bot.Handle(Cfg.RemoveFlower, admin_handlers.RemoveFlower)
+	bot.Handle(Cfg.AdminHelpCommand, adminHandlers.AdminHelp)
+	bot.Handle(Cfg.AddFlowerCommand, adminHandlers.AddFlower)
+	bot.Handle(Cfg.AdminCommand, adminHandlers.Admin)
+	bot.Handle(Cfg.AllFlowersCommand, adminHandlers.AllFlowers)
+	bot.Handle(Cfg.RemoveFlower, adminHandlers.RemoveFlower)
 
 	bot.Start()
 }

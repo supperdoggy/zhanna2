@@ -15,9 +15,17 @@ import (
 )
 
 type Handlers struct {
-	Bot     *telebot.Bot
-	Service service.Service
-	Logger  *zap.Logger
+	bot     *telebot.Bot
+	service service.Service
+	logger  *zap.Logger
+}
+
+func NewHandlers(b *telebot.Bot, s service.Service, l *zap.Logger) *Handlers {
+	return &Handlers{
+		bot:     b,
+		service: s,
+		logger:  l,
+	}
 }
 
 // Start - handles /start command and sends text response
@@ -25,12 +33,12 @@ func (h *Handlers) Start(m *telebot.Message) {
 	var response string
 	// todo: create id checker and answer variations for different users
 	response = localization.GetLoc("prod_welcome")
-	botmsg, err := h.Bot.Reply(m, response)
+	botmsg, err := h.bot.Reply(m, response)
 	if err != nil {
-		h.Logger.Error("error replying to message", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
+		h.logger.Error("error replying to message", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
 		return
 	}
-	go communication.UpdateUser(h.Logger, m, botmsg)
+	go communication.UpdateUser(h.logger, m, botmsg)
 }
 
 func (h *Handlers) FortuneCookie(m *telebot.Message) {
@@ -38,7 +46,7 @@ func (h *Handlers) FortuneCookie(m *telebot.Message) {
 	req := usersdata.GetFortuneReq{ID: m.Sender.ID}
 	err := communication.MakeUserHttpReq(cfg.GetFortuneURL, req, &resp)
 	if err != nil {
-		h.Logger.Error("Error making request to user", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
+		h.logger.Error("Error making request to user", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
 		return
 	}
 	msg := resp.Fortune.Text
@@ -46,12 +54,12 @@ func (h *Handlers) FortuneCookie(m *telebot.Message) {
 		msg = fmt.Sprintf(localization.GetLoc("fortune"), resp.Err, resp.Fortune.Text)
 	}
 
-	botmsg, err := h.Bot.Reply(m, msg)
+	botmsg, err := h.bot.Reply(m, msg)
 	if err != nil {
-		h.Logger.Error("error sending answer, FortuneCookie:", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
+		h.logger.Error("error sending answer, FortuneCookie:", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
 		return
 	}
-	go communication.UpdateUser(h.Logger, m, botmsg)
+	go communication.UpdateUser(h.logger, m, botmsg)
 }
 
 // anek() - handles /anek command and sends anek text response
@@ -60,15 +68,15 @@ func (h *Handlers) Anek(m *telebot.Message) {
 	var resp usersdata.GetRandomAnekResp
 	err := communication.MakeUserHttpReq(cfg.GetRandomAnekURL, req, &resp)
 	if err != nil {
-		h.Logger.Error("Error making request to user", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
+		h.logger.Error("Error making request to user", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
 		return
 	}
-	botmsg, err := h.Bot.Reply(m, resp.Text)
+	botmsg, err := h.bot.Reply(m, resp.Text)
 	if err != nil {
-		h.Logger.Error("Error replying", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
+		h.logger.Error("Error replying", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
 		return
 	}
-	go communication.UpdateUser(h.Logger, m, botmsg)
+	go communication.UpdateUser(h.logger, m, botmsg)
 }
 
 func (h *Handlers) Tost(m *telebot.Message) {
@@ -76,32 +84,32 @@ func (h *Handlers) Tost(m *telebot.Message) {
 	var resp usersdata.GetRandomTostResp
 	err := communication.MakeUserHttpReq(cfg.GetRandomTostURL, req, &resp)
 	if err != nil {
-		h.Logger.Error("Error making request to user", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
+		h.logger.Error("Error making request to user", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
 		return
 	}
-	botmsg, err := h.Bot.Reply(m, resp.Text)
+	botmsg, err := h.bot.Reply(m, resp.Text)
 	if err != nil {
-		h.Logger.Error("Error replying", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
+		h.logger.Error("Error replying", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
 		return
 	}
-	go communication.UpdateUser(h.Logger, m, botmsg)
+	go communication.UpdateUser(h.logger, m, botmsg)
 }
 
 // todo onion architecture here
 func (h *Handlers) Flower(m *telebot.Message) {
 	replymsg, err := communication.MakeFlowerReq(m.Sender.ID, m.Chat.ID)
 	if err != nil {
-		h.Logger.Error("Error making request to flower", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
-		_, _ = h.Bot.Reply(m, localization.GetLoc("error"))
+		h.logger.Error("Error making request to flower", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
+		_, _ = h.bot.Reply(m, localization.GetLoc("error"))
 		return
 	}
 
-	botmsg, err := h.Bot.Reply(m, replymsg)
+	botmsg, err := h.bot.Reply(m, replymsg)
 	if err != nil {
-		h.Logger.Error("Error replying", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
+		h.logger.Error("Error replying", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
 		return
 	}
-	go communication.UpdateUser(h.Logger, m, botmsg)
+	go communication.UpdateUser(h.logger, m, botmsg)
 }
 
 // onTextHandler - makes req to python service and gets message from apiai
@@ -117,20 +125,20 @@ func (h *Handlers) OnTextHandler(m *telebot.Message) {
 	var resp usersdata.DialogFlowResp
 	err := communication.MakeUserHttpReq(cfg.DialogFlowHandlerURL, req, &resp)
 	if err != nil {
-		h.Logger.Error("Error making request to users", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
+		h.logger.Error("Error making request to users", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
 		return
 	}
 
 	if resp.Err != "" {
-		h.Logger.Error("got error in resp", zap.String("error", resp.Err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
+		h.logger.Error("got error in resp", zap.String("error", resp.Err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
 		return
 	}
-	botmsg, err := h.Bot.Reply(m, resp.Answer)
+	botmsg, err := h.bot.Reply(m, resp.Answer)
 	if err != nil {
-		h.Logger.Error("Error replying", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
+		h.logger.Error("Error replying", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
 		return
 	}
-	go communication.UpdateUser(h.Logger, m, botmsg)
+	go communication.UpdateUser(h.logger, m, botmsg)
 }
 
 func (h *Handlers) MyFlowers(m *telebot.Message) {
@@ -138,13 +146,13 @@ func (h *Handlers) MyFlowers(m *telebot.Message) {
 	var resp usersdata.MyFlowersResp
 	err := communication.MakeUserHttpReq(cfg.MyFlowersURL, req, &resp)
 	if err != nil {
-		h.Logger.Error("Error making request to user", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
+		h.logger.Error("Error making request to user", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
 		return
 	}
 
 	if resp.Err != "" {
-		h.Logger.Error("got error in resp", zap.String("error", resp.Err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
-		h.Bot.Reply(m, resp.Err)
+		h.logger.Error("got error in resp", zap.String("error", resp.Err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
+		h.bot.Reply(m, resp.Err)
 		return
 	}
 
@@ -153,18 +161,18 @@ func (h *Handlers) MyFlowers(m *telebot.Message) {
 		answerstr += fmt.Sprintf("%v - %v\n", v.Name, v.Amount)
 	}
 
-	botmsg, err := h.Bot.Reply(m, answerstr)
+	botmsg, err := h.bot.Reply(m, answerstr)
 	if err != nil {
-		h.Logger.Error("Error replying", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
+		h.logger.Error("Error replying", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
 		return
 	}
-	go communication.UpdateUser(h.Logger, m, botmsg)
+	go communication.UpdateUser(h.logger, m, botmsg)
 }
 
 func (h *Handlers) GiveOneFlower(m *telebot.Message) {
 	if !m.IsReply() {
-		b, _ := h.Bot.Reply(m, localization.GetLoc("give_flower_need_reply"))
-		communication.UpdateUser(h.Logger, m, b)
+		b, _ := h.bot.Reply(m, localization.GetLoc("give_flower_need_reply"))
+		communication.UpdateUser(h.logger, m, b)
 		return
 	}
 	receiver := m.ReplyTo.Sender
@@ -177,23 +185,23 @@ func (h *Handlers) GiveOneFlower(m *telebot.Message) {
 	var resp usersdata.GiveFlowerResp
 	err := communication.MakeUserHttpReq(cfg.GiveFlowerURL, req, &resp)
 	if err != nil {
-		h.Logger.Error("Error making request to user", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
+		h.logger.Error("Error making request to user", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
 		return
 	}
 
 	if resp.Err != "" {
-		h.Logger.Error("got error from users", zap.String("error", resp.Err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
+		h.logger.Error("got error from users", zap.String("error", resp.Err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
 	}
 	var user = receiver.FirstName
 	if receiver.Username != "" {
 		user = receiver.Username
 	}
-	b, err := h.Bot.Reply(m, fmt.Sprintf(localization.GetLoc("give_flower_good"), user, resp.Flower.Name+" "+resp.Flower.Icon))
+	b, err := h.bot.Reply(m, fmt.Sprintf(localization.GetLoc("give_flower_good"), user, resp.Flower.Name+" "+resp.Flower.Icon))
 	if err != nil {
-		h.Logger.Error("Error replying", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
+		h.logger.Error("Error replying", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
 		return
 	}
-	go communication.UpdateUser(h.Logger, m, b)
+	go communication.UpdateUser(h.logger, m, b)
 }
 
 // Flowertop - forms user top by total amount of flowers
@@ -201,94 +209,94 @@ func (h *Handlers) GiveOneFlower(m *telebot.Message) {
 func (h *Handlers) Flowertop(m *telebot.Message) {
 	// check for private chat
 	if m.Chat.Type == telebot.ChatPrivate {
-		botmsg, _ := h.Bot.Reply(m, localization.GetLoc("command_only_in_group"))
-		communication.UpdateUser(h.Logger, m, botmsg)
+		botmsg, _ := h.bot.Reply(m, localization.GetLoc("command_only_in_group"))
+		communication.UpdateUser(h.logger, m, botmsg)
 		return
 	}
 	var req = usersdata.FlowertopReq{ChatId: types.Int(m.Chat.ID)}
 	var resp usersdata.FlowertopResp
 	err := communication.MakeUserHttpReq(cfg.FlowertopURL, req, &resp)
 	if err != nil {
-		h.Logger.Error("Error making request to user", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
-		botmsg, _ := h.Bot.Reply(m, localization.GetLoc("error"))
-		communication.UpdateUser(h.Logger, m, botmsg)
+		h.logger.Error("Error making request to user", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
+		botmsg, _ := h.bot.Reply(m, localization.GetLoc("error"))
+		communication.UpdateUser(h.logger, m, botmsg)
 		return
 	}
 	var msg = fmt.Sprintf(localization.GetLoc("chat_top"), m.Chat.FirstName+""+m.Chat.LastName)
 	for k, v := range resp.Result {
 		msg += fmt.Sprintf("%v. %v - %v 🌷\n", k+1, v.Username, v.Total)
 	}
-	botmsg, err := h.Bot.Reply(m, msg)
+	botmsg, err := h.bot.Reply(m, msg)
 	if err != nil {
-		h.Logger.Error("Error replying", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
+		h.logger.Error("Error replying", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
 		return
 	}
-	go communication.UpdateUser(h.Logger, m, botmsg)
+	go communication.UpdateUser(h.logger, m, botmsg)
 }
 
 // handler for danet, returns agree or disagree message to user
 func (h *Handlers) Danet(m *telebot.Message) {
 	answer := localization.GetRandomDanet()
-	botmsg, err := h.Bot.Reply(m, answer)
+	botmsg, err := h.bot.Reply(m, answer)
 	if err != nil {
-		h.Logger.Error("Error replying", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
+		h.logger.Error("Error replying", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
 		return
 	}
-	go communication.UpdateUser(h.Logger, m, botmsg)
+	go communication.UpdateUser(h.logger, m, botmsg)
 }
 
 func (h *Handlers) Neverhaveiever(m *telebot.Message) {
 	var resp usersdata.GetRandomNHIEresp
 	err := communication.MakeUserHttpReq(cfg.GetRandomNHIEURL, nil, &resp)
 	if err != nil {
-		h.Logger.Error("Error making request to user", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
-		h.Bot.Reply(m, localization.GetLoc("error"))
+		h.logger.Error("Error making request to user", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
+		h.bot.Reply(m, localization.GetLoc("error"))
 		return
 	}
 
-	botmsg, err := h.Bot.Reply(m, resp.Result.Text)
+	botmsg, err := h.bot.Reply(m, resp.Result.Text)
 	if err != nil {
-		h.Logger.Error("Error replying", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
+		h.logger.Error("Error replying", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
 		return
 	}
-	go communication.UpdateUser(h.Logger, m, botmsg)
+	go communication.UpdateUser(h.logger, m, botmsg)
 }
 
 func (h *Handlers) Den4ikGame(m *telebot.Message) {
-	pics, err := h.Service.GetCard(int(m.Chat.ID))
+	pics, err := h.service.GetCard(int(m.Chat.ID))
 	if err != nil && err != service.ErrSessionEnded {
-		if _, err := h.Bot.Send(m.Chat, localization.GetLoc("error")); err != nil {
-			h.Logger.Error("Error replying", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
+		if _, err := h.bot.Send(m.Chat, localization.GetLoc("error")); err != nil {
+			h.logger.Error("Error replying", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
 		}
 		return
 		// check if session is ended
 	} else if err == service.ErrSessionEnded {
-		if _, err := h.Bot.Send(m.Chat, localization.GetLoc("den4ik_game_end")); err != nil {
-			h.Logger.Error("Error replying", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
+		if _, err := h.bot.Send(m.Chat, localization.GetLoc("den4ik_game_end")); err != nil {
+			h.logger.Error("Error replying", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
 		}
 		return
 	}
 	for _, v := range pics {
-		_, err = h.Bot.Send(m.Chat, v)
+		_, err = h.bot.Send(m.Chat, v)
 		if err != nil {
-			h.Logger.Error("Error replying", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
+			h.logger.Error("Error replying", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
 		}
 	}
 }
 
 func (h *Handlers) ResetDen4ik(m *telebot.Message) {
-	msg, err := h.Service.ResetDen4ik(int(m.Chat.ID))
+	msg, err := h.service.ResetDen4ik(int(m.Chat.ID))
 	if err != nil && err != mgo.ErrNotFound {
-		h.Logger.Error("reset den4ik error", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
-		if _, err := h.Bot.Send(m.Chat, localization.GetLoc("error")); err != nil {
-			h.Logger.Error("Error replying", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
+		h.logger.Error("reset den4ik error", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
+		if _, err := h.bot.Send(m.Chat, localization.GetLoc("error")); err != nil {
+			h.logger.Error("Error replying", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
 		}
 		return
 	}
-	botmsg, err := h.Bot.Send(m.Chat, msg)
+	botmsg, err := h.bot.Send(m.Chat, msg)
 	if err != nil {
-		h.Logger.Error("Error replying", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
+		h.logger.Error("Error replying", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
 		return
 	}
-	go communication.UpdateUser(h.Logger, m, botmsg)
+	go communication.UpdateUser(h.logger, m, botmsg)
 }

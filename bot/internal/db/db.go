@@ -2,7 +2,6 @@ package db
 
 import (
 	"github.com/supperdoggy/superSecretDevelopement/structs"
-	cfg "github.com/supperdoggy/superSecretDevelopement/structs/services/bot"
 	"go.uber.org/zap"
 	"gopkg.in/mgo.v2"
 	"time"
@@ -11,11 +10,10 @@ import (
 type DbStruct struct {
 	DbSession     *mgo.Session
 	PicCollection *mgo.Collection
+	Logger *zap.Logger
 }
 
 type obj map[string]interface{}
-
-var DB DbStruct
 
 const (
 	purpleLogoID  = "logo_purple"
@@ -24,17 +22,20 @@ const (
 	yellowRulesID = "rules_yellow"
 )
 
-func init() {
-	logger, _ := zap.NewDevelopment()
-	db, err := mgo.Dial("")
+func NewDbStruct(logger *zap.Logger, url, dbName, collectionName string) *DbStruct {
+	db, err := mgo.Dial(url)
 	if err != nil {
 		logger.Fatal("error when connecting to db", zap.Error(err))
 	}
-	DB = DbStruct{
+	logger.Info("connected to db",
+		zap.Any("url", url),
+		zap.Any("db_name", dbName),
+		zap.Any("collection", collectionName))
+	return &DbStruct{
 		DbSession:     db,
-		PicCollection: db.DB(cfg.DBName).C(cfg.PicCollectionName),
+		PicCollection: db.DB(dbName).C(collectionName),
+		Logger: logger,
 	}
-	logger.Info("connected to db")
 }
 
 func (db DbStruct) GetPicFromDB(id string) (*structs.Pic, error) {

@@ -16,38 +16,45 @@ import (
 )
 
 type AdminHandlers struct {
-	Bot    *telebot.Bot
-	Logger *zap.Logger
+	bot    *telebot.Bot
+	logger *zap.Logger
+}
+
+func NewAdminHandlers(bot *telebot.Bot, logger *zap.Logger) *AdminHandlers {
+	return &AdminHandlers{
+		bot:    bot,
+		logger: logger,
+	}
 }
 
 func (ah *AdminHandlers) AdminHelp(m *telebot.Message) {
 	if admin, err := ah.CheckAdmin(m.Sender.ID); !admin || err != nil {
-		botmsg, _ := ah.Bot.Reply(m, localization.GetLoc("not_admin"))
-		communication.UpdateUser(ah.Logger, m, botmsg)
+		botmsg, _ := ah.bot.Reply(m, localization.GetLoc("not_admin"))
+		communication.UpdateUser(ah.logger, m, botmsg)
 		return
 	}
 
 	text := localization.GetLoc("admin_help")
-	botmsg, err := ah.Bot.Reply(m, text)
+	botmsg, err := ah.bot.Reply(m, text)
 	if err != nil {
-		ah.Logger.Error("error replying to message", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
+		ah.logger.Error("error replying to message", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
 		return
 	}
-	go communication.UpdateUser(ah.Logger, m, botmsg)
+	go communication.UpdateUser(ah.logger, m, botmsg)
 }
 
 // addFlower - adds new flower type
 func (ah *AdminHandlers) AddFlower(m *telebot.Message) {
 	if admin, err := ah.CheckAdmin(m.Sender.ID); !admin || err != nil {
-		botmsg, _ := ah.Bot.Reply(m, localization.GetLoc("not_admin"))
-		communication.UpdateUser(ah.Logger, m, botmsg)
+		botmsg, _ := ah.bot.Reply(m, localization.GetLoc("not_admin"))
+		communication.UpdateUser(ah.logger, m, botmsg)
 		return
 	}
 
 	text := strings.Split(m.Text[11:], "-")
 	if len(text) != 3 {
-		bmsg, _ := ah.Bot.Reply(m, localization.GetLoc("add_flower"))
-		go communication.UpdateUser(ah.Logger, m, bmsg)
+		bmsg, _ := ah.bot.Reply(m, localization.GetLoc("add_flower"))
+		go communication.UpdateUser(ah.logger, m, bmsg)
 		return
 	}
 
@@ -59,7 +66,7 @@ func (ah *AdminHandlers) AddFlower(m *telebot.Message) {
 	var resp usersdata.AddFlowerResp
 	err := communication.MakeUserHttpReq(cfg.AddFlowerURL, req, &resp)
 	if err != nil {
-		ah.Logger.Error("Error making request to user", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
+		ah.logger.Error("Error making request to user", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
 		return
 	}
 
@@ -68,23 +75,23 @@ func (ah *AdminHandlers) AddFlower(m *telebot.Message) {
 		msg = fmt.Sprintf("%s - %s", localization.GetLoc("error"), resp.Err)
 	}
 
-	botmsg, err := ah.Bot.Reply(m, msg)
+	botmsg, err := ah.bot.Reply(m, msg)
 	if err != nil {
-		ah.Logger.Error("error replying to message", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
+		ah.logger.Error("error replying to message", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
 		return
 	}
-	go communication.UpdateUser(ah.Logger, m, botmsg)
+	go communication.UpdateUser(ah.logger, m, botmsg)
 }
 
 func (ah *AdminHandlers) Admin(m *telebot.Message) {
 	if m.Sender.ID != Cfg.NeMoksID {
-		botmsg, _ := ah.Bot.Reply(m, localization.GetLoc("not_admin"))
-		communication.UpdateUser(ah.Logger, m, botmsg)
+		botmsg, _ := ah.bot.Reply(m, localization.GetLoc("not_admin"))
+		communication.UpdateUser(ah.logger, m, botmsg)
 		return
 	}
 	if !m.IsReply() || m.ReplyTo.Sender.ID == m.Sender.ID {
-		botmsg, _ := ah.Bot.Reply(m, localization.GetLoc("need_reply"))
-		communication.UpdateUser(ah.Logger, m, botmsg)
+		botmsg, _ := ah.bot.Reply(m, localization.GetLoc("need_reply"))
+		communication.UpdateUser(ah.logger, m, botmsg)
 		return
 	}
 
@@ -92,43 +99,43 @@ func (ah *AdminHandlers) Admin(m *telebot.Message) {
 	var resp usersdata.AdminResp
 	err := communication.MakeAdminHTTPReq(cfg.ChangeAdminURL, req, &resp)
 	if err != nil {
-		ah.Logger.Error("Error making admin request to user", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
-		botmsg, _ := ah.Bot.Reply(m, localization.GetLoc("error"))
-		communication.UpdateUser(ah.Logger, m, botmsg)
+		ah.logger.Error("Error making admin request to user", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
+		botmsg, _ := ah.bot.Reply(m, localization.GetLoc("error"))
+		communication.UpdateUser(ah.logger, m, botmsg)
 		return
 	}
 
 	if !resp.OK {
-		ah.Logger.Error("marsal error", zap.String("error", resp.Err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
-		botmsg, _ := ah.Bot.Reply(m, localization.GetLoc("error"))
-		communication.UpdateUser(ah.Logger, m, botmsg)
+		ah.logger.Error("marsal error", zap.String("error", resp.Err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
+		botmsg, _ := ah.bot.Reply(m, localization.GetLoc("error"))
+		communication.UpdateUser(ah.logger, m, botmsg)
 		return
 	}
 
-	botmsg, err := ah.Bot.Reply(m, fmt.Sprintf(localization.GetLoc("change_admin"), req.ID, resp.Admin))
+	botmsg, err := ah.bot.Reply(m, fmt.Sprintf(localization.GetLoc("change_admin"), req.ID, resp.Admin))
 	if err != nil {
-		ah.Logger.Error("error replying to message", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
+		ah.logger.Error("error replying to message", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
 		return
 	}
-	go communication.UpdateUser(ah.Logger, m, botmsg)
+	go communication.UpdateUser(ah.logger, m, botmsg)
 }
 
 func (ah *AdminHandlers) AllFlowers(m *telebot.Message) {
 	if admin, err := ah.CheckAdmin(m.Sender.ID); !admin || err != nil {
-		botmsg, _ := ah.Bot.Reply(m, localization.GetLoc("not_admin"))
-		communication.UpdateUser(ah.Logger, m, botmsg)
+		botmsg, _ := ah.bot.Reply(m, localization.GetLoc("not_admin"))
+		communication.UpdateUser(ah.logger, m, botmsg)
 		return
 	}
 
 	var resp usersdata.GetAllFlowerTypesResp
 	err := communication.MakeAdminHTTPReq(cfg.GetAllFlowerTypesURL, nil, &resp)
 	if err != nil {
-		ah.Logger.Error("Error making admin request to user", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
+		ah.logger.Error("Error making admin request to user", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
 		return
 	}
 
 	if resp.Err != "" {
-		ah.Logger.Error("got error from resp", zap.Any("error", resp.Err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
+		ah.logger.Error("got error from resp", zap.Any("error", resp.Err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
 		return
 	}
 
@@ -137,18 +144,18 @@ func (ah *AdminHandlers) AllFlowers(m *telebot.Message) {
 		text += fmt.Sprintf("%v:%v - %v\n", v.ID, v.Icon, v.Name)
 	}
 	text += fmt.Sprintf("len %v", len(resp.Result))
-	botmsg, err := ah.Bot.Reply(m, text)
+	botmsg, err := ah.bot.Reply(m, text)
 	if err != nil {
-		ah.Logger.Error("error replying to message", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
+		ah.logger.Error("error replying to message", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
 		return
 	}
-	go communication.UpdateUser(ah.Logger, m, botmsg)
+	go communication.UpdateUser(ah.logger, m, botmsg)
 }
 
 func (ah *AdminHandlers) RemoveFlower(m *telebot.Message) {
 	if admin, err := ah.CheckAdmin(m.Sender.ID); !admin || err != nil {
-		botmsg, _ := ah.Bot.Reply(m, localization.GetLoc("not_admin"))
-		communication.UpdateUser(ah.Logger, m, botmsg)
+		botmsg, _ := ah.bot.Reply(m, localization.GetLoc("not_admin"))
+		communication.UpdateUser(ah.logger, m, botmsg)
 		return
 	}
 
@@ -158,8 +165,8 @@ func (ah *AdminHandlers) RemoveFlower(m *telebot.Message) {
 	}
 	id, err := strconv.Atoi(splitted[1])
 	if err != nil {
-		ah.Logger.Error("error converting id", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
-		ah.Bot.Reply(m, "error get id, need /removeFlower <id>")
+		ah.logger.Error("error converting id", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
+		ah.bot.Reply(m, "error get id, need /removeFlower <id>")
 		return
 	}
 
@@ -167,22 +174,22 @@ func (ah *AdminHandlers) RemoveFlower(m *telebot.Message) {
 	var resp usersdata.RemoveFlowerResp
 	err = communication.MakeAdminHTTPReq(cfg.RemoveFlowerURL, req, &resp)
 	if err != nil {
-		ah.Logger.Error("Error making admin request to user", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
-		ah.Bot.Reply(m, localization.GetLoc("error"))
+		ah.logger.Error("Error making admin request to user", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
+		ah.bot.Reply(m, localization.GetLoc("error"))
 		return
 	}
 
 	if !resp.OK {
-		ah.Logger.Error("got error from resp", zap.Any("error", resp.Err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
-		ah.Bot.Reply(m, localization.GetLoc("error"))
+		ah.logger.Error("got error from resp", zap.Any("error", resp.Err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
+		ah.bot.Reply(m, localization.GetLoc("error"))
 		return
 	}
-	botmsg, err := ah.Bot.Reply(m, "ok")
+	botmsg, err := ah.bot.Reply(m, "ok")
 	if err != nil {
-		ah.Logger.Error("error replying to message", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
+		ah.logger.Error("error replying to message", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
 		return
 	}
-	go communication.UpdateUser(ah.Logger, m, botmsg)
+	go communication.UpdateUser(ah.logger, m, botmsg)
 }
 
 func (ah *AdminHandlers) CheckAdmin(id int) (bool, error) {
@@ -193,12 +200,12 @@ func (ah *AdminHandlers) CheckAdmin(id int) (bool, error) {
 	var resp usersdata.IsAdminResp
 	err := communication.MakeAdminHTTPReq(cfg.IsAdminURL, req, &resp)
 	if err != nil {
-		ah.Logger.Error("Error making admin request to user", zap.Error(err), zap.Int("user_id", id))
+		ah.logger.Error("Error making admin request to user", zap.Error(err), zap.Int("user_id", id))
 		return false, err
 	}
 
 	if resp.Err != "" {
-		ah.Logger.Error("got error from resp", zap.Any("error", resp.Err), zap.Int("user_id", id))
+		ah.logger.Error("got error from resp", zap.Any("error", resp.Err), zap.Int("user_id", id))
 		return false, fmt.Errorf(resp.Err)
 	}
 	return resp.Result, nil
