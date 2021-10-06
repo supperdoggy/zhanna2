@@ -20,7 +20,7 @@ type Handlers struct {
 	logger  *zap.Logger
 }
 
-func NewHandlers(b *telebot.Bot, s service.Service, l *zap.Logger) *Handlers {
+func NewHandlers(b *telebot.Bot, s service.IService, l *zap.Logger) *Handlers {
 	return &Handlers{
 		bot:     b,
 		service: s,

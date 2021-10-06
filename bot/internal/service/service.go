@@ -11,7 +11,7 @@ import (
 )
 
 type Service struct {
-	db     *db.DbStruct
+	db     db.IDbStruct
 	logger *zap.Logger
 }
 
@@ -25,7 +25,7 @@ var (
 	ErrSessionEnded = errors.New("session ended")
 )
 
-func NewService(logger *zap.Logger, db *db.DbStruct) *Service {
+func NewService(logger *zap.Logger, db db.IDbStruct) *Service {
 	return &Service{
 		db:     db,
 		logger: logger,

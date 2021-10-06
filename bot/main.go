@@ -24,7 +24,7 @@ func main() {
 		Poller: &telebot.LongPoller{Timeout: timeout},
 	})
 	if err != nil {
-		panic(err.Error())
+		logger.Fatal("error creating bot", zap.Error(err))
 	}
 
 	logger.Info("bot created!", zap.Any("timeout", timeout))
@@ -32,6 +32,7 @@ func main() {
 	Service := *service.NewService(logger, DB)
 	handlers := handlers2.NewHandlers(bot, Service, logger)
 	adminHandlers := admin_handlers2.NewAdminHandlers(bot, logger)
+
 	// handlers
 	bot.Handle(Cfg.StartCommand, handlers.Start)
 	bot.Handle(Cfg.FortuneCommand, handlers.FortuneCookie)

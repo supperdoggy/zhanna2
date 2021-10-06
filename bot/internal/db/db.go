@@ -2,6 +2,7 @@ package db
 
 import (
 	"github.com/supperdoggy/superSecretDevelopement/structs"
+	defaultCfg "github.com/supperdoggy/superSecretDevelopement/structs/request/default"
 	"go.uber.org/zap"
 	"gopkg.in/mgo.v2"
 	"time"
@@ -13,7 +14,10 @@ type DbStruct struct {
 	Logger *zap.Logger
 }
 
-type obj map[string]interface{}
+type IDbStruct interface {
+	GetPicFromDB(id string) (*structs.Pic, error)
+	GetLogoAndRules() (logo *structs.Pic, rules *structs.Pic, err error)
+}
 
 const (
 	purpleLogoID  = "logo_purple"
@@ -40,7 +44,7 @@ func NewDbStruct(logger *zap.Logger, url, dbName, collectionName string) *DbStru
 
 func (db DbStruct) GetPicFromDB(id string) (*structs.Pic, error) {
 	var p structs.Pic
-	err := db.PicCollection.Find(obj{"_id": id}).One(&p)
+	err := db.PicCollection.Find(defaultCfg.Obj{"_id": id}).One(&p)
 	if err != nil {
 		return nil, err
 	}
