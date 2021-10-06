@@ -13,11 +13,11 @@ type obj map[string]interface{}
 
 type (
 	DbStruct struct {
-	dbSession        *mgo.Session
-	logger           *zap.Logger
-	cookieCollection *mgo.Collection
-	m                []int32
-}
+		dbSession        *mgo.Session
+		logger           *zap.Logger
+		cookieCollection *mgo.Collection
+		m                []int32
+	}
 	IDbStruct interface {
 		GetRandomFortune() (structs.Cookie, error)
 	}

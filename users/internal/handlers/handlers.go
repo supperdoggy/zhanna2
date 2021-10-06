@@ -150,7 +150,7 @@ func (h *Handlers) Flower(c *gin.Context) {
 	}
 
 	resp, err := h.service.Flower(req)
-	if err != nil {
+	if err != nil && err.Error() != "cant grow flower" {
 		h.logger.Error("Flower error", zap.Error(err), zap.Any("request", req))
 		c.JSON(http.StatusBadRequest, resp)
 		return

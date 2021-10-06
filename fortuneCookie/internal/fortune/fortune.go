@@ -9,9 +9,9 @@ import (
 
 type (
 	Service struct {
-	db     db.IDbStruct
-	logger *zap.Logger
-}
+		db     db.IDbStruct
+		logger *zap.Logger
+	}
 	IService interface {
 		GetRandomFortuneCookie() (resp fortunedata.GetRandomFortuneCookieResp)
 	}
