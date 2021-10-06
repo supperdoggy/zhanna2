@@ -15,6 +15,12 @@ type Service struct {
 	logger *zap.Logger
 }
 
+type IService interface {
+	GetCard(chatId int) ([]*telebot.Photo, error)
+	GetAndFormPicMessage(id, caption string) (*telebot.Photo, error)
+	ResetDen4ik(id int) (msg string, err error)
+}
+
 var (
 	ErrSessionEnded = errors.New("session ended")
 )

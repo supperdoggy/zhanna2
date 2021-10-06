@@ -16,7 +16,7 @@ import (
 
 type Handlers struct {
 	bot     *telebot.Bot
-	service service.Service
+	service service.IService
 	logger  *zap.Logger
 }
 
