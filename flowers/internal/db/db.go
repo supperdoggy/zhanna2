@@ -16,13 +16,13 @@ import (
 
 type (
 	DbStruct struct {
-	dbSession                *mgo.Session
-	logger                   *zap.Logger
-	userFlowerDataCollection *mgo.Collection
-	flowerCollection         *mgo.Collection
-	mut                      sync.Mutex
-	m                        []uint64
-}
+		dbSession                *mgo.Session
+		logger                   *zap.Logger
+		userFlowerDataCollection *mgo.Collection
+		flowerCollection         *mgo.Collection
+		mut                      sync.Mutex
+		m                        []uint64
+	}
 	IDbStruct interface {
 		AddFlower(f structs.Flower) (err error)
 		RemoveFlower(id uint64) (err error)

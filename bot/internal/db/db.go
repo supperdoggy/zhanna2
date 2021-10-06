@@ -11,7 +11,7 @@ import (
 type DbStruct struct {
 	DbSession     *mgo.Session
 	PicCollection *mgo.Collection
-	Logger *zap.Logger
+	Logger        *zap.Logger
 }
 
 type IDbStruct interface {
@@ -38,7 +38,7 @@ func NewDbStruct(logger *zap.Logger, url, dbName, collectionName string) *DbStru
 	return &DbStruct{
 		DbSession:     db,
 		PicCollection: db.DB(dbName).C(collectionName),
-		Logger: logger,
+		Logger:        logger,
 	}
 }
 

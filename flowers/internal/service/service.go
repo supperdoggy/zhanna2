@@ -16,9 +16,9 @@ import (
 
 type (
 	Service struct {
-	db     db.IDbStruct
-	logger *zap.Logger
-}
+		db     db.IDbStruct
+		logger *zap.Logger
+	}
 	IService interface {
 		AddNewFlower(req flowersdata.AddNewFlowerReq) (resp flowersdata.AddNewFlowerResp, err error)
 		RemoveFlower(req flowersdata.RemoveFlowerReq) (resp flowersdata.RemoveFlowerResp, err error)

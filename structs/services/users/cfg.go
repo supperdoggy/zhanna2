@@ -11,11 +11,11 @@ import (
 )
 
 const (
-	DBName = "Zhanna2"
-	UsersCollection = "users"
-	AdminCollection = "admin"
+	DBName             = "Zhanna2"
+	UsersCollection    = "users"
+	AdminCollection    = "admin"
 	MessagesCollection = "messages"
-	Port   = ":1488"
+	Port               = ":1488"
 
 	// todo move it to default cfg
 

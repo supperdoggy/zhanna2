@@ -12,7 +12,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-
 func main() {
 	logger, _ := zap.NewDevelopment()
 	DB := db.NewDB("", cfg.DBName, cfg.UsersCollection, cfg.AdminCollection, cfg.MessagesCollection, logger)
