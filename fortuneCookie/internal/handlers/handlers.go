@@ -7,17 +7,22 @@ import (
 	"net/http"
 )
 
-type obj map[string]interface{}
-
 type Handlers struct {
-	Service fortune.Service
-	Logger  *zap.Logger
+	service fortune.IService
+	logger  *zap.Logger
+}
+
+func NewHandlers(s fortune.IService, l *zap.Logger) *Handlers {
+	return &Handlers{
+		service: s,
+		logger:  l,
+	}
 }
 
 func (h *Handlers) GetRandomFortuneCookieReq(c *gin.Context) {
-	resp := h.Service.GetRandomFortuneCookie()
+	resp := h.service.GetRandomFortuneCookie()
 	if resp.Err != "" {
-		h.Logger.Error("error GetRandomFortuneCookie", zap.Any("error", resp.Err))
+		h.logger.Error("error GetRandomFortuneCookie", zap.Any("error", resp.Err))
 		c.JSON(http.StatusBadRequest, resp)
 		return
 	}

@@ -13,13 +13,9 @@ import (
 
 func main() {
 	logger, _ := zap.NewDevelopment()
-	h := handlers.Handlers{
-		Service: fortune.Service{
-			DB:     *db.DB,
-			Logger: logger,
-		},
-		Logger: logger,
-	}
+	DB := db.NewDB(logger, "", cfg.DBName, cfg.FortuneCollection)
+	Service := fortune.NewService(logger, DB)
+	h := handlers.NewHandlers(Service, logger)
 	r := gin.Default()
 
 	apiv1 := r.Group(defaultCfg.ApiV1)

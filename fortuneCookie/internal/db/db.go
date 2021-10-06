@@ -2,7 +2,6 @@ package db
 
 import (
 	"github.com/supperdoggy/superSecretDevelopement/structs"
-	cfg2 "github.com/supperdoggy/superSecretDevelopement/structs/services/fortune"
 	"go.uber.org/zap"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/night-codes/types.v1"
@@ -12,27 +11,27 @@ import (
 
 type obj map[string]interface{}
 
-type DbStruct struct {
-	DbSession        *mgo.Session
-	Logger           *zap.Logger
+type (
+	DbStruct struct {
+	dbSession        *mgo.Session
+	logger           *zap.Logger
 	cookieCollection *mgo.Collection
 	m                []int32
 }
-
-var (
-	DB = getDB()
+	IDbStruct interface {
+		GetRandomFortune() (structs.Cookie, error)
+	}
 )
 
-func getDB() *DbStruct {
-	logger, _ := zap.NewDevelopment()
-	s, err := mgo.Dial("")
+func NewDB(logger *zap.Logger, url, dbName, collectionName string) *DbStruct {
+	s, err := mgo.Dial(url)
 	if err != nil {
 		logger.Fatal("error dialing with db", zap.Error(err))
 	}
 	DB := DbStruct{
-		DbSession:        s,
-		Logger:           logger,
-		cookieCollection: s.DB(cfg2.DBName).C(cfg2.FortuneCollection),
+		dbSession:        s,
+		logger:           logger,
+		cookieCollection: s.DB(dbName).C(collectionName),
 		m:                make([]int32, 0),
 	}
 	var o []obj
@@ -49,7 +48,7 @@ func (d *DbStruct) GetRandomFortune() (structs.Cookie, error) {
 	rand.Seed(time.Now().UnixNano())
 	id := d.m[rand.Intn(len(d.m)-1)]
 	var result structs.Cookie
-	if err := DB.cookieCollection.Find(obj{"_id": id}).One(&result); err != nil {
+	if err := d.cookieCollection.Find(obj{"_id": id}).One(&result); err != nil {
 		return result, err
 	}
 	return result, nil
