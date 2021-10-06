@@ -12,45 +12,38 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+
 func main() {
 	logger, _ := zap.NewDevelopment()
-	handlers := handlers2.Handlers{
-		Service: service.Service{
-			DB:     db.DB,
-			Logger: logger,
-		},
-		Logger: logger,
-	}
-	admin_handlers := adminHandlers.AdminHandlers{
-		DB:     &db.DB,
-		Logger: logger,
-	}
-
+	DB := db.NewDB(cfg.DBName, cfg.UsersCollection, cfg.AdminCollection, cfg.MessagesCollection, logger)
+	Service := service.NewService(DB, logger)
+	Handlers := handlers2.NewHandlers(Service, logger)
+	adminHandlers := adminHandlers.NewAdminHandlers(DB, logger)
 	r := gin.Default()
 
 	apiv1 := r.Group(defaultCfg.ApiV1)
 	{
-		apiv1.POST(cfg.AddOrUpdateUserURL, handlers.AddOrUpdateUser)
-		apiv1.POST(cfg.GetFortuneURL, handlers.GetFortune)
-		apiv1.POST(cfg.GetRandomAnekURL, handlers.GetRandomAnek)
-		apiv1.POST(cfg.GetRandomTostURL, handlers.GetRandomTost)
-		apiv1.POST(cfg.AddFlowerURL, handlers.AddFlower)
-		apiv1.POST(cfg.FlowerURL, handlers.Flower)
-		apiv1.POST(cfg.DialogFlowHandlerURL, handlers.DialogFlow)
-		apiv1.POST(cfg.MyFlowersURL, handlers.MyFlowers)
-		apiv1.POST(cfg.GiveFlowerURL, handlers.GiveFlower)
-		apiv1.POST(cfg.FlowertopURL, handlers.Flowertop)
-		apiv1.POST(cfg.GetRandomNHIEURL, handlers.GetRandomNHIE)
+		apiv1.POST(cfg.AddOrUpdateUserURL, Handlers.AddOrUpdateUser)
+		apiv1.POST(cfg.GetFortuneURL, Handlers.GetFortune)
+		apiv1.POST(cfg.GetRandomAnekURL, Handlers.GetRandomAnek)
+		apiv1.POST(cfg.GetRandomTostURL, Handlers.GetRandomTost)
+		apiv1.POST(cfg.AddFlowerURL, Handlers.AddFlower)
+		apiv1.POST(cfg.FlowerURL, Handlers.Flower)
+		apiv1.POST(cfg.DialogFlowHandlerURL, Handlers.DialogFlow)
+		apiv1.POST(cfg.MyFlowersURL, Handlers.MyFlowers)
+		apiv1.POST(cfg.GiveFlowerURL, Handlers.GiveFlower)
+		apiv1.POST(cfg.FlowertopURL, Handlers.Flowertop)
+		apiv1.POST(cfg.GetRandomNHIEURL, Handlers.GetRandomNHIE)
 		// todo add check if user is banned
 	}
 
 	// admin command handlers
-	apiv1_admin := r.Group(defaultCfg.ApiV1Admin)
+	apiv1Admin := r.Group(defaultCfg.ApiV1Admin)
 	{
-		apiv1_admin.POST(cfg.IsAdminURL, admin_handlers.IsAdmin)
-		apiv1_admin.POST(cfg.ChangeAdminURL, admin_handlers.ChangeAdmin)
-		apiv1_admin.GET(cfg.GetAllFlowerTypesURL, admin_handlers.GetAllFlowerTypes)
-		apiv1_admin.POST(cfg.RemoveFlowerURL, admin_handlers.RemoveFlower) // ??
+		apiv1Admin.POST(cfg.IsAdminURL, adminHandlers.IsAdmin)
+		apiv1Admin.POST(cfg.ChangeAdminURL, adminHandlers.ChangeAdmin)
+		apiv1Admin.GET(cfg.GetAllFlowerTypesURL, adminHandlers.GetAllFlowerTypes)
+		apiv1Admin.POST(cfg.RemoveFlowerURL, adminHandlers.RemoveFlower) // ??
 	}
 
 	if err := r.Run(cfg.Port); err != nil {

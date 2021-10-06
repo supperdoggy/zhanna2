@@ -12,8 +12,15 @@ import (
 )
 
 type Handlers struct {
-	Service service.Service
+	Service service.IService
 	Logger  *zap.Logger
+}
+
+func NewHandlers(s service.IService, logger *zap.Logger) *Handlers {
+	return &Handlers{
+		Service: s,
+		Logger:  logger,
+	}
 }
 
 func (h *Handlers) AddOrUpdateUser(c *gin.Context) {

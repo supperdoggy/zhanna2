@@ -14,8 +14,15 @@ import (
 )
 
 type AdminHandlers struct {
-	DB     *db.DbStruct
+	DB     db.IDbStruct
 	Logger *zap.Logger
+}
+
+func NewAdminHandlers(d db.IDbStruct, logger *zap.Logger) *AdminHandlers {
+	return &AdminHandlers{
+		DB:     d,
+		Logger: logger,
+	}
 }
 
 func (ah *AdminHandlers) IsAdmin(c *gin.Context) {

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/supperdoggy/superSecretDevelopement/structs"
 	defaultCfg "github.com/supperdoggy/superSecretDevelopement/structs/request/default"
-	cfg "github.com/supperdoggy/superSecretDevelopement/structs/services/users"
 	"go.uber.org/zap"
 	"time"
 
@@ -15,29 +14,41 @@ import (
 
 // DbStruct - the main aneks struct
 type DbStruct struct {
-	DbSession         *mgo.Session
+	dbSession         *mgo.Session
 	usersCollection   *mgo.Collection
 	adminCollection   *mgo.Collection
 	messageCollection *mgo.Collection
-	Logger            *zap.Logger
+	logger            *zap.Logger
 }
 
-var DB = NewDB()
+type IDbStruct interface {
+	GetUserByID(id int) (result structs.User, err error)
+	UserExists(id int) (bool, error)
+	UpdateLastTimeFortune(id int) error
+	UpdateUser(u structs.User) error
+	UpdateUserWithFields(search, set defaultCfg.Obj) error
+	GetChatUsersIDs(chatid int) (ids []int, err error)
+	GetChatUsers(chatid int) (users []structs.User, err error)
+	WriteMessage(userMsg, botMsg telebot.Message) error
+	GetUserMsgCount(userID int) (int, error)
+	SaveAnek(userID int, a structs.Anek) error
+	SaveFortune(userID int, a structs.Cookie) error
+	SaveTost(userID int, a structs.Tost) bool
+	InserUser(u structs.User) error
+}
 
-func NewDB() DbStruct {
-	logger, _ := zap.NewDevelopment()
+func NewDB(dbName, usersCollection, adminCollection, messagesCollection string, logger *zap.Logger) *DbStruct {
 	d, err := mgo.Dial("")
 	if err != nil || d == nil {
 		logger.Fatal("error connecting to db", zap.Error(err))
 	}
-	DB := DbStruct{
-		DbSession:         d,
-		usersCollection:   d.DB(cfg.DBName).C("users"),
-		adminCollection:   d.DB(cfg.DBName).C("admin"),
-		messageCollection: d.DB(cfg.DBName).C("messages"),
-		Logger:            logger,
+	return &DbStruct{
+		dbSession:         d,
+		usersCollection:   d.DB(dbName).C(usersCollection),
+		adminCollection:   d.DB(dbName).C(adminCollection),
+		messageCollection: d.DB(dbName).C(messagesCollection),
+		logger:            logger,
 	}
-	return DB
 }
 
 func (d *DbStruct) GetUserByID(id int) (result structs.User, err error) {
@@ -108,7 +119,7 @@ func (d *DbStruct) GetUserMsgCount(userID int) (int, error) {
 func (d *DbStruct) SaveAnek(userID int, a structs.Anek) error {
 	u, err := d.GetUserByID(userID)
 	if err != nil {
-		d.Logger.Error("Failed to get user by id", zap.Error(err), zap.Any("user_id", userID), zap.Any("anek", a))
+		d.logger.Error("Failed to get user by id", zap.Error(err), zap.Any("user_id", userID), zap.Any("anek", a))
 		return err
 	}
 	u.Aneks = append(u.Aneks, a)
@@ -116,7 +127,7 @@ func (d *DbStruct) SaveAnek(userID int, a structs.Anek) error {
 	u.LastTimeGotAnekTime = time.Now()
 	err = d.UpdateUser(u)
 	if err != nil {
-		d.Logger.Error("Failed to save anek", zap.Error(err), zap.Any("user", u))
+		d.logger.Error("Failed to save anek", zap.Error(err), zap.Any("user", u))
 		return err
 	}
 	return err
@@ -125,13 +136,13 @@ func (d *DbStruct) SaveAnek(userID int, a structs.Anek) error {
 func (d *DbStruct) SaveFortune(userID int, a structs.Cookie) error {
 	u, err := d.GetUserByID(userID)
 	if err != nil {
-		d.Logger.Error("failed to get user in saveFortune", zap.Error(err), zap.Any("user_id", userID), zap.Any("cookie", a))
+		d.logger.Error("failed to get user in saveFortune", zap.Error(err), zap.Any("user_id", userID), zap.Any("cookie", a))
 		return err
 	}
 	u.FortuneCookies = append(u.FortuneCookies, a)
 	err = d.UpdateUser(u)
 	if err != nil {
-		d.Logger.Error("error updating user saving fortune", zap.Error(err), zap.Any("user", u))
+		d.logger.Error("error updating user saving fortune", zap.Error(err), zap.Any("user", u))
 		return err
 	}
 	return err
@@ -140,13 +151,13 @@ func (d *DbStruct) SaveFortune(userID int, a structs.Cookie) error {
 func (d *DbStruct) SaveTost(userID int, a structs.Tost) bool {
 	u, err := d.GetUserByID(userID)
 	if err != nil {
-		d.Logger.Error("failed to get user in saveTost", zap.Error(err), zap.Any("user_id", userID), zap.Any("tost", a))
+		d.logger.Error("failed to get user in saveTost", zap.Error(err), zap.Any("user_id", userID), zap.Any("tost", a))
 		return false
 	}
 	u.Tosts = append(u.Tosts, a)
-	err = DB.UpdateUser(u)
+	err = d.UpdateUser(u)
 	if err != nil {
-		d.Logger.Error("error updating user saving tost", zap.Error(err), zap.Any("user", u))
+		d.logger.Error("error updating user saving tost", zap.Error(err), zap.Any("user", u))
 		return false
 	}
 	return true
