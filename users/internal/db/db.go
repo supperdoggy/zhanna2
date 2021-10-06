@@ -37,8 +37,8 @@ type IDbStruct interface {
 	InserUser(u structs.User) error
 }
 
-func NewDB(dbName, usersCollection, adminCollection, messagesCollection string, logger *zap.Logger) *DbStruct {
-	d, err := mgo.Dial("")
+func NewDB(url, dbName, usersCollection, adminCollection, messagesCollection string, logger *zap.Logger) *DbStruct {
+	d, err := mgo.Dial(url)
 	if err != nil || d == nil {
 		logger.Fatal("error connecting to db", zap.Error(err))
 	}

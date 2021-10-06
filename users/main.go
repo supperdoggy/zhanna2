@@ -15,7 +15,7 @@ import (
 
 func main() {
 	logger, _ := zap.NewDevelopment()
-	DB := db.NewDB(cfg.DBName, cfg.UsersCollection, cfg.AdminCollection, cfg.MessagesCollection, logger)
+	DB := db.NewDB("", cfg.DBName, cfg.UsersCollection, cfg.AdminCollection, cfg.MessagesCollection, logger)
 	Service := service.NewService(DB, logger)
 	Handlers := handlers2.NewHandlers(Service, logger)
 	adminHandlers := adminHandlers.NewAdminHandlers(DB, logger)
