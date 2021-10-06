@@ -7,17 +7,29 @@ import (
 	"go.uber.org/zap"
 )
 
-type Service struct {
-	DB     db.DbStruct
-	Logger *zap.Logger
+type (
+	Service struct {
+		db     db.IDbStruct
+		logger *zap.Logger
+	}
+	IService interface {
+		GetRandomFortuneCookie() (resp fortunedata.GetRandomFortuneCookieResp)
+	}
+)
+
+func NewService(logger *zap.Logger, db db.IDbStruct) *Service {
+	return &Service{
+		db:     db,
+		logger: logger,
+	}
 }
 
 func (s Service) GetRandomFortuneCookie() (resp fortunedata.GetRandomFortuneCookieResp) {
 	var cookie structs.Cookie
 
-	cookie, err := s.DB.GetRandomFortune()
+	cookie, err := s.db.GetRandomFortune()
 	if err != nil {
-		s.Logger.Error("error GetRandomFortune", zap.Error(err), zap.Any("resp", resp))
+		s.logger.Error("error GetRandomFortune", zap.Error(err), zap.Any("resp", resp))
 		resp.Err = err.Error()
 		return
 	}

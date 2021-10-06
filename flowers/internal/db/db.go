@@ -14,36 +14,50 @@ import (
 	"time"
 )
 
-type obj map[string]interface{}
+type (
+	DbStruct struct {
+		dbSession                *mgo.Session
+		logger                   *zap.Logger
+		userFlowerDataCollection *mgo.Collection
+		flowerCollection         *mgo.Collection
+		mut                      sync.Mutex
+		m                        []uint64
+	}
+	IDbStruct interface {
+		AddFlower(f structs.Flower) (err error)
+		RemoveFlower(id uint64) (err error)
+		EditFlower(id uint64, f structs.Flower) (err error)
+		GetFlower(id uint64, f structs.Flower) (result structs.Flower, err error)
+		GetAllFlowers() (result []structs.Flower, err error)
+		GetRandomFlower() (result structs.Flower, err error)
+		GetUserCurrentFlower(owner int) (result structs.Flower, err error)
+		CountFlowers(owner int) (total int, err error)
+		GetUserFlowerById(id uint64) (structs.Flower, error)
+		GetAllUserFlowers(owner int) ([]structs.Flower, error)
+		RemoveUserFlower(cryteria defaultCfg.Obj) error
+		EditUserFlower(f structs.Flower) (err error)
+		GetRandomID() uint64
+		UserFlowerSlice(ids []int) (result []structs.Flower, err error)
+		removeIDFromCache(val uint64) error
+	}
+)
 
-type DbStruct struct {
-	DbSession                *mgo.Session
-	Logger                   *zap.Logger
-	userFlowerDataCollection *mgo.Collection
-	flowerCollection         *mgo.Collection
-	mut                      sync.Mutex
-	m                        []uint64
-}
-
-var DB = getDB()
-
-func getDB() *DbStruct {
-	logger, _ := zap.NewDevelopment()
-	s, err := mgo.Dial("")
+func NewDB(logger *zap.Logger, url, dbName, userFlowerDataCollection, flowerCollection string) *DbStruct {
+	s, err := mgo.Dial(url)
 	if err != nil {
 		logger.Fatal("error dialing with db", zap.Error(err))
 	}
 
 	DB := DbStruct{
-		DbSession:                s,
-		userFlowerDataCollection: s.DB(cfg.DBName).C(cfg.UserFlowerDataCollection),
-		flowerCollection:         s.DB(cfg.DBName).C(cfg.FlowerCollection),
-		Logger:                   logger,
+		dbSession:                s,
+		userFlowerDataCollection: s.DB(dbName).C(userFlowerDataCollection),
+		flowerCollection:         s.DB(cfg.DBName).C(flowerCollection),
+		logger:                   logger,
 	}
 	ai.Connect(DB.flowerCollection)
 	ai.Connect(DB.userFlowerDataCollection)
 
-	var allFlowerIDs []obj
+	var allFlowerIDs []defaultCfg.Obj
 	if err := DB.flowerCollection.Find(nil).All(&allFlowerIDs); err != nil {
 		logger.Fatal("error finding all flower ids", zap.Error(err), zap.Any("db", DB))
 	}
@@ -68,23 +82,23 @@ func (d *DbStruct) AddFlower(f structs.Flower) (err error) {
 }
 
 func (d *DbStruct) RemoveFlower(id uint64) (err error) {
-	err = d.flowerCollection.Remove(obj{"_id": id})
+	err = d.flowerCollection.Remove(defaultCfg.Obj{"_id": id})
 	if err != nil {
 		return err
 	}
 	err = d.removeIDFromCache(id)
 	if err != nil {
-		d.Logger.Error("error removing id from cache", zap.Error(err), zap.Any("id", id))
+		d.logger.Error("error removing id from cache", zap.Error(err), zap.Any("id", id))
 	}
 	return err
 }
 
 func (d *DbStruct) EditFlower(id uint64, f structs.Flower) (err error) {
-	return d.flowerCollection.Update(obj{"_id": id}, obj{"$set": f})
+	return d.flowerCollection.Update(defaultCfg.Obj{"_id": id}, defaultCfg.Obj{"$set": f})
 }
 
 func (d *DbStruct) GetFlower(id uint64, f structs.Flower) (result structs.Flower, err error) {
-	err = d.flowerCollection.Find(obj{"_id": id}).One(&f)
+	err = d.flowerCollection.Find(defaultCfg.Obj{"_id": id}).One(&f)
 	return f, err
 }
 
@@ -95,30 +109,30 @@ func (d *DbStruct) GetAllFlowers() (result []structs.Flower, err error) {
 }
 
 func (d *DbStruct) GetRandomFlower() (result structs.Flower, err error) {
-	err = d.flowerCollection.Find(obj{"_id": d.GetRandomID()}).One(&result)
+	err = d.flowerCollection.Find(defaultCfg.Obj{"_id": d.GetRandomID()}).One(&result)
 	return
 }
 
 // returns growing user flower
 func (d *DbStruct) GetUserCurrentFlower(owner int) (result structs.Flower, err error) {
-	err = d.userFlowerDataCollection.Find(obj{"owner": owner, "hp": obj{"$ne": 100}, "dead": false}).One(&result)
+	err = d.userFlowerDataCollection.Find(defaultCfg.Obj{"owner": owner, "hp": defaultCfg.Obj{"$ne": 100}, "dead": false}).One(&result)
 	return
 }
 
 func (d *DbStruct) CountFlowers(owner int) (total int, err error) {
-	total, err = DB.userFlowerDataCollection.Find(obj{"owner": owner}).Count()
+	total, err = d.userFlowerDataCollection.Find(defaultCfg.Obj{"owner": owner}).Count()
 	return
 }
 
 func (d *DbStruct) GetUserFlowerById(id uint64) (structs.Flower, error) {
 	var f structs.Flower
-	err := d.userFlowerDataCollection.Find(obj{"id": id}).One(&f)
+	err := d.userFlowerDataCollection.Find(defaultCfg.Obj{"id": id}).One(&f)
 	return f, err
 }
 
 func (d *DbStruct) GetAllUserFlowers(owner int) ([]structs.Flower, error) {
 	var result []structs.Flower
-	err := d.userFlowerDataCollection.Find(obj{"owner": owner, "hp": 100, "dead": false}).All(&result)
+	err := d.userFlowerDataCollection.Find(defaultCfg.Obj{"owner": owner, "hp": 100, "dead": false}).All(&result)
 	return result, err
 }
 
@@ -131,7 +145,7 @@ func (d *DbStruct) EditUserFlower(f structs.Flower) (err error) {
 	if f.ID == 0 {
 		f.ID = ai.Next(d.flowerCollection.Name)
 	}
-	_, err = d.userFlowerDataCollection.Upsert(obj{"_id": f.ID}, obj{"$set": f})
+	_, err = d.userFlowerDataCollection.Upsert(defaultCfg.Obj{"_id": f.ID}, defaultCfg.Obj{"$set": f})
 	return
 }
 
@@ -172,6 +186,6 @@ func (d *DbStruct) UserFlowerSlice(ids []int) (result []structs.Flower, err erro
 	for _, v := range ids {
 		query = append(query, defaultCfg.Obj{"owner": v})
 	}
-	err = d.userFlowerDataCollection.Find(obj{"$and": defaultCfg.Arr{obj{"$or": query}, obj{"dead": false}}}).Select(obj{"owner": 1, "hp": 1}).All(&result)
+	err = d.userFlowerDataCollection.Find(defaultCfg.Obj{"$and": defaultCfg.Arr{defaultCfg.Obj{"$or": query}, defaultCfg.Obj{"dead": false}}}).Select(defaultCfg.Obj{"owner": 1, "hp": 1}).All(&result)
 	return
 }

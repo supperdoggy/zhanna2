@@ -11,24 +11,37 @@ import (
 )
 
 type Service struct {
-	DB     *db.DbStruct
-	Logger *zap.Logger
+	db     db.IDbStruct
+	logger *zap.Logger
+}
+
+type IService interface {
+	GetCard(chatId int) ([]*telebot.Photo, error)
+	GetAndFormPicMessage(id, caption string) (*telebot.Photo, error)
+	ResetDen4ik(id int) (msg string, err error)
 }
 
 var (
 	ErrSessionEnded = errors.New("session ended")
 )
 
+func NewService(logger *zap.Logger, db db.IDbStruct) *Service {
+	return &Service{
+		db:     db,
+		logger: logger,
+	}
+}
+
 func (s Service) GetCard(chatId int) ([]*telebot.Photo, error) {
 	resp, err := communication.GetCard(chatId)
 	if err != nil {
-		s.Logger.Error("error getting card", zap.Error(err), zap.Int("chat_id", chatId))
+		s.logger.Error("error getting card", zap.Error(err), zap.Int("chat_id", chatId))
 		return nil, err
 	}
 	if resp.SessionIsNew {
-		logo, rules, err := s.DB.GetLogoAndRules()
+		logo, rules, err := s.db.GetLogoAndRules()
 		if err != nil {
-			s.Logger.Error("error getting logo and rules", zap.Error(err), zap.Int("chat_id", chatId))
+			s.logger.Error("error getting logo and rules", zap.Error(err), zap.Int("chat_id", chatId))
 			return nil, err
 		}
 		// turn pic type to telebot.Photo type
@@ -46,7 +59,7 @@ func (s Service) GetCard(chatId int) ([]*telebot.Photo, error) {
 	caption := localization.GetLoc(resp.Card.Value + "_card")
 	pic, err := s.GetAndFormPicMessage(cardID, caption)
 	if err != nil {
-		s.Logger.Error("error getting and forming pic message",
+		s.logger.Error("error getting and forming pic message",
 			zap.Error(err),
 			zap.Int("chat_id", chatId),
 			zap.String("card_id", cardID),
@@ -57,9 +70,9 @@ func (s Service) GetCard(chatId int) ([]*telebot.Photo, error) {
 }
 
 func (s Service) GetAndFormPicMessage(id, caption string) (*telebot.Photo, error) {
-	p, err := s.DB.GetPicFromDB(id)
+	p, err := s.db.GetPicFromDB(id)
 	if err != nil {
-		s.Logger.Error("error getting card", zap.Error(err), zap.String("chat_id", id))
+		s.logger.Error("error getting card", zap.Error(err), zap.String("chat_id", id))
 		return nil, err
 	}
 	photo := telebot.Photo{
@@ -89,11 +102,11 @@ func (s Service) adjustSuit(suit string) string {
 func (s Service) ResetDen4ik(id int) (msg string, err error) {
 	resp, err := communication.ResetDen4ik(id)
 	if err != nil {
-		s.Logger.Error("error resetting den4ik", zap.Error(err), zap.Int("id", id))
+		s.logger.Error("error resetting den4ik", zap.Error(err), zap.Int("id", id))
 		return "", err
 	}
 	if !resp.OK {
-		s.Logger.Error("got error in response", zap.String("error", resp.Err), zap.Int("id", id))
+		s.logger.Error("got error in response", zap.String("error", resp.Err), zap.Int("id", id))
 		return "", errors.New(resp.Err)
 	}
 
