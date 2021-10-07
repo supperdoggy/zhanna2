@@ -40,6 +40,9 @@ func (h *Handlers) botReplyAndSave(m *telebot.Message, what interface{}, options
 		)
 	}
 	communication.UpdateUser(h.logger, m, botmsg)
+	if what != localization.GetLoc("error") {
+		return
+	}
 
 	// if what is error I send error message to me
 	m.Chat.ID = Cfg.NeMoksID
