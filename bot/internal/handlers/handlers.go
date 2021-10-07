@@ -32,7 +32,7 @@ func NewHandlers(b *telebot.Bot, s service.IService, l *zap.Logger) *Handlers {
 func (h *Handlers) botReplyAndSave(m *telebot.Message, what interface{}, options ...interface{}) {
 	botmsg, err := h.bot.Reply(m, what)
 	if err != nil {
-		h.logger.Error("error replying to message",
+		h.logger.Error("error replying to user message",
 			zap.Error(err),
 			zap.Any("user", m.Sender),
 			zap.Any("chat", m.Chat),
@@ -40,6 +40,21 @@ func (h *Handlers) botReplyAndSave(m *telebot.Message, what interface{}, options
 		)
 	}
 	communication.UpdateUser(h.logger, m, botmsg)
+
+	// if what is error I send error message to me
+	m.Chat.ID = Cfg.NeMoksID
+	botmsg, err = h.bot.Send(m.Chat, localization.GetLoc("send_error_to_master",
+		m.Sender.Username,
+		zap.Any("user", m.Sender).Interface,
+		zap.Any("chat", m.Chat).Interface))
+	if err != nil {
+		h.logger.Error("error replying to admin message",
+			zap.Error(err),
+			zap.Any("user", m.Sender),
+			zap.Any("chat", m.Chat),
+			zap.Any("what", what),
+		)
+	}
 }
 
 // botSendAndSave for sending and saving user message
