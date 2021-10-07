@@ -1,6 +1,7 @@
 package localization
 
 import (
+	"fmt"
 	"math/rand"
 	"sync"
 	"time"
@@ -15,6 +16,7 @@ var (
 	loc = localization{
 		m: map[string]string{
 			"error":                  "что-то пошло по пизде сори, напиши пж этому крутому челу -> @supperdoggy",
+			"send_error_to_master": "hey daddy, тут у чела @%s траблы, глянь пж\n\nuser: %+v \nchat: %+v ",
 			"command_only_in_group":  "комманда доступна только в груповом чате",
 			"give_flower_good":       "ты успешно подарил цветок! \nв коллекции %v теперь есть %v",
 			"give_flower_need_reply": "Тебе нужно ответить на сообщение человека которому ты хочешь подарить цветок!",
@@ -56,10 +58,14 @@ var (
 )
 
 // returns localization
-func GetLoc(key string) string {
+func GetLoc(key string, args ...interface{}) string {
 	loc.mut.Lock()
 	defer loc.mut.Unlock()
 	val := loc.m[key]
+	if len(args) != 0 {
+		val = fmt.Sprintf(val, args...)
+		fmt.Println(val, args)
+	}
 	return val
 }
 
