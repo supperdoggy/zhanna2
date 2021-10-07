@@ -166,7 +166,7 @@ func (ah *AdminHandlers) RemoveFlower(m *telebot.Message) {
 	id, err := strconv.Atoi(splitted[1])
 	if err != nil {
 		ah.logger.Error("error converting id", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
-		ah.bot.Reply(m, "error get id, need /removeFlower <id>")
+		ah.bot.Reply(m, localization.GetLoc("remove_flower_need_id"))
 		return
 	}
 
