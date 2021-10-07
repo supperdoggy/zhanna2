@@ -14,7 +14,7 @@ type localization struct {
 var (
 	loc = localization{
 		m: map[string]string{
-			"error":                  "что-то пошло по пизде сори",
+			"error":                  "что-то пошло по пизде сори, напиши пж этому крутому челу -> @supperdoggy",
 			"command_only_in_group":  "комманда доступна только в груповом чате",
 			"give_flower_good":       "ты успешно подарил цветок! \nв коллекции %v теперь есть %v",
 			"give_flower_need_reply": "Тебе нужно ответить на сообщение человека которому ты хочешь подарить цветок!",
@@ -48,6 +48,7 @@ var (
 			"a_card":          "Игрок, который вытянул туз выбирает человека, который сейчас будет пить",
 			"den4ik_game_end": "Карты закончились. Сыграем еще раз?",
 			"reset_ok":        "Ты успешно сбросил сессию игры денчика! Сыграем сначала?",
+			"remove_flower_need_id": "error get id, need /removeFlower <id>",
 		},
 	}
 	// for danet
