@@ -138,7 +138,6 @@ func (h *Handlers) OnTextHandler(m *telebot.Message) {
 	// if chat is not private then user must reply bot to get answer
 	if m.Chat.Type != telebot.ChatPrivate {
 		if !m.IsReply() || m.IsReply() && !(m.ReplyTo.Sender.ID == Cfg.ProdBotID || m.ReplyTo.Sender.ID == Cfg.TestbotId) {
-			h.logger.Error("not reeply")
 			return
 		}
 	}
@@ -187,7 +186,7 @@ func (h *Handlers) GiveOneFlower(m *telebot.Message) {
 		h.botReplyAndSave(m, localization.GetLoc("give_flower_need_reply"))
 		return
 	}
-	receiver := m.Sender
+	receiver := m.ReplyTo.Sender
 
 	var req = usersdata.GiveFlowerReq{
 		Owner:    m.Sender.ID,
