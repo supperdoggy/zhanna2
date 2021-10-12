@@ -27,7 +27,6 @@ func NewAdminHandlers(bot *telebot.Bot, logger *zap.Logger) *AdminHandlers {
 	}
 }
 
-
 // botReplyAndSave for replying and saving user message
 func (h *AdminHandlers) botReplyAndSave(m *telebot.Message, what interface{}, options ...interface{}) {
 	botmsg, err := h.bot.Reply(m, what)

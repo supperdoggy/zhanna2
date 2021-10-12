@@ -201,7 +201,10 @@ func (h *Handlers) GiveOneFlower(m *telebot.Message) {
 		return
 	}
 
-	if resp.Err != "" {
+	if resp.Err == "user has no flowers" {
+		h.botReplyAndSave(m, localization.GetLoc("user_has_no_flowers"))
+		return
+	} else if resp.Err != "" {
 		h.logger.Error("got error from users", zap.String("error", resp.Err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
 		h.botReplyAndSave(m, localization.GetLoc("error"))
 		return
