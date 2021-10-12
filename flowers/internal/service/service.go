@@ -90,8 +90,6 @@ func (s *Service) GrowFlower(req flowersdata.GrowFlowerReq) (resp flowersdata.Gr
 			return
 		}
 		flower.Owner = req.ID
-		flower.Grew = uint8(rand.Intn(31)) + 1 // so its not possible to get 0
-		flower.HP += flower.Grew
 	}
 
 	// check if flower died
@@ -124,8 +122,10 @@ func (s *Service) GrowFlower(req flowersdata.GrowFlowerReq) (resp flowersdata.Gr
 	if extraGrow > 20 {
 		extraGrow = 20
 	}
-	flower.Grew = uint8(rand.Intn(31) + extraGrow)
-	flower.HP += flower.Grew
+
+	grew := rand.Intn(31) + 1
+	flower.Grew = uint8(grew + extraGrow)
+	flower.HP += uint8(grew + extraGrow)
 
 	if flower.HP > 100 {
 		flower.HP = 100
