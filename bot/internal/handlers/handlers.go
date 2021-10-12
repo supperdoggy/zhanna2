@@ -90,7 +90,9 @@ func (h *Handlers) FortuneCookie(m *telebot.Message) {
 		return
 	}
 	msg := resp.Fortune.Text
-	if resp.Err != "" {
+	if resp.Err == "Попробуй завтра!" {
+		msg = localization.GetLoc("fortune", resp.Err, resp.Fortune.Text)
+	} else if resp.Err != "" {
 		msg = localization.GetLoc("error")
 	}
 

@@ -65,7 +65,6 @@ func GetLoc(key string, args ...interface{}) string {
 	val := loc.m[key]
 	if len(args) != 0 {
 		val = fmt.Sprintf(val, args...)
-		fmt.Println(val, args)
 	}
 	return val
 }
