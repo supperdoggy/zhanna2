@@ -91,7 +91,7 @@ func (h *Handlers) FortuneCookie(m *telebot.Message) {
 	}
 	msg := resp.Fortune.Text
 	if resp.Err != "" {
-		msg = fmt.Sprintf(localization.GetLoc("fortune"), resp.Err, resp.Fortune.Text)
+		msg = localization.GetLoc("error")
 	}
 
 	h.botReplyAndSave(m, msg)
@@ -182,7 +182,7 @@ func (h *Handlers) MyFlowers(m *telebot.Message) {
 }
 
 func (h *Handlers) GiveOneFlower(m *telebot.Message) {
-	if !m.IsReply() {
+	if !m.IsReply() || m.ReplyTo.Sender.ID == m.Sender.ID {
 		h.botReplyAndSave(m, localization.GetLoc("give_flower_need_reply"))
 		return
 	}
