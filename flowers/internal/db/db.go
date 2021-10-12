@@ -132,7 +132,7 @@ func (d *DbStruct) GetUserFlowerById(id uint64) (structs.Flower, error) {
 
 func (d *DbStruct) GetAllUserFlowers(owner int) ([]structs.Flower, error) {
 	var result []structs.Flower
-	err := d.userFlowerDataCollection.Find(defaultCfg.Obj{"owner": owner, "hp": 100, "dead": false}).All(&result)
+	err := d.userFlowerDataCollection.Find(defaultCfg.Obj{"owner": owner, "hp": 100, "dead": false}).Sort("lastTimeGrow").All(&result)
 	return result, err
 }
 
