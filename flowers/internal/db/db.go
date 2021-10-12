@@ -39,6 +39,7 @@ type (
 		GetRandomID() uint64
 		UserFlowerSlice(ids []int) (result []structs.Flower, err error)
 		removeIDFromCache(val uint64) error
+		GetUserFlowerDataCollection() *mgo.Collection
 	}
 )
 
@@ -67,6 +68,10 @@ func NewDB(logger *zap.Logger, url, dbName, userFlowerDataCollection, flowerColl
 	}
 	DB.mut.Unlock()
 	return &DB
+}
+
+func (d *DbStruct) GetUserFlowerDataCollection() *mgo.Collection {
+	return d.userFlowerDataCollection
 }
 
 func (d *DbStruct) AddFlower(f structs.Flower) (err error) {
@@ -142,9 +147,6 @@ func (d *DbStruct) RemoveUserFlower(cryteria defaultCfg.Obj) error {
 
 // edit user flower
 func (d *DbStruct) EditUserFlower(f structs.Flower) (err error) {
-	if f.ID == 0 {
-		f.ID = ai.Next(d.flowerCollection.Name)
-	}
 	_, err = d.userFlowerDataCollection.Upsert(defaultCfg.Obj{"_id": f.ID}, defaultCfg.Obj{"$set": f})
 	return
 }
