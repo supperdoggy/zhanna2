@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	ai "github.com/night-codes/mgo-ai"
 	"github.com/supperdoggy/superSecretDevelopement/flowers/internal/db"
 	"github.com/supperdoggy/superSecretDevelopement/structs"
 	defaultCfg "github.com/supperdoggy/superSecretDevelopement/structs/request/default"
@@ -90,6 +91,8 @@ func (s *Service) GrowFlower(req flowersdata.GrowFlowerReq) (resp flowersdata.Gr
 			return
 		}
 		flower.Owner = req.ID
+		flower.CreationTime = time.Now()
+		flower.ID = ai.Next(s.db.GetUserFlowerDataCollection().Name)
 	}
 
 	// check if flower died

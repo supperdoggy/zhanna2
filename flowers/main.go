@@ -1,6 +1,7 @@
 package main
 
 import (
+	ai "github.com/night-codes/mgo-ai"
 	"github.com/supperdoggy/superSecretDevelopement/flowers/internal/db"
 	handlers2 "github.com/supperdoggy/superSecretDevelopement/flowers/internal/handlers"
 	"github.com/supperdoggy/superSecretDevelopement/flowers/internal/service"
@@ -18,6 +19,8 @@ func main() {
 	DB := db.NewDB(logger, "", cfg.DBName, cfg.UserFlowerDataCollection, cfg.FlowerCollection)
 	Service := service.NewService(DB, logger)
 	Handlers := handlers2.NewHandlers(Service, logger)
+
+	ai.Connect(DB.GetUserFlowerDataCollection())
 
 	apiv1 := r.Group(defaultCfg.ApiV1)
 	{
