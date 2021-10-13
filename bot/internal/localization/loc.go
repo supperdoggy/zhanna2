@@ -16,7 +16,7 @@ var (
 	loc = localization{
 		m: map[string]string{
 			"error":                  "что-то пошло по пизде сори, напиши пж этому крутому челу -> @supperdoggy",
-			"send_error_to_master":   "hey daddy, тут у чела @%s траблы, глянь пж\n\nuser: %+v \nchat: %+v ",
+			"send_error_to_master":   "hey daddy, тут у чела @%s траблы, глянь пж\n\nuser: %+v \n\nchat: %+v \n\noptions: %+v",
 			"command_only_in_group":  "комманда доступна только в груповом чате",
 			"give_flower_good":       "ты успешно подарил цветок! \nв коллекции %v теперь есть %v",
 			"give_flower_need_reply": "Тебе нужно ответить на сообщение человека которому ты хочешь подарить цветок!",
