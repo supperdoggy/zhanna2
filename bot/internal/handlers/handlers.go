@@ -12,12 +12,14 @@ import (
 	"gopkg.in/mgo.v2"
 	"gopkg.in/night-codes/types.v1"
 	"gopkg.in/tucnak/telebot.v2"
+	"sync"
 )
 
 type Handlers struct {
 	bot     *telebot.Bot
 	service service.IService
 	logger  *zap.Logger
+	mut sync.Mutex // really quick fix for the flower grow exploit
 }
 
 func NewHandlers(b *telebot.Bot, s service.IService, l *zap.Logger) *Handlers {
@@ -125,8 +127,11 @@ func (h *Handlers) Tost(m *telebot.Message) {
 	h.botReplyAndSave(m, resp.Text)
 }
 
-// todo onion architecture here
 func (h *Handlers) Flower(m *telebot.Message) {
+	// there was a bug when you spam /flower you grow flowers without timeout, so i added mutex for this
+	h.mut.Lock()
+	defer h.mut.Unlock()
+
 	replymsg, err := communication.MakeFlowerReq(m.Sender.ID, m.Chat.ID)
 	if err != nil {
 		h.logger.Error("Error making request to flower", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
