@@ -2,6 +2,7 @@ package main
 
 import (
 	admin_handlers2 "github.com/supperdoggy/superSecretDevelopement/bot/internal/admin_handlers"
+	"github.com/supperdoggy/superSecretDevelopement/bot/internal/config"
 	"github.com/supperdoggy/superSecretDevelopement/bot/internal/db"
 	handlers2 "github.com/supperdoggy/superSecretDevelopement/bot/internal/handlers"
 	"github.com/supperdoggy/superSecretDevelopement/bot/internal/service"
@@ -18,9 +19,10 @@ var (
 
 func main() {
 	logger, _ := zap.NewDevelopment()
+	conf := config.GetConfig(logger)
 	timeout := time.Second
 	bot, err = telebot.NewBot(telebot.Settings{
-		Token:  prodToken,
+		Token:  conf.Token,
 		Poller: &telebot.LongPoller{Timeout: timeout},
 	})
 	if err != nil {
