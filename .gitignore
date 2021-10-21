@@ -13,3 +13,5 @@ bot/secrets.go
 dialogflow/creds.json
 dialogflow/mystical-app-268910-cfd510cf88f3.json
 aneks/.DS_Store
+bot/testbot.sh
+bot/prodbot.sh
