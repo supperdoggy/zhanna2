@@ -281,7 +281,7 @@ func (h *Handlers) InlineHandler(q *telebot.Query) {
 	results := make(telebot.Results, len(resp.Flowers)) // []tb.Result
 	for i, v := range resp.Flowers {
 		result := &telebot.ArticleResult{
-			Title: v.NameAndIcon + " " + types.String(v.Amount) + "шт",
+			Title: fmt.Sprintf("%s %vшт", v.NameAndIcon, v.Amount),
 			Text: fmt.Sprintf("%s %s",Cfg.GiveFlowerCommend, v.Name),
 		}
 
