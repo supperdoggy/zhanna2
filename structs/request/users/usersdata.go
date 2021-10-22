@@ -1,6 +1,9 @@
 package usersdata
 
-import "github.com/supperdoggy/superSecretDevelopement/structs"
+import (
+	"github.com/supperdoggy/superSecretDevelopement/structs"
+	flowersdata "github.com/supperdoggy/superSecretDevelopement/structs/request/flowers"
+)
 
 // admin handlers requests
 
@@ -116,15 +119,12 @@ type MyFlowersReq struct {
 }
 
 type MyFlowersResp struct {
-	Flowers []struct {
-		NameAndIcon string `json:"name_and_icon"`
-		Name        string `json:"name"`
-		Amount      int    `json:"amount"`
-	} `json:"flowers"`
+	Flowers []flowersdata.ShortFlowersStruct`json:"flowers"`
 	Last  uint8  `json:"last"`
 	Total int    `json:"total"`
 	Err   string `json:"err"`
 }
+
 
 type GiveFlowerReq struct {
 	ID       string `json:"id"`
