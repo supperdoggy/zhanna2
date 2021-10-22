@@ -173,8 +173,8 @@ func (s *Service) GetUserFlowers(req flowersdata.GetUserFlowersReq) (resp flower
 		}
 		resp.Flowers = append(resp.Flowers, struct {
 			NameAndIcon string `json:"name_and_icon"`
-			Name   string `json:"name"`
-			Amount int    `json:"amount"`
+			Name        string `json:"name"`
+			Amount      int    `json:"amount"`
 		}{Name: v.Name, NameAndIcon: v.Icon + " " + v.Name, Amount: count[v.Name+v.Icon]})
 		types[v.Name+v.Icon] = false
 	}

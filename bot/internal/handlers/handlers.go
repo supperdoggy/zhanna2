@@ -20,7 +20,7 @@ type Handlers struct {
 	bot     *telebot.Bot
 	service service.IService
 	logger  *zap.Logger
-	mut sync.Mutex // really quick fix for the flower grow exploit
+	mut     sync.Mutex // really quick fix for the flower grow exploit
 }
 
 func NewHandlers(b *telebot.Bot, s service.IService, l *zap.Logger) *Handlers {
@@ -237,7 +237,7 @@ func (h *Handlers) GiveFlower(m *telebot.Message) {
 	var req = usersdata.GiveFlowerReq{
 		Owner:    m.Sender.ID,
 		Reciever: receiver.ID,
-		ID: id,
+		ID:       id,
 	}
 	var resp usersdata.GiveFlowerResp
 	err := communication.MakeUserHttpReq(cfg.GiveFlowerURL, req, &resp)
@@ -282,7 +282,7 @@ func (h *Handlers) InlineHandler(q *telebot.Query) {
 	for i, v := range resp.Flowers {
 		result := &telebot.ArticleResult{
 			Title: fmt.Sprintf("%s %vшт", v.NameAndIcon, v.Amount),
-			Text: fmt.Sprintf("%s %s",Cfg.GiveFlowerCommend, v.Name),
+			Text:  fmt.Sprintf("%s %s", Cfg.GiveFlowerCommand, v.Name),
 		}
 
 		results[i] = result
@@ -291,8 +291,8 @@ func (h *Handlers) InlineHandler(q *telebot.Query) {
 	}
 
 	err = h.bot.Answer(q, &telebot.QueryResponse{
-		Results:   results,
-		CacheTime: 1, // a minute
+		Results:    results,
+		CacheTime:  1, // a minute
 		IsPersonal: true,
 	})
 }

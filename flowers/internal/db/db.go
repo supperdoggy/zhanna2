@@ -132,7 +132,7 @@ func (d *DbStruct) CountFlowers(owner int) (total int, err error) {
 
 func (d *DbStruct) GetUserFlowerByName(owner int, name string) (structs.Flower, error) {
 	var f structs.Flower
-	err := d.userFlowerDataCollection.Find(defaultCfg.Obj{"owner":owner, "name": name}).One(&f)
+	err := d.userFlowerDataCollection.Find(defaultCfg.Obj{"owner": owner, "name": name}).One(&f)
 	return f, err
 }
 
@@ -145,7 +145,7 @@ func (d *DbStruct) GetAllUserFlowers(owner int) ([]structs.Flower, error) {
 func (d *DbStruct) GetLastUserFlower(owner int) (structs.Flower, error) {
 	// getting flowers
 	flowers, err := d.GetAllUserFlowers(owner)
-	if err != nil || len(flowers) == 0{ // if has no flower
+	if err != nil || len(flowers) == 0 { // if has no flower
 		d.logger.Error("error GetAllUserFlowers", zap.Error(err))
 		return structs.Flower{}, errors.New("user has no flowers")
 	}

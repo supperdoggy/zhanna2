@@ -5,7 +5,6 @@ import (
 	"github.com/sethvargo/go-envconfig"
 	"go.uber.org/zap"
 	"sync"
-
 )
 
 // config - Application config

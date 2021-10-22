@@ -22,12 +22,12 @@ const (
 	FlowerCommand        = "/flower"
 	MyFlowersCommand     = "/myflowers"
 	GiveOneFlowerCommand = "/giveoneflower"
-	GiveFlowerCommend = "/give"
-	FlowerTopCommand  = "/flowertop"
-	DanetCommand      = "/danet"
-	NHIECommand       = "/neverhaveiever"
-	Den4ikGameCommand = "/go"
-	Den4ikGameReset   = "/resetden4ik"
+	GiveFlowerCommand    = "/give"
+	FlowerTopCommand     = "/flowertop"
+	DanetCommand         = "/danet"
+	NHIECommand          = "/neverhaveiever"
+	Den4ikGameCommand    = "/go"
+	Den4ikGameReset      = "/resetden4ik"
 
 	// admin
 
