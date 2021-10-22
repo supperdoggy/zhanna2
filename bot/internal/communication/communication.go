@@ -59,7 +59,6 @@ func MakeUserHttpReq(method string, req, resp interface{}) (err error) {
 
 func UpdateUser(logger *zap.Logger, usermsg, botmsg *telebot.Message) {
 	if usermsg == nil || botmsg == nil {
-		logger.Error("got nil message", zap.Any("user_msg", usermsg), zap.Any("bot_msg", botmsg))
 		return
 	}
 	var req structs.User = structs.User{

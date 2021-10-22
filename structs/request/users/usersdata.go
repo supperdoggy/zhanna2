@@ -117,8 +117,9 @@ type MyFlowersReq struct {
 
 type MyFlowersResp struct {
 	Flowers []struct {
-		Name   string `json:"name"`
-		Amount int    `json:"amount"`
+		NameAndIcon string `json:"name_and_icon"`
+		Name        string `json:"name"`
+		Amount      int    `json:"amount"`
 	} `json:"flowers"`
 	Last  uint8  `json:"last"`
 	Total int    `json:"total"`
@@ -126,7 +127,7 @@ type MyFlowersResp struct {
 }
 
 type GiveFlowerReq struct {
-	ID       uint64 `json:"id"`
+	ID       string `json:"id"`
 	Owner    int    `json:"owner"`
 	Reciever int    `json:"reciever"`
 	// this is check for last or number of lasts

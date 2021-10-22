@@ -15,18 +15,19 @@ const (
 
 	// user
 
-	StartCommand      = "/start"
-	FortuneCommand    = "/fortune"
-	AnekCommand       = "/anek"
-	TostCommand       = "/tost"
-	FlowerCommand     = "/flower"
-	MyFlowersCommand  = "/myflowers"
-	GiveFlowerCommand = "/giveoneflower"
-	FlowerTopCommand  = "/flowertop"
-	DanetCommand      = "/danet"
-	NHIECommand       = "/neverhaveiever"
-	Den4ikGameCommand = "/go"
-	Den4ikGameReset   = "/resetden4ik"
+	StartCommand         = "/start"
+	FortuneCommand       = "/fortune"
+	AnekCommand          = "/anek"
+	TostCommand          = "/tost"
+	FlowerCommand        = "/flower"
+	MyFlowersCommand     = "/myflowers"
+	GiveOneFlowerCommand = "/giveoneflower"
+	GiveFlowerCommand    = "/give"
+	FlowerTopCommand     = "/flowertop"
+	DanetCommand         = "/danet"
+	NHIECommand          = "/neverhaveiever"
+	Den4ikGameCommand    = "/go"
+	Den4ikGameReset      = "/resetden4ik"
 
 	// admin
 

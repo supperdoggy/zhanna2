@@ -370,7 +370,7 @@ func (s *Service) MyFlowers(req usersdata.MyFlowersReq) (resp usersdata.MyFlower
 }
 
 func (s *Service) GiveFlower(req usersdata.GiveFlowerReq) (resp usersdata.GiveFlowerResp, err error) {
-	if req.Owner == 0 || req.Reciever == 0 || !req.Last && req.ID == 0 {
+	if req.Owner == 0 || req.Reciever == 0 || !req.Last && req.ID == "" {
 		resp.Err = "fill all fields"
 		return resp, errors.New(resp.Err)
 	}
@@ -380,7 +380,7 @@ func (s *Service) GiveFlower(req usersdata.GiveFlowerReq) (resp usersdata.GiveFl
 	reqToFlowers.ID = req.ID
 	reqToFlowers.Owner = req.Owner
 	reqToFlowers.Reciever = req.Reciever
-	reqToFlowers.Last = true
+	reqToFlowers.Last = req.Last
 	err = communication.MakeReqToFlowers(flowercfg.GiveFlowerURL, reqToFlowers, &respFromFlowers)
 	if err != nil {
 		s.logger.Error("error making request to flowers", zap.Error(err), zap.Any("request", reqToFlowers))
