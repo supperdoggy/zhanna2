@@ -119,12 +119,11 @@ type MyFlowersReq struct {
 }
 
 type MyFlowersResp struct {
-	Flowers []flowersdata.ShortFlowersStruct`json:"flowers"`
-	Last  uint8  `json:"last"`
-	Total int    `json:"total"`
-	Err   string `json:"err"`
+	Flowers []flowersdata.ShortFlowersStruct `json:"flowers"`
+	Last    uint8                            `json:"last"`
+	Total   int                              `json:"total"`
+	Err     string                           `json:"err"`
 }
-
 
 type GiveFlowerReq struct {
 	ID       string `json:"id"`

@@ -287,7 +287,7 @@ func (h *Handlers) InlineHandler(q *telebot.Query) {
 	searchResults := h.matchQueryWithFlowers(q.Text, &resp.Flowers, inlineResultLimit)
 	if len(searchResults) == 0 {
 		err = h.bot.Answer(q, &telebot.QueryResponse{
-			Results:    telebot.Results{&telebot.ArticleResult{
+			Results: telebot.Results{&telebot.ArticleResult{
 				Title: localization.GetLoc("user_has_no_flower"),
 				Text:  localization.GetLoc("user_has_no_flower"),
 			}},
