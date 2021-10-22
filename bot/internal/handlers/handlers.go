@@ -5,6 +5,7 @@ import (
 	"github.com/supperdoggy/superSecretDevelopement/bot/internal/communication"
 	"github.com/supperdoggy/superSecretDevelopement/bot/internal/localization"
 	service "github.com/supperdoggy/superSecretDevelopement/bot/internal/service"
+	flowersdata "github.com/supperdoggy/superSecretDevelopement/structs/request/flowers"
 	usersdata "github.com/supperdoggy/superSecretDevelopement/structs/request/users"
 	Cfg "github.com/supperdoggy/superSecretDevelopement/structs/services/bot"
 	cfg "github.com/supperdoggy/superSecretDevelopement/structs/services/users"
@@ -12,6 +13,7 @@ import (
 	"gopkg.in/mgo.v2"
 	"gopkg.in/night-codes/types.v1"
 	"gopkg.in/tucnak/telebot.v2"
+	"regexp"
 	"strconv"
 	"sync"
 )
@@ -22,6 +24,8 @@ type Handlers struct {
 	logger  *zap.Logger
 	mut     sync.Mutex // really quick fix for the flower grow exploit
 }
+
+const inlineResultLimit = 50
 
 func NewHandlers(b *telebot.Bot, s service.IService, l *zap.Logger) *Handlers {
 	return &Handlers{
@@ -263,6 +267,8 @@ func (h *Handlers) GiveFlower(m *telebot.Message) {
 }
 
 // InlineHandler - for sending menu options
+// todo okay i'm gonna do a very time consuming and heavy thing
+// todo rewrite this as soon as possible
 func (h *Handlers) InlineHandler(q *telebot.Query) {
 	// getting all user flowers
 	var req = usersdata.MyFlowersReq{ID: q.From.ID}
@@ -278,8 +284,20 @@ func (h *Handlers) InlineHandler(q *telebot.Query) {
 		return
 	}
 
-	results := make(telebot.Results, len(resp.Flowers)) // []tb.Result
-	for i, v := range resp.Flowers {
+	searchResults := h.matchQueryWithFlowers(q.Text, &resp.Flowers, inlineResultLimit)
+	if len(searchResults) == 0 {
+		err = h.bot.Answer(q, &telebot.QueryResponse{
+			Results: telebot.Results{&telebot.ArticleResult{
+				Title: localization.GetLoc("user_has_no_flower"),
+				Text:  localization.GetLoc("user_has_no_flower"),
+			}},
+			CacheTime:  1,
+			IsPersonal: true,
+		})
+	}
+
+	results := make(telebot.Results, len(searchResults)) // []tb.Result
+	for i, v := range searchResults {
 		result := &telebot.ArticleResult{
 			Title: fmt.Sprintf("%s %vшт", v.NameAndIcon, v.Amount),
 			Text:  fmt.Sprintf("%s %s", Cfg.GiveFlowerCommand, v.Name),
@@ -292,9 +310,24 @@ func (h *Handlers) InlineHandler(q *telebot.Query) {
 
 	err = h.bot.Answer(q, &telebot.QueryResponse{
 		Results:    results,
-		CacheTime:  1, // a minute
+		CacheTime:  1,
 		IsPersonal: true,
 	})
+}
+
+func (h *Handlers) matchQueryWithFlowers(query string, flowers *[]flowersdata.ShortFlowersStruct, limit int) []flowersdata.ShortFlowersStruct {
+	matches := []flowersdata.ShortFlowersStruct{}
+	for _, v := range *flowers {
+		match, _ := regexp.MatchString("(?i)"+query, v.Name)
+		if match {
+			if len(matches) != limit {
+				matches = append(matches, v)
+			} else {
+				break
+			}
+		}
+	}
+	return matches
 }
 
 // Flowertop - forms user top by total amount of flowers

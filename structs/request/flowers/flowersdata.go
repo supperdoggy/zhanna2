@@ -39,14 +39,16 @@ type GetUserFlowersReq struct {
 }
 
 type GetUserFlowersResp struct {
-	Flowers []struct {
-		NameAndIcon string `json:"name_and_icon"`
-		Name        string `json:"name"`
-		Amount      int    `json:"amount"`
-	} `json:"flowers"`
-	Total int    `json:"total"`
-	Last  uint8  `json:"last"`
-	Err   string `json:"err"`
+	Flowers []ShortFlowersStruct `json:"flowers"`
+	Total   int                  `json:"total"`
+	Last    uint8                `json:"last"`
+	Err     string               `json:"err"`
+}
+
+type ShortFlowersStruct struct {
+	NameAndIcon string `json:"name_and_icon"`
+	Name        string `json:"name"`
+	Amount      int    `json:"amount"`
 }
 
 type CanGrowFlowerReq struct {
