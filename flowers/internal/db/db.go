@@ -32,7 +32,7 @@ type (
 		GetRandomFlower() (result structs.Flower, err error)
 		GetUserCurrentFlower(owner int) (result structs.Flower, err error)
 		CountFlowers(owner int) (total int, err error)
-		GetUserFlowerById(id uint64) (structs.Flower, error)
+		GetUserFlowerByName(owner int, name string) (structs.Flower, error)
 		GetAllUserFlowers(owner int) ([]structs.Flower, error)
 		RemoveUserFlower(cryteria defaultCfg.Obj) error
 		EditUserFlower(f structs.Flower) (err error)
@@ -40,6 +40,7 @@ type (
 		UserFlowerSlice(ids []int) (result []structs.Flower, err error)
 		removeIDFromCache(val uint64) error
 		GetUserFlowerDataCollection() *mgo.Collection
+		GetLastUserFlower(owner int) (structs.Flower, error)
 	}
 )
 
@@ -129,9 +130,9 @@ func (d *DbStruct) CountFlowers(owner int) (total int, err error) {
 	return
 }
 
-func (d *DbStruct) GetUserFlowerById(id uint64) (structs.Flower, error) {
+func (d *DbStruct) GetUserFlowerByName(owner int, name string) (structs.Flower, error) {
 	var f structs.Flower
-	err := d.userFlowerDataCollection.Find(defaultCfg.Obj{"id": id}).One(&f)
+	err := d.userFlowerDataCollection.Find(defaultCfg.Obj{"owner":owner, "name": name}).One(&f)
 	return f, err
 }
 
@@ -139,6 +140,16 @@ func (d *DbStruct) GetAllUserFlowers(owner int) ([]structs.Flower, error) {
 	var result []structs.Flower
 	err := d.userFlowerDataCollection.Find(defaultCfg.Obj{"owner": owner, "hp": 100, "dead": false}).Sort("lastTimeGrow").All(&result)
 	return result, err
+}
+
+func (d *DbStruct) GetLastUserFlower(owner int) (structs.Flower, error) {
+	// getting flowers
+	flowers, err := d.GetAllUserFlowers(owner)
+	if err != nil || len(flowers) == 0{ // if has no flower
+		d.logger.Error("error GetAllUserFlowers", zap.Error(err))
+		return structs.Flower{}, errors.New("user has no flowers")
+	}
+	return flowers[len(flowers)-1], nil
 }
 
 func (d *DbStruct) RemoveUserFlower(cryteria defaultCfg.Obj) error {

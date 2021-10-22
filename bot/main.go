@@ -42,13 +42,17 @@ func main() {
 	bot.Handle(Cfg.TostCommand, handlers.Tost)
 	bot.Handle(Cfg.FlowerCommand, handlers.Flower)
 	bot.Handle(Cfg.MyFlowersCommand, handlers.MyFlowers)
-	bot.Handle(Cfg.GiveFlowerCommand, handlers.GiveOneFlower)
+	bot.Handle(Cfg.GiveOneFlowerCommand, handlers.GiveOneFlower)
+	bot.Handle(Cfg.GiveFlowerCommend, handlers.GiveFlower)
 	bot.Handle(Cfg.FlowerTopCommand, handlers.Flowertop)
 	bot.Handle(Cfg.DanetCommand, handlers.Danet)
 	bot.Handle(Cfg.NHIECommand, handlers.Neverhaveiever)
-	bot.Handle(telebot.OnText, handlers.OnTextHandler)
 	bot.Handle(Cfg.Den4ikGameCommand, handlers.Den4ikGame)
 	bot.Handle(Cfg.Den4ikGameReset, handlers.ResetDen4ik)
+	// menu with user flowers
+	bot.Handle(telebot.OnQuery, handlers.InlineHandler)
+	// handlers text messages
+	bot.Handle(telebot.OnText, handlers.OnTextHandler)
 
 	// admin handlers
 	bot.Handle(Cfg.AdminHelpCommand, adminHandlers.AdminHelp)

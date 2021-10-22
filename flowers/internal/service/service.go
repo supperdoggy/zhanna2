@@ -172,9 +172,10 @@ func (s *Service) GetUserFlowers(req flowersdata.GetUserFlowersReq) (resp flower
 			continue
 		}
 		resp.Flowers = append(resp.Flowers, struct {
+			NameAndIcon string `json:"name_and_icon"`
 			Name   string `json:"name"`
 			Amount int    `json:"amount"`
-		}{Name: v.Icon + " " + v.Name, Amount: count[v.Name+v.Icon]})
+		}{Name: v.Name, NameAndIcon: v.Icon + " " + v.Name, Amount: count[v.Name+v.Icon]})
 		types[v.Name+v.Icon] = false
 	}
 
@@ -284,7 +285,6 @@ func (s *Service) UserFlowerSlice(req flowersdata.UserFlowerSliceReq) (resp flow
 	return
 }
 
-// TODO: simplify
 func (s *Service) GiveFlower(req flowersdata.GiveFlowerReq) (resp flowersdata.GiveFlowerResp, err error) {
 	if req.Owner == 0 || req.Reciever == 0 {
 		resp.Err = "empty id"
@@ -294,23 +294,14 @@ func (s *Service) GiveFlower(req flowersdata.GiveFlowerReq) (resp flowersdata.Gi
 	var f structs.Flower
 	if req.Last {
 		// getting flowers
-		flowers, err := s.db.GetAllUserFlowers(req.Owner)
-		if err != nil { // if has no flower
-			s.logger.Error("error GetAllUserFlowers", zap.Error(err), zap.Any("req", req))
-
-			resp.Err = "user has no flowers"
-			return resp, errors.New("user has no flowers")
-		}
-		rand.Seed(time.Now().UnixNano())
-		if len(flowers) != 0 {
-			f = flowers[len(flowers)-1]
-		}
+		f, err = s.db.GetLastUserFlower(req.Owner)
 	} else {
-		f, _ = s.db.GetUserFlowerById(req.ID)
+		f, err = s.db.GetUserFlowerByName(req.Owner, req.ID)
 	}
-	if f.ID == 0 {
-		resp.Err = "user has no flowers"
-		return resp, errors.New("user has no flowers")
+
+	if f.ID == 0 || err != nil {
+		resp.Err = err.Error()
+		return resp, errors.New(resp.Err)
 	}
 
 	if req.Reciever == cfg.TestId || req.Reciever == cfg.ProdId {

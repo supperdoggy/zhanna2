@@ -12,6 +12,7 @@ import (
 	"gopkg.in/mgo.v2"
 	"gopkg.in/night-codes/types.v1"
 	"gopkg.in/tucnak/telebot.v2"
+	"strconv"
 	"sync"
 )
 
@@ -144,7 +145,6 @@ func (h *Handlers) Flower(m *telebot.Message) {
 
 // onTextHandler - makes req to python service and gets message from apiai
 func (h *Handlers) OnTextHandler(m *telebot.Message) {
-	// if chat is not private then user must reply bot to get answer
 	if m.Chat.Type != telebot.ChatPrivate {
 		if !m.IsReply() || m.IsReply() && !(m.ReplyTo.Sender.ID == Cfg.ProdBotID || m.ReplyTo.Sender.ID == Cfg.TestbotId) {
 			return
@@ -184,7 +184,7 @@ func (h *Handlers) MyFlowers(m *telebot.Message) {
 
 	var answerstr = fmt.Sprintf(localization.GetLoc("my_flower"), resp.Total, resp.Last)
 	for _, v := range resp.Flowers {
-		answerstr += fmt.Sprintf("%v - %v\n", v.Name, v.Amount)
+		answerstr += fmt.Sprintf("%v - %v\n", v.NameAndIcon, v.Amount)
 	}
 
 	h.botReplyAndSave(m, answerstr)
@@ -223,6 +223,78 @@ func (h *Handlers) GiveOneFlower(m *telebot.Message) {
 		user = receiver.Username
 	}
 	h.botReplyAndSave(m, fmt.Sprintf(localization.GetLoc("give_flower_good"), user, resp.Flower.Name+" "+resp.Flower.Icon))
+}
+
+func (h *Handlers) GiveFlower(m *telebot.Message) {
+	if !m.IsReply() || m.ReplyTo.Sender.ID == m.Sender.ID {
+		h.botReplyAndSave(m, localization.GetLoc("give_flower_instruction"))
+		return
+	}
+	receiver := m.ReplyTo.Sender
+	// getting the flower name from the text
+	// "/give flower_name" -> "flower_name"
+	id := m.Text[6:]
+	var req = usersdata.GiveFlowerReq{
+		Owner:    m.Sender.ID,
+		Reciever: receiver.ID,
+		ID: id,
+	}
+	var resp usersdata.GiveFlowerResp
+	err := communication.MakeUserHttpReq(cfg.GiveFlowerURL, req, &resp)
+	if err != nil {
+		h.logger.Error("Error making request to user", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
+		h.botReplyAndSave(m, localization.GetLoc("error"), err.Error())
+		return
+	}
+
+	if resp.Err == "not found" {
+		h.botReplyAndSave(m, localization.GetLoc("user_has_no_flower"))
+		return
+	} else if resp.Err != "" {
+		h.logger.Error("got error from users", zap.String("error", resp.Err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
+		h.botReplyAndSave(m, localization.GetLoc("error"), resp.Err)
+		return
+	}
+	var user = receiver.FirstName
+	if receiver.Username != "" {
+		user = receiver.Username
+	}
+	h.botReplyAndSave(m, fmt.Sprintf(localization.GetLoc("give_flower_good"), user, resp.Flower.Name+" "+resp.Flower.Icon))
+}
+
+// InlineHandler - for sending menu options
+func (h *Handlers) InlineHandler(q *telebot.Query) {
+	// getting all user flowers
+	var req = usersdata.MyFlowersReq{ID: q.From.ID}
+	var resp usersdata.MyFlowersResp
+	err := communication.MakeUserHttpReq(cfg.MyFlowersURL, req, &resp)
+	if err != nil {
+		h.logger.Error("inline error making request to user", zap.Error(err), zap.Any("query", q))
+		return
+	}
+
+	if resp.Err != "" {
+		h.logger.Error("inline got error in resp", zap.String("error", resp.Err), zap.Any("query", q))
+		return
+	}
+
+	results := make(telebot.Results, len(resp.Flowers)) // []tb.Result
+	for i, v := range resp.Flowers {
+		result := &telebot.ArticleResult{
+			Title: v.NameAndIcon + " " + types.String(v.Amount) + "шт",
+			Text: fmt.Sprintf("%s %s",Cfg.GiveFlowerCommend, v.Name),
+		}
+
+		results[i] = result
+		// needed to set a unique string ID for each result
+		results[i].SetResultID(strconv.Itoa(i))
+	}
+
+	err = h.bot.Answer(q, &telebot.QueryResponse{
+		Results:   results,
+		CacheTime: 1, // a minute
+		IsPersonal: true,
+	})
 }
 
 // Flowertop - forms user top by total amount of flowers

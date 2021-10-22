@@ -40,6 +40,7 @@ type GetUserFlowersReq struct {
 
 type GetUserFlowersResp struct {
 	Flowers []struct {
+		NameAndIcon string `json:"name_and_icon"`
 		Name   string `json:"name"`
 		Amount int    `json:"amount"`
 	} `json:"flowers"`
@@ -102,7 +103,7 @@ type GiveFlowerReq struct {
 	Owner    int    `json:"owner"`
 	Reciever int    `json:"reciever"`
 	Last     bool   `json:"last"`
-	ID       uint64 `json:"id"`
+	ID       string `json:"id"`
 }
 
 type GiveFlowerResp struct {

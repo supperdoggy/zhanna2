@@ -15,13 +15,14 @@ const (
 
 	// user
 
-	StartCommand      = "/start"
-	FortuneCommand    = "/fortune"
-	AnekCommand       = "/anek"
-	TostCommand       = "/tost"
-	FlowerCommand     = "/flower"
-	MyFlowersCommand  = "/myflowers"
-	GiveFlowerCommand = "/giveoneflower"
+	StartCommand         = "/start"
+	FortuneCommand       = "/fortune"
+	AnekCommand          = "/anek"
+	TostCommand          = "/tost"
+	FlowerCommand        = "/flower"
+	MyFlowersCommand     = "/myflowers"
+	GiveOneFlowerCommand = "/giveoneflower"
+	GiveFlowerCommend = "/give"
 	FlowerTopCommand  = "/flowertop"
 	DanetCommand      = "/danet"
 	NHIECommand       = "/neverhaveiever"

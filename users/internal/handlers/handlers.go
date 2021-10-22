@@ -227,8 +227,6 @@ func (h *Handlers) GiveFlower(c *gin.Context) {
 }
 
 // Flowertop - finds all users in chat and forms top users by total flowers
-// TODO Simplify
-// TODO dude rewrite this for the love of god
 func (h *Handlers) Flowertop(c *gin.Context) {
 	var req usersdata.FlowertopReq
 	var resp usersdata.FlowertopResp
