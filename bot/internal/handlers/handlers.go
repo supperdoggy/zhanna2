@@ -294,6 +294,7 @@ func (h *Handlers) InlineHandler(q *telebot.Query) {
 			CacheTime:  1,
 			IsPersonal: true,
 		})
+		return
 	}
 
 	results := make(telebot.Results, len(searchResults)) // []tb.Result
