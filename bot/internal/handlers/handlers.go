@@ -230,7 +230,9 @@ func (h *Handlers) GiveOneFlower(m *telebot.Message) {
 }
 
 func (h *Handlers) GiveFlower(m *telebot.Message) {
-	if !m.IsReply() || m.ReplyTo.Sender.ID == m.Sender.ID {
+	if !m.IsReply() || m.ReplyTo.Sender.ID == m.Sender.ID ||
+			m.Text == fmt.Sprintf("%s@%s", Cfg.GiveFlowerCommand, h.bot.Me.Username) ||
+			m.Text == Cfg.GiveFlowerCommand {
 		h.botReplyAndSave(m, localization.GetLoc("give_flower_instruction"))
 		return
 	}
