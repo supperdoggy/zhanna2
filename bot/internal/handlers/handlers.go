@@ -186,7 +186,7 @@ func (h *Handlers) MyFlowers(m *telebot.Message) {
 		return
 	}
 
-	var answerstr = fmt.Sprintf(localization.GetLoc("my_flower"), resp.Total, resp.Last)
+	var answerstr = localization.GetLoc("my_flower", resp.Total, resp.Last)
 	for _, v := range resp.Flowers {
 		answerstr += fmt.Sprintf("%v - %v\n", v.NameAndIcon, v.Amount)
 	}
@@ -226,7 +226,7 @@ func (h *Handlers) GiveOneFlower(m *telebot.Message) {
 	if receiver.Username != "" {
 		user = receiver.Username
 	}
-	h.botReplyAndSave(m, fmt.Sprintf(localization.GetLoc("give_flower_good"), user, resp.Flower.Name+" "+resp.Flower.Icon))
+	h.botReplyAndSave(m, localization.GetLoc("give_flower_good", user, resp.Flower.Name+" "+resp.Flower.Icon))
 }
 
 func (h *Handlers) GiveFlower(m *telebot.Message) {
@@ -265,7 +265,7 @@ func (h *Handlers) GiveFlower(m *telebot.Message) {
 	if receiver.Username != "" {
 		user = receiver.Username
 	}
-	h.botReplyAndSave(m, fmt.Sprintf(localization.GetLoc("give_flower_good"), user, resp.Flower.Name+" "+resp.Flower.Icon))
+	h.botReplyAndSave(m, localization.GetLoc("give_flower_good", user, resp.Flower.Name+" "+resp.Flower.Icon))
 }
 
 // InlineHandler - for sending menu options
@@ -359,7 +359,7 @@ func (h *Handlers) Flowertop(m *telebot.Message) {
 		return
 	}
 
-	var msg = fmt.Sprintf(localization.GetLoc("chat_top"), m.Chat.FirstName+""+m.Chat.LastName)
+	var msg = localization.GetLoc("chat_top", m.Chat.FirstName+""+m.Chat.LastName)
 	for k, v := range resp.Result {
 		msg += fmt.Sprintf("%v. %v - %v 🌷\n", k+1, v.Username, v.Total)
 	}
