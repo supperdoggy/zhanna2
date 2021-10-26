@@ -194,7 +194,7 @@ func (h *Handlers) MyFlowers(m *telebot.Message) {
 	h.botReplyAndSave(m, answerstr)
 }
 
-func (h *Handlers) GiveOneFlower(m *telebot.Message) {
+func (h *Handlers) GiveLastFlower(m *telebot.Message) {
 	if !m.IsReply() || m.ReplyTo.Sender.ID == m.Sender.ID {
 		h.botReplyAndSave(m, localization.GetLoc("give_flower_need_reply"))
 		return
@@ -231,8 +231,8 @@ func (h *Handlers) GiveOneFlower(m *telebot.Message) {
 
 func (h *Handlers) GiveFlower(m *telebot.Message) {
 	if !m.IsReply() || m.ReplyTo.Sender.ID == m.Sender.ID ||
-			m.Text == fmt.Sprintf("%s@%s", Cfg.GiveFlowerCommand, h.bot.Me.Username) ||
-			m.Text == Cfg.GiveFlowerCommand {
+		m.Text == fmt.Sprintf("%s@%s", Cfg.GiveFlowerCommand, h.bot.Me.Username) ||
+		m.Text == Cfg.GiveFlowerCommand {
 		h.botReplyAndSave(m, localization.GetLoc("give_flower_instruction"))
 		return
 	}

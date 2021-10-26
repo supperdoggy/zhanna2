@@ -42,7 +42,7 @@ func main() {
 	bot.Handle(Cfg.TostCommand, handlers.Tost)
 	bot.Handle(Cfg.FlowerCommand, handlers.Flower)
 	bot.Handle(Cfg.MyFlowersCommand, handlers.MyFlowers)
-	bot.Handle(Cfg.GiveOneFlowerCommand, handlers.GiveOneFlower)
+	bot.Handle(Cfg.GiveLastFlowerCommand, handlers.GiveLastFlower)
 	bot.Handle(Cfg.GiveFlowerCommand, handlers.GiveFlower)
 	bot.Handle(Cfg.FlowerTopCommand, handlers.Flowertop)
 	bot.Handle(Cfg.DanetCommand, handlers.Danet)
