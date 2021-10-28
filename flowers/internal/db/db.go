@@ -160,9 +160,12 @@ func (d *DbStruct) RemoveUserFlower(cryteria defaultCfg.Obj) error {
 	return d.userFlowerDataCollection.Remove(cryteria)
 }
 
-// edit user flower
+// EditUserFlower - using for adding and updating new user flower
 func (d *DbStruct) EditUserFlower(f structs.Flower) (err error) {
 	_, err = d.userFlowerDataCollection.Upsert(defaultCfg.Obj{"_id": f.ID}, defaultCfg.Obj{"$set": f})
+	if mgo.IsDup(err) {
+		return d.EditUserFlower(f)
+	}
 	return
 }
 
