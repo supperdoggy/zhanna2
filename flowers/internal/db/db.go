@@ -75,10 +75,14 @@ func (d *DbStruct) GetUserFlowerDataCollection() *mgo.Collection {
 	return d.userFlowerDataCollection
 }
 
+// AddFlower - adds new flower type
 func (d *DbStruct) AddFlower(f structs.Flower) (err error) {
 	f.ID = ai.Next(d.flowerCollection.Name)
 	err = d.flowerCollection.Insert(f)
-	if err != nil {
+	// check for if err is duplicate error
+	if mgo.IsDup(err) {
+		return d.AddFlower(f)
+	} else if err != nil {
 		return
 	}
 	d.mut.Lock()
