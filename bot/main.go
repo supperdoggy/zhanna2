@@ -59,7 +59,11 @@ func main() {
 		logger.Fatal("error creating bot", zap.Error(err))
 	}
 
-	logger.Info("bot created!", zap.Any("timeout", timeout), zap.Bool("error notify", conf.ErrorAdminNotification))
+	logger.Info("bot created!",
+		zap.Any("timeout", timeout),
+		zap.Bool("error_notify", conf.ErrorAdminNotification),
+		zap.Bool("is_prod", conf.IsProd))
+
 	DB := db.NewDbStruct(logger, "", Cfg.DBName, Cfg.PicCollectionName)
 	Service := *service.NewService(logger, DB)
 	handlers := handlers2.NewHandlers(bot, Service, logger)

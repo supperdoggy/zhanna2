@@ -115,7 +115,8 @@ func MakeHttpReq(path, method string, data []byte) (answer []byte, err error) {
 }
 
 // grow flower
-func MakeFlowerReq(id int, chatId int64) (msg string, err error) {
+// TODO REFACTOR
+func MakeFlowerReq(id int, chatId int64, langcode string) (msg string, err error) {
 	var req = usersdata.FlowerReq{ID: id, NonDying: chatId == int64(Cfg.EdemID)}
 	var resp usersdata.FlowerResp
 
@@ -144,24 +145,24 @@ func MakeFlowerReq(id int, chatId int64) (msg string, err error) {
 	if myflowersResp.Err != "" {
 		return "communiction error", errors.New(myflowersResp.Err)
 	} else {
-		replymsg = fmt.Sprintf(localization.GetLoc("flower_already_have"), myflowersResp.Total, myflowersResp.Last)
+		replymsg = fmt.Sprintf(localization.GetLoc("flower_already_have", langcode), myflowersResp.Total, myflowersResp.Last)
 	}
 
 	if resp.Err == "cant grow flower" {
-		return localization.GetLoc("already_grew_flowers") + replymsg, nil
+		return localization.GetLoc("already_grew_flowers", langcode) + replymsg, nil
 	}
 
 	if resp.Err != "" {
 		return "communication error", err
 	}
 	if resp.Dead {
-		return fmt.Sprintf(localization.GetLoc("flower_died")) + replymsg, nil
+		return fmt.Sprintf(localization.GetLoc("flower_died", langcode)) + replymsg, nil
 	}
 	if resp.HP == 100 {
-		return fmt.Sprintf(localization.GetLoc("flower_grew"), resp.Icon) + replymsg, err
+		return fmt.Sprintf(localization.GetLoc("flower_grew", langcode), resp.Icon) + replymsg, err
 	}
 	if resp.Grew {
-		return fmt.Sprintf(localization.GetLoc("flower_grew_not_fully")+replymsg, resp.Up, resp.Extra), err
+		return fmt.Sprintf(localization.GetLoc("flower_grew_not_fully", langcode)+replymsg, resp.Up, resp.Extra), err
 	}
 	return "its not time, try again later...", err
 }

@@ -11,6 +11,7 @@ import (
 type config struct {
 	Token                  string `env:"BOT_TOKEN,required"`
 	ErrorAdminNotification bool   `env:"ERROR_ADMIN_NOTIFICATION"`
+	IsProd bool `env:"IS_PROD"`
 }
 
 var c config
