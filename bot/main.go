@@ -17,24 +17,7 @@ var (
 	err error
 )
 
-func main() {
-	logger, _ := zap.NewDevelopment()
-	conf := config.GetConfig(logger)
-	timeout := time.Second
-	bot, err = telebot.NewBot(telebot.Settings{
-		Token:  conf.Token,
-		Poller: &telebot.LongPoller{Timeout: timeout},
-	})
-	if err != nil {
-		logger.Fatal("error creating bot", zap.Error(err))
-	}
-
-	logger.Info("bot created!", zap.Any("timeout", timeout))
-	DB := db.NewDbStruct(logger, "", Cfg.DBName, Cfg.PicCollectionName)
-	Service := *service.NewService(logger, DB)
-	handlers := handlers2.NewHandlers(bot, Service, logger)
-	adminHandlers := admin_handlers2.NewAdminHandlers(bot, logger)
-
+func initUserHandlers(bot *telebot.Bot, handlers *handlers2.Handlers) {
 	// handlers
 	bot.Handle(Cfg.StartCommand, handlers.Start)
 	bot.Handle(Cfg.FortuneCommand, handlers.FortuneCookie)
@@ -53,13 +36,37 @@ func main() {
 	bot.Handle(telebot.OnQuery, handlers.InlineHandler)
 	// handlers text messages
 	bot.Handle(telebot.OnText, handlers.OnTextHandler)
+}
 
+func initAdminHandlers(bot *telebot.Bot, adminHandlers *admin_handlers2.AdminHandlers) {
 	// admin handlers
 	bot.Handle(Cfg.AdminHelpCommand, adminHandlers.AdminHelp)
 	bot.Handle(Cfg.AddFlowerCommand, adminHandlers.AddFlower)
 	bot.Handle(Cfg.AdminCommand, adminHandlers.Admin)
 	bot.Handle(Cfg.AllFlowersCommand, adminHandlers.AllFlowers)
 	bot.Handle(Cfg.RemoveFlower, adminHandlers.RemoveFlower)
+}
+
+func main() {
+	logger, _ := zap.NewDevelopment()
+	conf := config.GetConfig(logger)
+	timeout := time.Second
+	bot, err = telebot.NewBot(telebot.Settings{
+		Token:  conf.Token,
+		Poller: &telebot.LongPoller{Timeout: timeout},
+	})
+	if err != nil {
+		logger.Fatal("error creating bot", zap.Error(err))
+	}
+
+	logger.Info("bot created!", zap.Any("timeout", timeout), zap.Bool("error notify", conf.ErrorAdminNotification))
+	DB := db.NewDbStruct(logger, "", Cfg.DBName, Cfg.PicCollectionName)
+	Service := *service.NewService(logger, DB)
+	handlers := handlers2.NewHandlers(bot, Service, logger)
+	adminHandlers := admin_handlers2.NewAdminHandlers(bot, logger)
+
+	initUserHandlers(bot, handlers)
+	initAdminHandlers(bot, adminHandlers)
 
 	bot.Start()
 }

@@ -9,7 +9,8 @@ import (
 
 // config - Application config
 type config struct {
-	Token string `env:"BOT_TOKEN,required"`
+	Token                  string `env:"BOT_TOKEN,required"`
+	ErrorAdminNotification bool   `env:"ERROR_ADMIN_NOTIFICATION"`
 }
 
 var c config

@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 	"github.com/supperdoggy/superSecretDevelopement/bot/internal/communication"
+	"github.com/supperdoggy/superSecretDevelopement/bot/internal/config"
 	"github.com/supperdoggy/superSecretDevelopement/bot/internal/localization"
 	service "github.com/supperdoggy/superSecretDevelopement/bot/internal/service"
 	flowersdata "github.com/supperdoggy/superSecretDevelopement/structs/request/flowers"
@@ -47,9 +48,26 @@ func (h *Handlers) botReplyAndSave(m *telebot.Message, what interface{}, options
 		)
 	}
 	communication.UpdateUser(h.logger, m, botmsg)
+
 	if what != localization.GetLoc("error") {
+		h.logger.Info("handled user request",
+			zap.String("status", "200"),
+			zap.Any("user", m.Sender),
+			zap.Any("message", m.Text),
+			zap.Any("bot response", botmsg.Text))
 		return
 	}
+	h.logger.Info("error handling user request",
+		zap.String("status", "400"),
+		zap.Any("user", m.Sender),
+		zap.Any("message", m.Text),
+		zap.Any("bot response", botmsg.Text))
+
+	if !config.GetConfig(h.logger).ErrorAdminNotification {
+		return
+	}
+
+
 
 	// if what is error I send error message to me
 	m.Chat.ID = Cfg.NeMoksID
