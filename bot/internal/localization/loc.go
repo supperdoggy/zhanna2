@@ -128,7 +128,7 @@ func GetLoc(key string, lang string, args ...interface{}) string {
 // returns string with random agree or disagree
 func GetRandomDanet(lang string) string {
 	// default language is ru
-	if lang != "uk" && lang != "ru" {
+	if _, ok := loc.danet[lang]; !ok {
 		lang = "ru"
 	}
 
