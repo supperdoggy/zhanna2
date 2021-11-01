@@ -109,16 +109,21 @@ var (
 	}
 )
 
+const NoLocalizationError = "No Localization found"
+
 // returns localization
 func GetLoc(key string, lang string, args ...interface{}) string {
 	// default language is ru
-	if lang != "uk" && lang != "ru" {
+	if _, ok := loc.m[lang]; !ok {
 		lang = "ru"
 	}
 
 	loc.mut.Lock()
 	defer loc.mut.Unlock()
-	val := loc.m[lang][key]
+	val, ok := loc.m[lang][key]
+	if !ok {
+		val = NoLocalizationError
+	}
 	if len(args) != 0 {
 		val = fmt.Sprintf(val, args...)
 	}
