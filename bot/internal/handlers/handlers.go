@@ -49,12 +49,13 @@ func (h *Handlers) botReplyAndSave(m *telebot.Message, what interface{}, options
 	}
 	communication.UpdateUser(h.logger, m, botmsg)
 
-	if what != localization.GetLoc("error") {
+	if what != localization.GetLoc("error", m.Sender.LanguageCode) {
 		h.logger.Info("handled user request",
 			zap.String("status", "200"),
 			zap.Any("user", m.Sender),
 			zap.Any("message", m.Text),
 			zap.Any("bot response", botmsg.Text))
+	if what != localization.GetLoc("error", m.Sender.LanguageCode) {
 		return
 	}
 	h.logger.Info("error handling user request",
@@ -72,6 +73,7 @@ func (h *Handlers) botReplyAndSave(m *telebot.Message, what interface{}, options
 	// if what is error I send error message to me
 	m.Chat.ID = Cfg.NeMoksID
 	botmsg, err = h.bot.Send(m.Chat, localization.GetLoc("send_error_to_master",
+		m.Sender.LanguageCode,
 		m.Sender.Username,
 		zap.Any("user", m.Sender).Interface,
 		zap.Any("chat", m.Chat).Interface,
@@ -84,7 +86,7 @@ func (h *Handlers) botReplyAndSave(m *telebot.Message, what interface{}, options
 			zap.Any("what", what),
 		)
 	}
-}
+}}
 
 // botSendAndSave for sending and saving user message
 func (h *Handlers) botSendAndSave(msg *telebot.Message, to telebot.Recipient, what interface{}, options ...interface{}) {
@@ -102,8 +104,9 @@ func (h *Handlers) botSendAndSave(msg *telebot.Message, to telebot.Recipient, wh
 
 // Start - handles /start command and sends text response
 func (h *Handlers) Start(m *telebot.Message) {
+	h.logger.Info("message", zap.Any("message", m.Sender.LanguageCode))
 	// todo: create id checker and answer variations for different users
-	h.botReplyAndSave(m, localization.GetLoc("prod_welcome"))
+	h.botReplyAndSave(m, localization.GetLoc("prod_welcome", m.Sender.LanguageCode))
 }
 
 func (h *Handlers) FortuneCookie(m *telebot.Message) {
@@ -112,14 +115,14 @@ func (h *Handlers) FortuneCookie(m *telebot.Message) {
 	err := communication.MakeUserHttpReq(cfg.GetFortuneURL, req, &resp)
 	if err != nil {
 		h.logger.Error("Error making request to user", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
-		h.botReplyAndSave(m, localization.GetLoc("error"), err.Error())
+		h.botReplyAndSave(m, localization.GetLoc("error", m.Sender.LanguageCode), err.Error())
 		return
 	}
 	msg := resp.Fortune.Text
 	if resp.Err == "Попробуй завтра!" {
-		msg = localization.GetLoc("fortune", resp.Err, resp.Fortune.Text)
+		msg = localization.GetLoc("fortune", m.Sender.LanguageCode, resp.Err, resp.Fortune.Text)
 	} else if resp.Err != "" {
-		msg = localization.GetLoc("error")
+		msg = localization.GetLoc("error", m.Sender.LanguageCode)
 	}
 
 	h.botReplyAndSave(m, msg, resp.Err)
@@ -132,7 +135,7 @@ func (h *Handlers) Anek(m *telebot.Message) {
 	err := communication.MakeUserHttpReq(cfg.GetRandomAnekURL, req, &resp)
 	if err != nil {
 		h.logger.Error("Error making request to user", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
-		h.botReplyAndSave(m, localization.GetLoc("error"), err.Error())
+		h.botReplyAndSave(m, localization.GetLoc("error", m.Sender.LanguageCode), err.Error())
 		return
 	}
 	h.botReplyAndSave(m, resp.Text)
@@ -144,7 +147,7 @@ func (h *Handlers) Tost(m *telebot.Message) {
 	err := communication.MakeUserHttpReq(cfg.GetRandomTostURL, req, &resp)
 	if err != nil {
 		h.logger.Error("Error making request to user", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
-		h.botReplyAndSave(m, localization.GetLoc("error"), err.Error())
+		h.botReplyAndSave(m, localization.GetLoc("error", m.Sender.LanguageCode), err.Error())
 		return
 	}
 	h.botReplyAndSave(m, resp.Text)
@@ -158,7 +161,7 @@ func (h *Handlers) Flower(m *telebot.Message) {
 	replymsg, err := communication.MakeFlowerReq(m.Sender.ID, m.Chat.ID)
 	if err != nil {
 		h.logger.Error("Error making request to flower", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
-		h.botReplyAndSave(m, localization.GetLoc("error"), err.Error())
+		h.botReplyAndSave(m, localization.GetLoc("error", m.Sender.LanguageCode), err.Error())
 		return
 	}
 
@@ -194,17 +197,17 @@ func (h *Handlers) MyFlowers(m *telebot.Message) {
 	err := communication.MakeUserHttpReq(cfg.MyFlowersURL, req, &resp)
 	if err != nil {
 		h.logger.Error("Error making request to user", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
-		h.botReplyAndSave(m, localization.GetLoc("error"), err.Error())
+		h.botReplyAndSave(m, localization.GetLoc("error", m.Sender.LanguageCode), err.Error())
 		return
 	}
 
 	if resp.Err != "" {
 		h.logger.Error("got error in resp", zap.String("error", resp.Err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
-		h.botReplyAndSave(m, localization.GetLoc("error"), resp.Err)
+		h.botReplyAndSave(m, localization.GetLoc("error", m.Sender.LanguageCode), resp.Err)
 		return
 	}
 
-	var answerstr = localization.GetLoc("my_flower", resp.Total, resp.Last)
+	var answerstr = localization.GetLoc("my_flower", m.Sender.LanguageCode, resp.Total, resp.Last)
 	for _, v := range resp.Flowers {
 		answerstr += fmt.Sprintf("%v - %v\n", v.NameAndIcon, v.Amount)
 	}
@@ -214,7 +217,7 @@ func (h *Handlers) MyFlowers(m *telebot.Message) {
 
 func (h *Handlers) GiveLastFlower(m *telebot.Message) {
 	if !m.IsReply() || m.ReplyTo.Sender.ID == m.Sender.ID {
-		h.botReplyAndSave(m, localization.GetLoc("give_flower_need_reply"))
+		h.botReplyAndSave(m, localization.GetLoc("give_flower_need_reply", m.Sender.LanguageCode))
 		return
 	}
 	receiver := m.ReplyTo.Sender
@@ -228,30 +231,30 @@ func (h *Handlers) GiveLastFlower(m *telebot.Message) {
 	err := communication.MakeUserHttpReq(cfg.GiveFlowerURL, req, &resp)
 	if err != nil {
 		h.logger.Error("Error making request to user", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
-		h.botReplyAndSave(m, localization.GetLoc("error"), err.Error())
+		h.botReplyAndSave(m, localization.GetLoc("error", m.Sender.LanguageCode), err.Error())
 		return
 	}
 
 	if resp.Err == "user has no flowers" {
-		h.botReplyAndSave(m, localization.GetLoc("user_has_no_flowers"))
+		h.botReplyAndSave(m, localization.GetLoc("user_has_no_flowers", m.Sender.LanguageCode))
 		return
 	} else if resp.Err != "" {
 		h.logger.Error("got error from users", zap.String("error", resp.Err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
-		h.botReplyAndSave(m, localization.GetLoc("error"), resp.Err)
+		h.botReplyAndSave(m, localization.GetLoc("error", m.Sender.LanguageCode), resp.Err)
 		return
 	}
 	var user = receiver.FirstName
 	if receiver.Username != "" {
 		user = receiver.Username
 	}
-	h.botReplyAndSave(m, localization.GetLoc("give_flower_good", user, resp.Flower.Name+" "+resp.Flower.Icon))
+	h.botReplyAndSave(m, localization.GetLoc("give_flower_good", m.Sender.LanguageCode, user, resp.Flower.Name+" "+resp.Flower.Icon))
 }
 
 func (h *Handlers) GiveFlower(m *telebot.Message) {
 	if !m.IsReply() || m.ReplyTo.Sender.ID == m.Sender.ID ||
 		m.Text == fmt.Sprintf("%s@%s", Cfg.GiveFlowerCommand, h.bot.Me.Username) ||
 		m.Text == Cfg.GiveFlowerCommand {
-		h.botReplyAndSave(m, localization.GetLoc("give_flower_instruction"))
+		h.botReplyAndSave(m, localization.GetLoc("give_flower_instruction", m.Sender.LanguageCode))
 		return
 	}
 	receiver := m.ReplyTo.Sender
@@ -267,23 +270,23 @@ func (h *Handlers) GiveFlower(m *telebot.Message) {
 	err := communication.MakeUserHttpReq(cfg.GiveFlowerURL, req, &resp)
 	if err != nil {
 		h.logger.Error("Error making request to user", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
-		h.botReplyAndSave(m, localization.GetLoc("error"), err.Error())
+		h.botReplyAndSave(m, localization.GetLoc("error", m.Sender.LanguageCode), err.Error())
 		return
 	}
 
 	if resp.Err == "not found" {
-		h.botReplyAndSave(m, localization.GetLoc("user_has_no_flower"))
+		h.botReplyAndSave(m, localization.GetLoc("user_has_no_flower", m.Sender.LanguageCode))
 		return
 	} else if resp.Err != "" {
 		h.logger.Error("got error from users", zap.String("error", resp.Err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
-		h.botReplyAndSave(m, localization.GetLoc("error"), resp.Err)
+		h.botReplyAndSave(m, localization.GetLoc("error", m.Sender.LanguageCode), resp.Err)
 		return
 	}
 	var user = receiver.FirstName
 	if receiver.Username != "" {
 		user = receiver.Username
 	}
-	h.botReplyAndSave(m, localization.GetLoc("give_flower_good", user, resp.Flower.Name+" "+resp.Flower.Icon))
+	h.botReplyAndSave(m, localization.GetLoc("give_flower_good", m.Sender.LanguageCode, user, resp.Flower.Name+" "+resp.Flower.Icon))
 }
 
 // InlineHandler - for sending menu options
@@ -308,8 +311,8 @@ func (h *Handlers) InlineHandler(q *telebot.Query) {
 	if len(searchResults) == 0 {
 		err = h.bot.Answer(q, &telebot.QueryResponse{
 			Results: telebot.Results{&telebot.ArticleResult{
-				Title: localization.GetLoc("user_has_no_flower"),
-				Text:  localization.GetLoc("user_has_no_flower"),
+				Title: localization.GetLoc("user_has_no_flower", q.From.LanguageCode),
+				Text:  localization.GetLoc("user_has_no_flower", q.From.LanguageCode),
 			}},
 			CacheTime:  1,
 			IsPersonal: true,
@@ -356,7 +359,7 @@ func (h *Handlers) matchQueryWithFlowers(query string, flowers *[]flowersdata.Sh
 func (h *Handlers) Flowertop(m *telebot.Message) {
 	// check for private chat
 	if m.Chat.Type == telebot.ChatPrivate {
-		h.botReplyAndSave(m, localization.GetLoc("command_only_in_group"))
+		h.botReplyAndSave(m, localization.GetLoc("command_only_in_group", m.Sender.LanguageCode))
 		return
 	}
 	var req = usersdata.FlowertopReq{ChatId: types.Int(m.Chat.ID)}
@@ -364,7 +367,7 @@ func (h *Handlers) Flowertop(m *telebot.Message) {
 	err := communication.MakeUserHttpReq(cfg.FlowertopURL, req, &resp)
 	if err != nil {
 		h.logger.Error("Error making request to user", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
-		h.botReplyAndSave(m, localization.GetLoc("error"), err.Error())
+		h.botReplyAndSave(m, localization.GetLoc("error", m.Sender.LanguageCode), err.Error())
 		return
 	}
 
@@ -373,11 +376,11 @@ func (h *Handlers) Flowertop(m *telebot.Message) {
 			zap.Any("error", resp.Err),
 			zap.Any("user", m.Sender),
 			zap.Any("chat", m.Chat))
-		h.botReplyAndSave(m, localization.GetLoc("error"), resp.Err)
+		h.botReplyAndSave(m, localization.GetLoc("error", m.Sender.LanguageCode), resp.Err)
 		return
 	}
 
-	var msg = localization.GetLoc("chat_top", m.Chat.FirstName+""+m.Chat.LastName)
+	var msg = localization.GetLoc("chat_top", m.Sender.LanguageCode, m.Chat.FirstName+""+m.Chat.LastName)
 	for k, v := range resp.Result {
 		msg += fmt.Sprintf("%v. %v - %v 🌷\n", k+1, v.Username, v.Total)
 	}
@@ -386,7 +389,7 @@ func (h *Handlers) Flowertop(m *telebot.Message) {
 
 // handler for danet, returns agree or disagree message to user
 func (h *Handlers) Danet(m *telebot.Message) {
-	answer := localization.GetRandomDanet()
+	answer := localization.GetRandomDanet(m.Sender.LanguageCode)
 	h.botReplyAndSave(m, answer)
 }
 
@@ -395,7 +398,7 @@ func (h *Handlers) Neverhaveiever(m *telebot.Message) {
 	err := communication.MakeUserHttpReq(cfg.GetRandomNHIEURL, nil, &resp)
 	if err != nil {
 		h.logger.Error("Error making request to user", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
-		h.botReplyAndSave(m, localization.GetLoc("error"), err.Error())
+		h.botReplyAndSave(m, localization.GetLoc("error", m.Sender.LanguageCode), err.Error())
 		return
 	}
 
@@ -404,7 +407,7 @@ func (h *Handlers) Neverhaveiever(m *telebot.Message) {
 			zap.Any("error", resp.Err),
 			zap.Any("user", m.Sender),
 			zap.Any("chat", m.Chat))
-		h.botReplyAndSave(m, localization.GetLoc("error"), resp.Err)
+		h.botReplyAndSave(m, localization.GetLoc("error", m.Sender.LanguageCode), resp.Err)
 		return
 	}
 	h.botReplyAndSave(m, resp.Result.Text)
@@ -413,11 +416,11 @@ func (h *Handlers) Neverhaveiever(m *telebot.Message) {
 func (h *Handlers) Den4ikGame(m *telebot.Message) {
 	pics, err := h.service.GetCard(int(m.Chat.ID))
 	if err != nil && err != service.ErrSessionEnded {
-		h.botSendAndSave(m, m.Chat, localization.GetLoc("error"), err.Error())
+		h.botSendAndSave(m, m.Chat, localization.GetLoc("error", m.Sender.LanguageCode), err.Error())
 		return
 		// check if session is ended
 	} else if err == service.ErrSessionEnded {
-		h.botSendAndSave(m, m.Chat, localization.GetLoc("den4ik_game_end"))
+		h.botSendAndSave(m, m.Chat, localization.GetLoc("den4ik_game_end", m.Sender.LanguageCode))
 		return
 	}
 	for _, v := range pics {
@@ -429,7 +432,7 @@ func (h *Handlers) ResetDen4ik(m *telebot.Message) {
 	msg, err := h.service.ResetDen4ik(int(m.Chat.ID))
 	if err != nil && err != mgo.ErrNotFound {
 		h.logger.Error("reset den4ik error", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
-		h.botSendAndSave(m, m.Chat, localization.GetLoc("error"), err.Error())
+		h.botSendAndSave(m, m.Chat, localization.GetLoc("error", m.Sender.LanguageCode), err.Error())
 		return
 	}
 	h.botSendAndSave(m, m.Chat, msg)
