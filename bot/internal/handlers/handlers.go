@@ -106,7 +106,11 @@ func (h *Handlers) botSendAndSave(msg *telebot.Message, to telebot.Recipient, wh
 func (h *Handlers) Start(m *telebot.Message) {
 	h.logger.Info("message", zap.Any("message", m.Sender.LanguageCode))
 	// todo: create id checker and answer variations for different users
-	h.botReplyAndSave(m, localization.GetLoc("prod_welcome", m.Sender.LanguageCode))
+	msg := localization.GetLoc("prod_welcome", m.Sender.LanguageCode)
+	if !config.GetConfig(h.logger).IsProd {
+		msg = localization.GetLoc("dev_welcome", m.Sender.LanguageCode)
+	}
+	h.botReplyAndSave(m, msg)
 }
 
 func (h *Handlers) FortuneCookie(m *telebot.Message) {
@@ -247,6 +251,10 @@ func (h *Handlers) GiveLastFlower(m *telebot.Message) {
 	if receiver.Username != "" {
 		user = receiver.Username
 	}
+	if receiver.ID == h.bot.Me.ID {
+		user = localization.GetLoc("zhanna_has_flower", m.Sender.LanguageCode)
+	}
+
 	h.botReplyAndSave(m, localization.GetLoc("give_flower_good", m.Sender.LanguageCode, user, resp.Flower.Name+" "+resp.Flower.Icon))
 }
 
@@ -286,6 +294,11 @@ func (h *Handlers) GiveFlower(m *telebot.Message) {
 	if receiver.Username != "" {
 		user = receiver.Username
 	}
+
+	if receiver.ID == h.bot.Me.ID {
+		user = localization.GetLoc("zhanna_has_flower", m.Sender.LanguageCode)
+	}
+
 	h.botReplyAndSave(m, localization.GetLoc("give_flower_good", m.Sender.LanguageCode, user, resp.Flower.Name+" "+resp.Flower.Icon))
 }
 
