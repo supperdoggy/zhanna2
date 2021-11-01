@@ -56,14 +56,15 @@ func (s Service) GetCard(chatId int, langcode string) ([]*telebot.Photo, error) 
 	}
 
 	cardID := resp.Card.Value + "_" + s.adjustSuit(resp.Card.Suit)
-	caption := localization.GetLoc(resp.Card.Value + "_card", langcode)
+	caption := localization.GetLoc(resp.Card.Value + "_card", "ru")
 	pic, err := s.GetAndFormPicMessage(cardID, caption)
 	if err != nil {
 		s.logger.Error("error getting and forming pic message",
 			zap.Error(err),
 			zap.Int("chat_id", chatId),
 			zap.String("card_id", cardID),
-			zap.String("caprion", caption))
+			zap.String("caprion", caption),
+			zap.String("lang", langcode))
 		return nil, err
 	}
 	return []*telebot.Photo{pic}, nil

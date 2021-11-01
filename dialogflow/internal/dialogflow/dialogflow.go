@@ -22,7 +22,7 @@ var DF Dialogflow
 
 func init() {
 	logger, _ := zap.NewDevelopment()
-	os.Setenv("GOOGLE_APPLICATION_CREDENTIALS", cfg.ProdServerCreds)
+	os.Setenv("GOOGLE_APPLICATION_CREDENTIALS", cfg.WorkCreds)
 
 	sessionClient, err := dialogflow.NewSessionsClient(context.Background())
 	if err != nil {
