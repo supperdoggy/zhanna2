@@ -111,7 +111,7 @@ var (
 
 const NoLocalizationError = "No Localization found"
 
-// returns localization
+// returns localization by lang and key
 func GetLoc(key string, lang string, args ...interface{}) string {
 	// default language is ru
 	if _, ok := loc.m[lang]; !ok {
