@@ -1,10 +1,51 @@
 Wip: documentation
+#Жанночка бот v2
+Изначально задумывалась как киберверсия жанночки, с возможностью получать гороскопы
+и предлагать что выпить, потом мы повернули куда-то не туда и вот мы здесь
 
-#Release
-Build binary with deploy.sh and then use scp to deploy it to the server
+Написана она полностью на Golang с использованием базы данных mongo. Изначально вообще была
+написана на питоне без бд, с ипользованием json файлов для каждого пользователя)). У меня есть
+репозиторий первой версии поэтому можете сравнить мой прогресс в написании и построении кода.
 
-` command tip:
-scp file root@ip:/root/
-`
+Конечно еще многое осталось сделать и доделать, но я никуда не спешу, а если есть желание помочь,
+то я всегда только за!
 
-##In the future, I will update these shell scripts to deploy with just 1 command
+Ваш покорный первый и единственный владыка кибержанночки, Не Мокс
+
+##Жанночка держится на 9 ~~слонах~~ микро(не совсем)сервисах
+- users 
+- bot
+- aneks
+- tost
+- flowers
+- dialogflow
+- den4ik
+- fortune cookies
+- never have i ever
+
+## Перечень доступных команд для Жанночки
+- /start
+- /fortune
+- /anek
+- /tost
+- /flower
+- /myflowers
+- /givelastflower
+- /give
+- /flowertop
+- /danet
+- /neverhaveiever
+- /go
+- /resetden4ik
+
+
+  // admin
+
+- /adminHelp
+- /addFlower
+- /admin
+- /allFlowers
+- /removeFlower
+
+###TODO: детальное описание команд и сервисов
+
