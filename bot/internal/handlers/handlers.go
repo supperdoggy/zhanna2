@@ -48,7 +48,6 @@ func (h *Handlers) botReplyAndSave(m *telebot.Message, what interface{}, options
 		)
 	}
 	communication.UpdateUser(h.logger, m, botmsg)
-<<<<<<< HEAD
 
 	if what != localization.GetLoc("error", m.Sender.LanguageCode) {
 		h.logger.Info("handled user request",
@@ -56,12 +55,9 @@ func (h *Handlers) botReplyAndSave(m *telebot.Message, what interface{}, options
 			zap.Any("user", m.Sender),
 			zap.Any("message", m.Text),
 			zap.Any("bot response", botmsg.Text))
-	if what != localization.GetLoc("error", m.Sender.LanguageCode) {
-=======
-	if what != localization.GetLoc("error", m.Sender.LanguageCode) || !config.GetConfig(h.logger).ErrorAdminNotification {
->>>>>>> 723ddf2 (now it works like a clock)
 		return
 	}
+
 	h.logger.Info("error handling user request",
 		zap.String("status", "400"),
 		zap.Any("user", m.Sender),
@@ -90,7 +86,7 @@ func (h *Handlers) botReplyAndSave(m *telebot.Message, what interface{}, options
 			zap.Any("what", what),
 		)
 	}
-}}
+}
 
 // botSendAndSave for sending and saving user message
 func (h *Handlers) botSendAndSave(msg *telebot.Message, to telebot.Recipient, what interface{}, options ...interface{}) {
