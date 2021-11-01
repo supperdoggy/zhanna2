@@ -73,7 +73,7 @@ func (h *Handlers) botReplyAndSave(m *telebot.Message, what interface{}, options
 	// if what is error I send error message to me
 	m.Chat.ID = Cfg.NeMoksID
 	botmsg, err = h.bot.Send(m.Chat, localization.GetLoc("send_error_to_master",
-		m.Sender.LanguageCode,
+		"ru",
 		m.Sender.Username,
 		zap.Any("user", m.Sender).Interface,
 		zap.Any("chat", m.Chat).Interface,
