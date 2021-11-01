@@ -16,9 +16,9 @@ type Service struct {
 }
 
 type IService interface {
-	GetCard(chatId int) ([]*telebot.Photo, error)
+	GetCard(chatId int, langcode string) ([]*telebot.Photo, error)
 	GetAndFormPicMessage(id, caption string) (*telebot.Photo, error)
-	ResetDen4ik(id int) (msg string, err error)
+	ResetDen4ik(id int, langcode string) (msg string, err error)
 }
 
 var (
@@ -32,7 +32,7 @@ func NewService(logger *zap.Logger, db db.IDbStruct) *Service {
 	}
 }
 
-func (s Service) GetCard(chatId int) ([]*telebot.Photo, error) {
+func (s Service) GetCard(chatId int, langcode string) ([]*telebot.Photo, error) {
 	resp, err := communication.GetCard(chatId)
 	if err != nil {
 		s.logger.Error("error getting card", zap.Error(err), zap.Int("chat_id", chatId))
@@ -56,7 +56,7 @@ func (s Service) GetCard(chatId int) ([]*telebot.Photo, error) {
 	}
 
 	cardID := resp.Card.Value + "_" + s.adjustSuit(resp.Card.Suit)
-	caption := localization.GetLoc(resp.Card.Value + "_card")
+	caption := localization.GetLoc(resp.Card.Value + "_card", langcode)
 	pic, err := s.GetAndFormPicMessage(cardID, caption)
 	if err != nil {
 		s.logger.Error("error getting and forming pic message",
@@ -99,7 +99,7 @@ func (s Service) adjustSuit(suit string) string {
 	return suit
 }
 
-func (s Service) ResetDen4ik(id int) (msg string, err error) {
+func (s Service) ResetDen4ik(id int, langcode string) (msg string, err error) {
 	resp, err := communication.ResetDen4ik(id)
 	if err != nil {
 		s.logger.Error("error resetting den4ik", zap.Error(err), zap.Int("id", id))
@@ -110,5 +110,5 @@ func (s Service) ResetDen4ik(id int) (msg string, err error) {
 		return "", errors.New(resp.Err)
 	}
 
-	return localization.GetLoc("reset_ok"), nil
+	return localization.GetLoc("reset_ok", langcode), nil
 }

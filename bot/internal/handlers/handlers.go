@@ -48,6 +48,7 @@ func (h *Handlers) botReplyAndSave(m *telebot.Message, what interface{}, options
 		)
 	}
 	communication.UpdateUser(h.logger, m, botmsg)
+<<<<<<< HEAD
 
 	if what != localization.GetLoc("error", m.Sender.LanguageCode) {
 		h.logger.Info("handled user request",
@@ -56,6 +57,9 @@ func (h *Handlers) botReplyAndSave(m *telebot.Message, what interface{}, options
 			zap.Any("message", m.Text),
 			zap.Any("bot response", botmsg.Text))
 	if what != localization.GetLoc("error", m.Sender.LanguageCode) {
+=======
+	if what != localization.GetLoc("error", m.Sender.LanguageCode) || !config.GetConfig(h.logger).ErrorAdminNotification {
+>>>>>>> 723ddf2 (now it works like a clock)
 		return
 	}
 	h.logger.Info("error handling user request",
@@ -158,7 +162,7 @@ func (h *Handlers) Flower(m *telebot.Message) {
 	h.mut.Lock()
 	defer h.mut.Unlock()
 
-	replymsg, err := communication.MakeFlowerReq(m.Sender.ID, m.Chat.ID)
+	replymsg, err := communication.MakeFlowerReq(m.Sender.ID, m.Chat.ID, m.Sender.LanguageCode)
 	if err != nil {
 		h.logger.Error("Error making request to flower", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
 		h.botReplyAndSave(m, localization.GetLoc("error", m.Sender.LanguageCode), err.Error())
@@ -171,7 +175,7 @@ func (h *Handlers) Flower(m *telebot.Message) {
 // onTextHandler - makes req to python service and gets message from apiai
 func (h *Handlers) OnTextHandler(m *telebot.Message) {
 	if m.Chat.Type != telebot.ChatPrivate {
-		if !m.IsReply() || m.IsReply() && !(m.ReplyTo.Sender.ID == Cfg.ProdBotID || m.ReplyTo.Sender.ID == Cfg.TestbotId) {
+		if !m.IsReply() || m.IsReply() && !(m.ReplyTo.Sender.ID == h.bot.Me.ID) {
 			return
 		}
 	}
@@ -414,7 +418,7 @@ func (h *Handlers) Neverhaveiever(m *telebot.Message) {
 }
 
 func (h *Handlers) Den4ikGame(m *telebot.Message) {
-	pics, err := h.service.GetCard(int(m.Chat.ID))
+	pics, err := h.service.GetCard(int(m.Chat.ID), m.Sender.LanguageCode)
 	if err != nil && err != service.ErrSessionEnded {
 		h.botSendAndSave(m, m.Chat, localization.GetLoc("error", m.Sender.LanguageCode), err.Error())
 		return
@@ -429,7 +433,7 @@ func (h *Handlers) Den4ikGame(m *telebot.Message) {
 }
 
 func (h *Handlers) ResetDen4ik(m *telebot.Message) {
-	msg, err := h.service.ResetDen4ik(int(m.Chat.ID))
+	msg, err := h.service.ResetDen4ik(int(m.Chat.ID), m.Sender.LanguageCode)
 	if err != nil && err != mgo.ErrNotFound {
 		h.logger.Error("reset den4ik error", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
 		h.botSendAndSave(m, m.Chat, localization.GetLoc("error", m.Sender.LanguageCode), err.Error())

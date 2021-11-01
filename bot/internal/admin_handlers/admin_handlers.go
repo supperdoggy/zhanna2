@@ -57,24 +57,24 @@ func (h *AdminHandlers) botSendAndSave(msg *telebot.Message, to telebot.Recipien
 
 func (ah *AdminHandlers) AdminHelp(m *telebot.Message) {
 	if admin, err := ah.CheckAdmin(m.Sender.ID); !admin || err != nil {
-		ah.botReplyAndSave(m, localization.GetLoc("not_admin"))
+		ah.botReplyAndSave(m, localization.GetLoc("not_admin", m.Sender.LanguageCode))
 		return
 	}
 
-	text := localization.GetLoc("admin_help")
+	text := localization.GetLoc("admin_help", m.Sender.LanguageCode)
 	ah.botReplyAndSave(m, text)
 }
 
 // addFlower - adds new flower type
 func (ah *AdminHandlers) AddFlower(m *telebot.Message) {
 	if admin, err := ah.CheckAdmin(m.Sender.ID); !admin || err != nil {
-		ah.botReplyAndSave(m, localization.GetLoc("not_admin"))
+		ah.botReplyAndSave(m, localization.GetLoc("not_admin", m.Sender.LanguageCode))
 		return
 	}
 
 	text := strings.Split(m.Text[11:], "-")
 	if len(text) != 3 {
-		ah.botReplyAndSave(m, localization.GetLoc("add_flower"))
+		ah.botReplyAndSave(m, localization.GetLoc("add_flower", m.Sender.LanguageCode))
 		return
 	}
 
@@ -87,13 +87,13 @@ func (ah *AdminHandlers) AddFlower(m *telebot.Message) {
 	err := communication.MakeUserHttpReq(cfg.AddFlowerURL, req, &resp)
 	if err != nil {
 		ah.logger.Error("Error making request to user", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
-		ah.botReplyAndSave(m, localization.GetLoc("error"))
+		ah.botReplyAndSave(m, localization.GetLoc("error", m.Sender.LanguageCode))
 		return
 	}
 
-	var msg string = localization.GetLoc("done")
+	var msg string = localization.GetLoc("done", m.Sender.LanguageCode)
 	if !resp.OK {
-		msg = fmt.Sprintf("%s - %s", localization.GetLoc("error"), resp.Err)
+		msg = fmt.Sprintf("%s - %s", localization.GetLoc("error", m.Sender.LanguageCode), resp.Err)
 	}
 
 	ah.botReplyAndSave(m, msg)
@@ -101,11 +101,11 @@ func (ah *AdminHandlers) AddFlower(m *telebot.Message) {
 
 func (ah *AdminHandlers) Admin(m *telebot.Message) {
 	if m.Sender.ID != Cfg.NeMoksID {
-		ah.botReplyAndSave(m, localization.GetLoc("not_admin"))
+		ah.botReplyAndSave(m, localization.GetLoc("not_admin", m.Sender.LanguageCode))
 		return
 	}
 	if !m.IsReply() || m.ReplyTo.Sender.ID == m.Sender.ID {
-		ah.botReplyAndSave(m, localization.GetLoc("need_reply"))
+		ah.botReplyAndSave(m, localization.GetLoc("need_reply", m.Sender.LanguageCode))
 		return
 	}
 
@@ -114,22 +114,22 @@ func (ah *AdminHandlers) Admin(m *telebot.Message) {
 	err := communication.MakeAdminHTTPReq(cfg.ChangeAdminURL, req, &resp)
 	if err != nil {
 		ah.logger.Error("Error making admin request to user", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
-		ah.botReplyAndSave(m, localization.GetLoc("error"))
+		ah.botReplyAndSave(m, localization.GetLoc("error", m.Sender.LanguageCode))
 		return
 	}
 
 	if !resp.OK {
 		ah.logger.Error("marsal error", zap.String("error", resp.Err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
-		ah.botReplyAndSave(m, localization.GetLoc("error"))
+		ah.botReplyAndSave(m, localization.GetLoc("error", m.Sender.LanguageCode))
 		return
 	}
 
-	ah.botReplyAndSave(m, fmt.Sprintf(localization.GetLoc("change_admin"), req.ID, resp.Admin))
+	ah.botReplyAndSave(m, fmt.Sprintf(localization.GetLoc("change_admin", m.Sender.LanguageCode), req.ID, resp.Admin))
 }
 
 func (ah *AdminHandlers) AllFlowers(m *telebot.Message) {
 	if admin, err := ah.CheckAdmin(m.Sender.ID); !admin || err != nil {
-		ah.botReplyAndSave(m, localization.GetLoc("not_admin"))
+		ah.botReplyAndSave(m, localization.GetLoc("not_admin", m.Sender.LanguageCode))
 		return
 	}
 
@@ -137,13 +137,13 @@ func (ah *AdminHandlers) AllFlowers(m *telebot.Message) {
 	err := communication.MakeAdminHTTPReq(cfg.GetAllFlowerTypesURL, nil, &resp)
 	if err != nil {
 		ah.logger.Error("Error making admin request to user", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
-		ah.botReplyAndSave(m, localization.GetLoc("error"))
+		ah.botReplyAndSave(m, localization.GetLoc("error", m.Sender.LanguageCode))
 		return
 	}
 
 	if resp.Err != "" {
 		ah.logger.Error("got error from resp", zap.Any("error", resp.Err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
-		ah.botReplyAndSave(m, localization.GetLoc("error"))
+		ah.botReplyAndSave(m, localization.GetLoc("error", m.Sender.LanguageCode))
 		return
 	}
 
@@ -157,7 +157,7 @@ func (ah *AdminHandlers) AllFlowers(m *telebot.Message) {
 
 func (ah *AdminHandlers) RemoveFlower(m *telebot.Message) {
 	if admin, err := ah.CheckAdmin(m.Sender.ID); !admin || err != nil {
-		ah.botReplyAndSave(m, localization.GetLoc("not_admin"))
+		ah.botReplyAndSave(m, localization.GetLoc("not_admin", m.Sender.LanguageCode))
 		return
 	}
 
@@ -168,7 +168,7 @@ func (ah *AdminHandlers) RemoveFlower(m *telebot.Message) {
 	id, err := strconv.Atoi(splitted[1])
 	if err != nil {
 		ah.logger.Error("error converting id", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
-		ah.botReplyAndSave(m, localization.GetLoc("remove_flower_need_id"))
+		ah.botReplyAndSave(m, localization.GetLoc("remove_flower_need_id", m.Sender.LanguageCode))
 		return
 	}
 
@@ -177,13 +177,13 @@ func (ah *AdminHandlers) RemoveFlower(m *telebot.Message) {
 	err = communication.MakeAdminHTTPReq(cfg.RemoveFlowerURL, req, &resp)
 	if err != nil {
 		ah.logger.Error("Error making admin request to user", zap.Error(err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
-		ah.botReplyAndSave(m, localization.GetLoc("error"))
+		ah.botReplyAndSave(m, localization.GetLoc("error", m.Sender.LanguageCode))
 		return
 	}
 
 	if !resp.OK {
 		ah.logger.Error("got error from resp", zap.Any("error", resp.Err), zap.Any("user", m.Sender), zap.Any("chat", m.Chat))
-		ah.botReplyAndSave(m, localization.GetLoc("error"))
+		ah.botReplyAndSave(m, localization.GetLoc("error", m.Sender.LanguageCode))
 		return
 	}
 	ah.botReplyAndSave(m, "ok")
