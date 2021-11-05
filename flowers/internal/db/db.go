@@ -41,6 +41,7 @@ type (
 		removeIDFromCache(val uint64) error
 		GetUserFlowerDataCollection() *mgo.Collection
 		GetLastUserFlower(owner int) (structs.Flower, error)
+		CreateUserFlower(f structs.Flower) error
 	}
 )
 
@@ -167,6 +168,11 @@ func (d *DbStruct) EditUserFlower(f structs.Flower) (err error) {
 		return d.EditUserFlower(f)
 	}
 	return
+}
+
+func (d *DbStruct) CreateUserFlower(f structs.Flower) error {
+	err := d.userFlowerDataCollection.Insert(f)
+	return err
 }
 
 func (d *DbStruct) GetRandomID() uint64 {

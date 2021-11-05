@@ -78,6 +78,7 @@ func (s *Service) RemoveFlower(req flowersdata.RemoveFlowerReq) (resp flowersdat
 //goland:noinspection GoNilness
 func (s *Service) GrowFlower(req flowersdata.GrowFlowerReq) (resp flowersdata.GrowFlowerResp, err error) {
 	flower, err := s.db.GetUserCurrentFlower(req.ID)
+	var flowerIsNew bool = false
 	if err != nil && err.Error() != "not found" {
 		s.logger.Error("error getting flower GetUserCurrentFlower", zap.Error(err), zap.Any("req", req))
 		resp.Err = "error getting flower"
@@ -93,6 +94,7 @@ func (s *Service) GrowFlower(req flowersdata.GrowFlowerReq) (resp flowersdata.Gr
 		flower.Owner = req.ID
 		flower.CreationTime = time.Now()
 		flower.ID = ai.Next(s.db.GetUserFlowerDataCollection().Name)
+		flowerIsNew = true
 	}
 
 	// check if flower died
@@ -100,7 +102,7 @@ func (s *Service) GrowFlower(req flowersdata.GrowFlowerReq) (resp flowersdata.Gr
 		rand.Seed(time.Now().UnixNano())
 		num := rand.Intn(101)
 		died := num >= 0 && num <= cfg.DyingChance
-		if died {
+		if died && !flowerIsNew {
 			s.logger.Info("flower died", zap.Any("req", req), zap.Any("flower", flower))
 			resp.Err = "flower died"
 			flower.Dead = true
@@ -135,8 +137,15 @@ func (s *Service) GrowFlower(req flowersdata.GrowFlowerReq) (resp flowersdata.Gr
 	}
 	flower.LastTimeGrow = time.Now()
 
-	if err := s.db.EditUserFlower(flower); err != nil {
-		s.logger.Error("error EditUserFlower",
+	err = nil
+	if flowerIsNew {
+		err = s.db.CreateUserFlower(flower)
+	} else {
+		err = s.db.EditUserFlower(flower)
+	}
+
+	if err != nil {
+		s.logger.Error("error grow flower",
 			zap.Error(err),
 			zap.Any("req", req),
 			zap.Any("flower", flower),
@@ -145,6 +154,7 @@ func (s *Service) GrowFlower(req flowersdata.GrowFlowerReq) (resp flowersdata.Gr
 		resp.Err = err.Error()
 		return resp, err
 	}
+
 	resp.Flower = flower
 	resp.Extra = extraGrow
 	return
