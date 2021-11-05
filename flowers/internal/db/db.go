@@ -78,7 +78,7 @@ func (d *DbStruct) GetUserFlowerDataCollection() *mgo.Collection {
 
 // AddFlower - adds new flower type
 func (d *DbStruct) AddFlower(f structs.Flower) (err error) {
-	f.ID = ai.Next(d.flowerCollection.Name)
+	f.ID = rand.Uint64()
 	err = d.flowerCollection.Insert(f)
 	// check for if err is duplicate error
 	if mgo.IsDup(err) {
@@ -171,7 +171,12 @@ func (d *DbStruct) EditUserFlower(f structs.Flower) (err error) {
 }
 
 func (d *DbStruct) CreateUserFlower(f structs.Flower) error {
+	// just made random int generator hope it will be fine....
+	f.ID = rand.Uint64()
 	err := d.userFlowerDataCollection.Insert(f)
+	if mgo.IsDup(err) {
+		return d.CreateUserFlower(f)
+	}
 	return err
 }
 
