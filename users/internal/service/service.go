@@ -311,8 +311,10 @@ func (s *Service) Flower(req usersdata.FlowerReq) (resp usersdata.FlowerResp, er
 	reqToFlower.NonDying = req.NonDying
 	reqToFlower.MsgCount = req.MsgCount
 	err = communication.MakeReqToFlowers(flowercfg.GrowFlowerURL, reqToFlower, &respFromFlower)
-	if err != nil {
-		s.logger.Error("error making request to flowers", zap.Error(err), zap.Any("request", reqToFlower))
+	if err != nil || respFromFlower.Err != "" {
+		s.logger.Error("error making request to flowers", zap.Error(err),
+			zap.Any("request", reqToFlower),
+			zap.Any("response", respFromFlower))
 		resp.Err = "err req to flowers"
 		return
 	}
