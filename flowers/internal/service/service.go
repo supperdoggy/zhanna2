@@ -356,7 +356,7 @@ func (s *Service) AddUserFlower(req flowersdata.AddUserFlowerReq) (resp flowersd
 
 	flowers := []structs.Flower{}
 	if req.Multiple { // if we have multiple option
-		for i:=0;i < req.Count; i++ {
+		for i := 0; i < req.Count; i++ {
 			// if multiple is true then we can only generate random flowers
 			f, err := s.generateGrownFlower(req.UserID, true, 0)
 			if err != nil {
