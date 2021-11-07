@@ -3,6 +3,7 @@ package admin_handlers
 import (
 	"fmt"
 	"github.com/supperdoggy/superSecretDevelopement/bot/internal/communication"
+	"github.com/supperdoggy/superSecretDevelopement/bot/internal/config"
 	"github.com/supperdoggy/superSecretDevelopement/bot/internal/localization"
 	flowersdata "github.com/supperdoggy/superSecretDevelopement/structs/request/flowers"
 	usersdata "github.com/supperdoggy/superSecretDevelopement/structs/request/users"
@@ -29,10 +30,11 @@ func NewAdminHandlers(bot *telebot.Bot, logger *zap.Logger) *AdminHandlers {
 }
 
 // botReplyAndSave for replying and saving user message
+// TODO CREATE PACKAGE TO NOT TO COPY THAT CODE
 func (h *AdminHandlers) botReplyAndSave(m *telebot.Message, what interface{}, options ...interface{}) {
 	botmsg, err := h.bot.Reply(m, what)
 	if err != nil {
-		h.logger.Error("error replying to message",
+		h.logger.Error("error replying to user message",
 			zap.Error(err),
 			zap.Any("user", m.Sender),
 			zap.Any("chat", m.Chat),
@@ -40,6 +42,42 @@ func (h *AdminHandlers) botReplyAndSave(m *telebot.Message, what interface{}, op
 		)
 	}
 	communication.UpdateUser(h.logger, m, botmsg)
+
+	if what != localization.GetLoc("error", m.Sender.LanguageCode) {
+		h.logger.Info("handled user request",
+			zap.String("status", "200"),
+			zap.Any("user", m.Sender),
+			zap.Any("message", m.Text),
+			zap.Any("bot response", botmsg.Text))
+		return
+	}
+
+	h.logger.Info("error handling user request",
+		zap.String("status", "400"),
+		zap.Any("user", m.Sender),
+		zap.Any("message", m.Text),
+		zap.Any("bot response", botmsg.Text))
+
+	if !config.GetConfig(h.logger).ErrorAdminNotification {
+		return
+	}
+
+	// if what is error I send error message to me
+	m.Chat.ID = Cfg.NeMoksID
+	botmsg, err = h.bot.Send(m.Chat, localization.GetLoc("send_error_to_master",
+		"ru",
+		m.Sender.Username,
+		zap.Any("user", m.Sender).Interface,
+		zap.Any("chat", m.Chat).Interface,
+		zap.Any("options", options).Interface))
+	if err != nil {
+		h.logger.Error("error replying to admin message",
+			zap.Error(err),
+			zap.Any("user", m.Sender),
+			zap.Any("chat", m.Chat),
+			zap.Any("what", what),
+		)
+	}
 }
 
 // botSendAndSave for sending and saving user message
@@ -215,14 +253,14 @@ func (ah *AdminHandlers) AddUserFlowerRandom(m *telebot.Message) {
 		return
 	}
 
-	if m.ReplyTo == nil {
+	if !m.IsReply() {
 		ah.botReplyAndSave(m, localization.GetLoc("need_reply_add_flower", m.Sender.LanguageCode))
 		return
 	}
 
 	var err error
 	var req flowersdata.AddUserFlowerReq
-	req.UserID = m.ReplyTo.Sender.ID
+	req.UserID = m.Sender.ID
 	req.RandomFlower = true
 	splitted := strings.Split(m.Text, " ")
 	if len(splitted) != 1 {
@@ -233,8 +271,9 @@ func (ah *AdminHandlers) AddUserFlowerRandom(m *telebot.Message) {
 		}
 		if req.Count < 2 {
 			ah.botReplyAndSave(m, localization.GetLoc("count_error", m.Sender.LanguageCode))
+			return
 		}
-
+		req.Multiple = true
 	}
 
 	var resp flowersdata.AddUserFlowerResp
@@ -250,9 +289,9 @@ func (ah *AdminHandlers) AddUserFlowerRandom(m *telebot.Message) {
 		ah.botReplyAndSave(m, localization.GetLoc("error", m.Sender.LanguageCode))
 		return
 	}
-	name := m.Sender.Username
+	name := m.ReplyTo.Sender.Username
 	if name == "" {
-		name = m.Sender.FirstName + " " + m.Sender.LastName
+		name = m.ReplyTo.Sender.FirstName + " " + m.ReplyTo.Sender.LastName
 	}
 	if req.Multiple {
 		ah.botReplyAndSave(m, localization.GetLoc("add_user_flower_multiple", m.Sender.LanguageCode, name, len(resp.Flowers)))
@@ -299,9 +338,9 @@ func (ah *AdminHandlers) AddUserFlowerByID(m *telebot.Message) {
 		ah.botReplyAndSave(m, localization.GetLoc("error", m.Sender.LanguageCode))
 		return
 	}
-	name := m.Sender.Username
+	name := m.ReplyTo.Sender.Username
 	if name == "" {
-		name = m.Sender.FirstName + " " + m.Sender.LastName
+		name = m.ReplyTo.Sender.FirstName + " " + m.ReplyTo.Sender.LastName
 	}
 	ah.botReplyAndSave(m, localization.GetLoc("add_user_flower", m.Sender.LanguageCode, resp.Flowers[0].Icon, name))
 

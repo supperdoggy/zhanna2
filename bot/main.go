@@ -45,6 +45,8 @@ func initAdminHandlers(bot *telebot.Bot, adminHandlers *admin_handlers2.AdminHan
 	bot.Handle(Cfg.AdminCommand, adminHandlers.Admin)
 	bot.Handle(Cfg.AllFlowersCommand, adminHandlers.AllFlowers)
 	bot.Handle(Cfg.RemoveFlower, adminHandlers.RemoveFlower)
+	bot.Handle(Cfg.AddUserFlowerMultiple, adminHandlers.AddUserFlowerRandom)
+	bot.Handle(Cfg.AddUserFlowerByID, adminHandlers.AddUserFlowerByID)
 }
 
 func main() {

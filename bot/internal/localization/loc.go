@@ -46,7 +46,9 @@ var (
 				"admin_help": "/admin - set/unset admin\n" +
 					"/addFlower - add new flower type\n" +
 					"/removeFlower - remove flower type\n" +
-					"/allFlowers - returns flower types list\n",
+					"/allFlowers - returns flower types list\n" +
+					"/addUserFlowerMultiple <count> - to create flowers for user\n" +
+					"/addUserFlowerByID <flower_id> - to create flower for user by id\n",
 				"done":                     "Дело сделано!",
 				"change_admin":             "Пользователь %v admin: %v\n",
 				"9_card":                   "Игрок, вытянувший карту, загадывает тему (футбол/напитки/финансы, что угодно), далее все по очереди называют слова связанные с этой темой, тот, кому нечего сказать или думает больше 5 сек. - пьет",
@@ -93,7 +95,9 @@ var (
 				"admin_help": "/admin - set/unset admin\n" +
 					"/addFlower - add new flower type\n" +
 					"/removeFlower - remove flower type\n" +
-					"/allFlowers - returns flower types list\n",
+					"/allFlowers - returns flower types list\n" +
+					"/addUserFlowerMultiple <count> - to create flowers for user\n" +
+					"/addUserFlowerByID <flower_id> - to create flower for user by id\n",
 				"done":                     "Справа зроблена!",
 				"change_admin":             "Користувач %v admin: %v\n",
 				"9_card":                   "Гравець, що витягнув карту, загадує тему (футбол/напої/фінанси тощо), а далі усі по черзі називають слова, що пов’язані з цією темою. Той, кому немає що сказати або думає більше 5 секунд – п’є",

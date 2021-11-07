@@ -36,6 +36,8 @@ const (
 	AdminCommand      = "/admin"
 	AllFlowersCommand = "/allFlowers"
 	RemoveFlower      = "/removeFlower"
+	AddUserFlowerMultiple = "/addUserFlowerMultiple"
+	AddUserFlowerByID = "/addUserFlowerByID"
 
 	// db
 	PicCollectionName = "Pic"
