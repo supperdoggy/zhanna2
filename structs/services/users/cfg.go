@@ -47,4 +47,5 @@ const (
 	ChangeAdminURL       = "/admin"
 	GetAllFlowerTypesURL = "/getAllFlowerTypes"
 	RemoveFlowerURL      = "/removeFlower"
+	AddUserFlowerURL = "/addUserFlower"
 )

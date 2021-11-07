@@ -61,6 +61,8 @@ func MakeReqToFlowers(method string, req, resp interface{}) (err error) {
 		answer, err = MakeHttpReq(path, "GET", nil)
 	case flowerscfg.RemoveFlowerURL:
 		answer, err = MakeHttpReq(path, "POST", reqData)
+	case flowerscfg.AddUserFlowerURL:
+		answer, err = MakeHttpReq(path, "POST", reqData)
 	default:
 		err = fmt.Errorf("no such method")
 	}

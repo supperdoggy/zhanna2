@@ -119,9 +119,7 @@ func (ah *AdminHandlers) RemoveFlower(c *gin.Context) {
 		return
 	}
 
-	reqToFlowers := flowersdata.RemoveFlowerReq{ID: req.ID}
-	respFromFlowers := flowersdata.RemoveFlowerResp{}
-	err := communication.MakeReqToFlowers(flowerscfg.RemoveFlowerURL, reqToFlowers, &respFromFlowers)
+	err := communication.MakeReqToFlowers(flowerscfg.RemoveFlowerURL, req, &resp)
 	if err != nil {
 		ah.logger.Error("error making req to flowers RemoveFlowerURL", zap.Error(err), zap.Any("req", req))
 		resp.Err = err.Error()
@@ -129,17 +127,48 @@ func (ah *AdminHandlers) RemoveFlower(c *gin.Context) {
 		return
 	}
 
-	if !respFromFlowers.OK {
+	if !resp.OK {
 		ah.logger.Error("got error from flowers RemoveFlowerURL",
 			zap.Error(err),
 			zap.Any("req", req),
-			zap.Any("resp", respFromFlowers),
 		)
 
-		resp.Err = respFromFlowers.Err
 		c.JSON(http.StatusBadRequest, resp)
 		return
 	}
 	resp.OK = true
+	c.JSON(http.StatusOK, resp)
+}
+
+func (ah *AdminHandlers) AddUserFlower(c *gin.Context) {
+	var req flowersdata.AddUserFlowerReq
+	var resp flowersdata.AddUserFlowerResp
+	if err := c.Bind(&req); err != nil {
+		data, _ := ioutil.ReadAll(c.Request.Body)
+		ah.logger.Error("error binding req", zap.Any("json", string(data)))
+		resp.Error = err.Error()
+		c.JSON(http.StatusBadRequest, resp)
+		return
+	}
+
+	err := communication.MakeReqToFlowers(flowerscfg.AddUserFlowerURL, req, &resp)
+	if err != nil {
+		ah.logger.Error("error making request to users",
+			zap.Error(err),
+			zap.String("url", flowerscfg.AddUserFlowerURL),
+			zap.Any("req", req))
+		resp.Error = err.Error()
+		c.JSON(http.StatusBadRequest, resp)
+		return
+	}
+
+	if resp.Error != "" {
+		ah.logger.Error("got error from flowers",
+			zap.String("error", resp.Error),
+			zap.String("url", flowerscfg.AddUserFlowerURL),
+			zap.Any("req", req))
+		c.JSON(http.StatusBadRequest, resp)
+		return
+	}
 	c.JSON(http.StatusOK, resp)
 }

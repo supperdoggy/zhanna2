@@ -8,9 +8,9 @@ import (
 )
 
 type localization struct {
-	m   map[string]map[string]string
-	mut sync.Mutex
-	danet map[string][]string
+	m        map[string]map[string]string
+	mut      sync.Mutex
+	danet    map[string][]string
 	mutdanet sync.Mutex
 }
 
@@ -18,7 +18,7 @@ var (
 	loc = localization{
 		m: map[string]map[string]string{
 			"ru": {
-				"zhanna_has_flower": "Жанночки",
+				"zhanna_has_flower":       "Жанночки",
 				"error":                   "что-то пошло по пизде сори, напиши пж этому крутому челу -> @supperdoggy",
 				"send_error_to_master":    "hey daddy, тут у чела @%s траблы, глянь пж\n\nuser: %+v \n\nchat: %+v \n\noptions: %+v",
 				"command_only_in_group":   "команда доступна только в груповом чате",
@@ -60,7 +60,7 @@ var (
 				"remove_flower_need_id": "ошибка получения айди, надо использовать шаблон /removeFlower <id>",
 			},
 			"uk": {
-				"zhanna_has_flower": "Жанночки",
+				"zhanna_has_flower":       "Жанночки",
 				"error":                   "щось пішло по пизді сорі, напиши буласка цьому крутому чєлу -> @supperdoggy",
 				"send_error_to_master":    "hey daddy, тут у чє0ла @%s трабли, подивись буласка\n\nuser: %+v \n\nchat: %+v \n\noptions: %+v",
 				"command_only_in_group":   "команда доступна лише в груповому чаті",

@@ -31,6 +31,7 @@ type (
 		UserFlowerSlice(req flowersdata.UserFlowerSliceReq) (resp flowersdata.UserFlowerSliceResp, err error)
 		GiveFlower(req flowersdata.GiveFlowerReq) (resp flowersdata.GiveFlowerResp, err error)
 		GetFlowerTypes() (resp flowersdata.GetFlowerTypesResp, err error)
+		AddUserFlower(req flowersdata.AddUserFlowerReq) (resp flowersdata.AddUserFlowerResp, err error)
 	}
 )
 
@@ -337,5 +338,45 @@ func (s *Service) GetFlowerTypes() (resp flowersdata.GetFlowerTypesResp, err err
 		return
 	}
 	resp.Result = flowers
+	return
+}
+
+func (s *Service) AddUserFlower(req flowersdata.AddUserFlowerReq) (resp flowersdata.AddUserFlowerResp, err error) {
+	if req.UserID == 0 {
+		s.logger.Error("AddUserFlower got req.UserID == 0", zap.Any("req", req))
+		resp.Error = "user_id cannot be 0"
+		return resp, errors.New(resp.Error)
+	}
+
+	var flower structs.Flower
+	if req.RandomFlower {
+		flower, err = s.db.GetRandomFlower()
+	} else {
+		flower, err = s.db.GetFlower(req.FlowerID)
+	}
+
+	if err != nil {
+		s.logger.Error("got error getting flower", zap.Any("req", req), zap.Error(err))
+		resp.Error = err.Error()
+		return resp, err
+	}
+
+	flower.Owner = req.UserID
+	flower.CreationTime = time.Now()
+	flower.HP = 100
+	flower.LastTimeGrow = flower.CreationTime
+	flower.Grew = 100
+
+	if err = s.db.CreateUserFlower(flower); err != nil {
+		s.logger.Error("got error creating user flower",
+			zap.Error(err),
+			zap.Any("flower", flower),
+			zap.Any("req", req))
+		resp.Error = err.Error()
+		return resp, err
+	}
+
+	resp.Flower = flower
+	resp.UserID = req.UserID
 	return
 }

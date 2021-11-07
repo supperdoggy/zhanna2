@@ -117,3 +117,16 @@ type GetFlowerTypesResp struct {
 	Result []structs.Flower `json:"result"`
 	Err    string           `json:"err"`
 }
+
+type AddUserFlowerReq struct {
+	UserID int `json:"user_id"r`
+	// If RandomFlower is false we look at flower id
+	RandomFlower bool   `json:"random_flower"`
+	FlowerID     uint64 `json:"flower_id"`
+}
+
+type AddUserFlowerResp struct {
+	UserID int            `json:"user_id"`
+	Flower structs.Flower `json:"flower"`
+	Error  string         `json:"error"`
+}

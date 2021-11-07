@@ -264,3 +264,24 @@ func (h Handlers) GetFlowerTypes(c *gin.Context) {
 
 	c.JSON(http.StatusOK, resp)
 }
+
+func (h Handlers) AddUserFlower(c *gin.Context) {
+	var req flowersdata.AddUserFlowerReq
+	var resp flowersdata.AddUserFlowerResp
+	if err := c.Bind(&req); err != nil {
+		data, _ := ioutil.ReadAll(c.Request.Body)
+		h.logger.Error("error binding request", zap.Any("json", string(data)))
+
+		resp.Error = err.Error()
+		c.JSON(http.StatusBadRequest, resp)
+		return
+	}
+
+	resp, err := h.service.AddUserFlower(req)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, resp)
+		return
+	}
+
+	c.JSON(http.StatusOK, resp)
+}
