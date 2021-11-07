@@ -348,35 +348,77 @@ func (s *Service) AddUserFlower(req flowersdata.AddUserFlowerReq) (resp flowersd
 		return resp, errors.New(resp.Error)
 	}
 
+	if req.Multiple && req.Count <= 0 {
+		s.logger.Error("got count incorrect value", zap.Any("req", req))
+		resp.Error = "count cant be less than 1"
+		return resp, errors.New(resp.Error)
+	}
+
+	flowers := []structs.Flower{}
+	if req.Multiple { // if we have multiple option
+		for i:=0;i < req.Count; i++ {
+			// if multiple is true then we can only generate random flowers
+			f, err := s.generateGrownFlower(req.UserID, true, 0)
+			if err != nil {
+				s.logger.Error("error generating flower", zap.Error(err), zap.Any("req", req))
+				continue
+			}
+			if err = s.db.CreateUserFlower(f); err != nil {
+				s.logger.Error("got error creating user flower",
+					zap.Error(err),
+					zap.Any("flower", f),
+					zap.Any("req", req))
+				continue
+			}
+			flowers = append(flowers, f)
+		}
+	} else { // if we need to create only 1 flower
+		f, err := s.generateGrownFlower(req.UserID, req.RandomFlower, req.FlowerID)
+		if err != nil {
+			s.logger.Error("error generating 1 flower for user",
+				zap.Error(err), zap.Any("req", req))
+			resp.Error = err.Error()
+			return resp, err
+		}
+		if err = s.db.CreateUserFlower(f); err != nil {
+			s.logger.Error("got error creating user flower",
+				zap.Error(err),
+				zap.Any("flower", f),
+				zap.Any("req", req))
+			resp.Error = err.Error()
+			return resp, err
+		}
+		flowers = append(flowers, f)
+	}
+
+	if req.Multiple && req.Count != 0 && req.Count != len(flowers) {
+		resp.Error = "could not generate and create any flowers for user"
+		return resp, errors.New(resp.Error)
+	}
+
+	resp.Flowers = flowers
+	resp.UserID = req.UserID
+	return
+}
+
+func (s *Service) generateGrownFlower(owner int, random bool, flowerID uint64) (structs.Flower, error) {
 	var flower structs.Flower
-	if req.RandomFlower {
+	var err error
+	if random {
 		flower, err = s.db.GetRandomFlower()
 	} else {
-		flower, err = s.db.GetFlower(req.FlowerID)
+		flower, err = s.db.GetFlower(flowerID)
 	}
 
 	if err != nil {
-		s.logger.Error("got error getting flower", zap.Any("req", req), zap.Error(err))
-		resp.Error = err.Error()
-		return resp, err
+		return flower, err
 	}
 
-	flower.Owner = req.UserID
+	flower.Owner = owner
 	flower.CreationTime = time.Now()
 	flower.HP = 100
 	flower.LastTimeGrow = flower.CreationTime
 	flower.Grew = 100
 
-	if err = s.db.CreateUserFlower(flower); err != nil {
-		s.logger.Error("got error creating user flower",
-			zap.Error(err),
-			zap.Any("flower", flower),
-			zap.Any("req", req))
-		resp.Error = err.Error()
-		return resp, err
-	}
-
-	resp.Flower = flower
-	resp.UserID = req.UserID
-	return
+	return flower, nil
 }
