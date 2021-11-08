@@ -260,7 +260,7 @@ func (ah *AdminHandlers) AddUserFlowerRandom(m *telebot.Message) {
 
 	var err error
 	var req flowersdata.AddUserFlowerReq
-	req.UserID = m.Sender.ID
+	req.UserID = m.ReplyTo.Sender.ID
 	req.RandomFlower = true
 	splitted := strings.Split(m.Text, " ")
 	if len(splitted) != 1 {
