@@ -31,11 +31,13 @@ const (
 
 	// admin
 
-	AdminHelpCommand  = "/adminHelp"
-	AddFlowerCommand  = "/addFlower"
-	AdminCommand      = "/admin"
-	AllFlowersCommand = "/allFlowers"
-	RemoveFlower      = "/removeFlower"
+	AdminHelpCommand      = "/adminHelp"
+	AddFlowerCommand      = "/addFlower"
+	AdminCommand          = "/admin"
+	AllFlowersCommand     = "/allFlowers"
+	RemoveFlower          = "/removeFlower"
+	AddUserFlowerMultiple = "/addUserFlowerMultiple"
+	AddUserFlowerByID     = "/addUserFlowerByID"
 
 	// db
 	PicCollectionName = "Pic"

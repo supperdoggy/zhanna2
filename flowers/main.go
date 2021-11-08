@@ -33,6 +33,7 @@ func main() {
 		apiv1.POST(cfg.RemoveUserFlowerURL, Handlers.RemoveUserFlower)
 		apiv1.POST(cfg.UserFlowerSliceURL, Handlers.UserFlowerSlice)
 		apiv1.POST(cfg.GiveFlowerURL, Handlers.GiveFlower)
+		apiv1.POST(cfg.AddUserFlowerURL, Handlers.AddUserFlower)
 	}
 	// Handlers
 	logger.Info("Handlers init start")

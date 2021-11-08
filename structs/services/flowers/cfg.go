@@ -23,4 +23,5 @@ const (
 	RemoveUserFlowerURL = "/removeUserFlower"
 	UserFlowerSliceURL  = "/userFlowerSlice"
 	GiveFlowerURL       = "/giveFlower"
+	AddUserFlowerURL    = "/addUserFlower"
 )

@@ -3,7 +3,9 @@ package admin_handlers
 import (
 	"fmt"
 	"github.com/supperdoggy/superSecretDevelopement/bot/internal/communication"
+	"github.com/supperdoggy/superSecretDevelopement/bot/internal/config"
 	"github.com/supperdoggy/superSecretDevelopement/bot/internal/localization"
+	flowersdata "github.com/supperdoggy/superSecretDevelopement/structs/request/flowers"
 	usersdata "github.com/supperdoggy/superSecretDevelopement/structs/request/users"
 	Cfg "github.com/supperdoggy/superSecretDevelopement/structs/services/bot"
 	cfg "github.com/supperdoggy/superSecretDevelopement/structs/services/users"
@@ -28,10 +30,11 @@ func NewAdminHandlers(bot *telebot.Bot, logger *zap.Logger) *AdminHandlers {
 }
 
 // botReplyAndSave for replying and saving user message
+// TODO CREATE PACKAGE TO NOT TO COPY THAT CODE
 func (h *AdminHandlers) botReplyAndSave(m *telebot.Message, what interface{}, options ...interface{}) {
 	botmsg, err := h.bot.Reply(m, what)
 	if err != nil {
-		h.logger.Error("error replying to message",
+		h.logger.Error("error replying to user message",
 			zap.Error(err),
 			zap.Any("user", m.Sender),
 			zap.Any("chat", m.Chat),
@@ -39,6 +42,42 @@ func (h *AdminHandlers) botReplyAndSave(m *telebot.Message, what interface{}, op
 		)
 	}
 	communication.UpdateUser(h.logger, m, botmsg)
+
+	if what != localization.GetLoc("error", m.Sender.LanguageCode) {
+		h.logger.Info("handled user request",
+			zap.String("status", "200"),
+			zap.Any("user", m.Sender),
+			zap.Any("message", m.Text),
+			zap.Any("bot response", botmsg.Text))
+		return
+	}
+
+	h.logger.Info("error handling user request",
+		zap.String("status", "400"),
+		zap.Any("user", m.Sender),
+		zap.Any("message", m.Text),
+		zap.Any("bot response", botmsg.Text))
+
+	if !config.GetConfig(h.logger).ErrorAdminNotification {
+		return
+	}
+
+	// if what is error I send error message to me
+	m.Chat.ID = Cfg.NeMoksID
+	botmsg, err = h.bot.Send(m.Chat, localization.GetLoc("send_error_to_master",
+		"ru",
+		m.Sender.Username,
+		zap.Any("user", m.Sender).Interface,
+		zap.Any("chat", m.Chat).Interface,
+		zap.Any("options", options).Interface))
+	if err != nil {
+		h.logger.Error("error replying to admin message",
+			zap.Error(err),
+			zap.Any("user", m.Sender),
+			zap.Any("chat", m.Chat),
+			zap.Any("what", what),
+		)
+	}
 }
 
 // botSendAndSave for sending and saving user message
@@ -105,7 +144,7 @@ func (ah *AdminHandlers) Admin(m *telebot.Message) {
 		return
 	}
 	if !m.IsReply() || m.ReplyTo.Sender.ID == m.Sender.ID {
-		ah.botReplyAndSave(m, localization.GetLoc("need_reply", m.Sender.LanguageCode))
+		ah.botReplyAndSave(m, localization.GetLoc("need_reply_create_admin", m.Sender.LanguageCode))
 		return
 	}
 
@@ -206,4 +245,103 @@ func (ah *AdminHandlers) CheckAdmin(id int) (bool, error) {
 		return false, fmt.Errorf(resp.Err)
 	}
 	return resp.Result, nil
+}
+
+func (ah *AdminHandlers) AddUserFlowerRandom(m *telebot.Message) {
+	if admin, err := ah.CheckAdmin(m.Sender.ID); !admin || err != nil {
+		ah.botReplyAndSave(m, localization.GetLoc("not_admin", m.Sender.LanguageCode))
+		return
+	}
+
+	if !m.IsReply() {
+		ah.botReplyAndSave(m, localization.GetLoc("need_reply_add_flower", m.Sender.LanguageCode))
+		return
+	}
+
+	var err error
+	var req flowersdata.AddUserFlowerReq
+	req.UserID = m.Sender.ID
+	req.RandomFlower = true
+	splitted := strings.Split(m.Text, " ")
+	if len(splitted) != 1 {
+		req.Count, err = strconv.Atoi(splitted[1])
+		if err != nil {
+			ah.botReplyAndSave(m, localization.GetLoc("add_flower_args", m.Sender.LanguageCode))
+			return
+		}
+		if req.Count < 2 {
+			ah.botReplyAndSave(m, localization.GetLoc("count_error", m.Sender.LanguageCode))
+			return
+		}
+		req.Multiple = true
+	}
+
+	var resp flowersdata.AddUserFlowerResp
+	err = communication.MakeAdminHTTPReq(cfg.AddUserFlowerURL, req, &resp)
+	if err != nil {
+		ah.logger.Error("error making request to admin", zap.Error(err), zap.Any("req", req))
+		ah.botReplyAndSave(m, localization.GetLoc("error", m.Sender.LanguageCode))
+		return
+	}
+
+	if resp.Error != "" {
+		ah.logger.Error("got error from flowers", zap.Any("resp", resp), zap.Any("req", req))
+		ah.botReplyAndSave(m, localization.GetLoc("error", m.Sender.LanguageCode))
+		return
+	}
+	name := m.ReplyTo.Sender.Username
+	if name == "" {
+		name = m.ReplyTo.Sender.FirstName + " " + m.ReplyTo.Sender.LastName
+	}
+	if req.Multiple {
+		ah.botReplyAndSave(m, localization.GetLoc("add_user_flower_multiple", m.Sender.LanguageCode, name, len(resp.Flowers)))
+		return
+	}
+	ah.botReplyAndSave(m, localization.GetLoc("add_user_flower", m.Sender.LanguageCode, resp.Flowers[0].Icon, name))
+
+}
+
+func (ah *AdminHandlers) AddUserFlowerByID(m *telebot.Message) {
+	if admin, err := ah.CheckAdmin(m.Sender.ID); !admin || err != nil {
+		ah.botReplyAndSave(m, localization.GetLoc("not_admin", m.Sender.LanguageCode))
+		return
+	}
+
+	if !m.IsReply() {
+		ah.botReplyAndSave(m, localization.GetLoc("need_reply_add_flower", m.Sender.LanguageCode))
+		return
+	}
+
+	var err error
+	var req flowersdata.AddUserFlowerReq
+	req.UserID = m.ReplyTo.Sender.ID
+	splitted := strings.Split(m.Text, " ")
+	if len(splitted) != 1 {
+		flowerid, err := strconv.Atoi(splitted[1])
+		if err != nil {
+			ah.botReplyAndSave(m, localization.GetLoc("add_flower_args", m.Sender.LanguageCode))
+			return
+		}
+		req.FlowerID = uint64(flowerid)
+	}
+
+	var resp flowersdata.AddUserFlowerResp
+	err = communication.MakeAdminHTTPReq(cfg.AddUserFlowerURL, req, &resp)
+	if err != nil {
+		ah.logger.Error("error making request to admin", zap.Error(err), zap.Any("req", req))
+		ah.botReplyAndSave(m, localization.GetLoc("error", m.Sender.LanguageCode))
+		return
+	}
+
+	if resp.Error != "" {
+		ah.logger.Error("got error from flowers", zap.Any("resp", resp), zap.Any("req", req))
+		ah.botReplyAndSave(m, localization.GetLoc("error", m.Sender.LanguageCode))
+		return
+	}
+	name := m.ReplyTo.Sender.Username
+	if name == "" {
+		name = m.ReplyTo.Sender.FirstName + " " + m.ReplyTo.Sender.LastName
+	}
+	ah.botReplyAndSave(m, localization.GetLoc("add_user_flower", m.Sender.LanguageCode, resp.Flowers[0].Icon, name))
+
 }

@@ -27,7 +27,7 @@ type (
 		AddFlower(f structs.Flower) (err error)
 		RemoveFlower(id uint64) (err error)
 		EditFlower(id uint64, f structs.Flower) (err error)
-		GetFlower(id uint64, f structs.Flower) (result structs.Flower, err error)
+		GetFlower(id uint64) (result structs.Flower, err error)
 		GetAllFlowers() (result []structs.Flower, err error)
 		GetRandomFlower() (result structs.Flower, err error)
 		GetUserCurrentFlower(owner int) (result structs.Flower, err error)
@@ -108,9 +108,9 @@ func (d *DbStruct) EditFlower(id uint64, f structs.Flower) (err error) {
 	return d.flowerCollection.Update(defaultCfg.Obj{"_id": id}, defaultCfg.Obj{"$set": f})
 }
 
-func (d *DbStruct) GetFlower(id uint64, f structs.Flower) (result structs.Flower, err error) {
-	err = d.flowerCollection.Find(defaultCfg.Obj{"_id": id}).One(&f)
-	return f, err
+func (d *DbStruct) GetFlower(id uint64) (result structs.Flower, err error) {
+	err = d.flowerCollection.Find(defaultCfg.Obj{"_id": id}).One(&result)
+	return result, err
 }
 
 // getAllFlowers - returns all flower types

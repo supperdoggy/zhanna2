@@ -183,6 +183,8 @@ func MakeAdminHTTPReq(method string, req, resp interface{}) (err error) {
 		dataresp, err = MakeHttpReq(path, "GET", nil)
 	case cfg.RemoveFlowerURL:
 		dataresp, err = MakeHttpReq(path, "POST", data)
+	case cfg.AddUserFlowerURL:
+		dataresp, err = MakeHttpReq(path, "POST", data)
 	default:
 		err = fmt.Errorf("no such method")
 	}

@@ -42,7 +42,8 @@ func main() {
 		apiv1Admin.POST(cfg.IsAdminURL, adminHandlers.IsAdmin)
 		apiv1Admin.POST(cfg.ChangeAdminURL, adminHandlers.ChangeAdmin)
 		apiv1Admin.GET(cfg.GetAllFlowerTypesURL, adminHandlers.GetAllFlowerTypes)
-		apiv1Admin.POST(cfg.RemoveFlowerURL, adminHandlers.RemoveFlower) // ??
+		apiv1Admin.POST(cfg.RemoveFlowerURL, adminHandlers.RemoveFlower)
+		apiv1Admin.POST(cfg.AddUserFlowerURL, adminHandlers.AddUserFlower)
 	}
 
 	if err := r.Run(cfg.Port); err != nil {
