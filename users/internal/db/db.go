@@ -30,7 +30,7 @@ type IDbStruct interface {
 	GetChatUsersIDs(chatid int) (ids []int, err error)
 	GetChatUsers(chatid int) (users []structs.User, err error)
 	WriteMessage(userMsg, botMsg telebot.Message) error
-	GetUserMsgCount(userID int) (int, error)
+	GetUserMsgCountFromLastWeek(userID int) (int, error)
 	SaveAnek(userID int, a structs.Anek) error
 	SaveFortune(userID int, a structs.Cookie) error
 	SaveTost(userID int, a structs.Tost) bool
@@ -106,8 +106,8 @@ func (d *DbStruct) WriteMessage(userMsg, botMsg telebot.Message) error {
 	return d.messageCollection.Insert(msg)
 }
 
-// GetUserMsgCount - returns number of messages user wrote to zhanna last week
-func (d *DbStruct) GetUserMsgCount(userID int) (int, error) {
+// GetUserMsgCountFromLastWeek - returns number of messages user wrote to zhanna last week
+func (d *DbStruct) GetUserMsgCountFromLastWeek(userID int) (int, error) {
 	if count, err := d.messageCollection.Find(defaultCfg.Obj{"userID": userID, "time": defaultCfg.Obj{"$lte": time.Now(), "$gte": time.Now().AddDate(0, 0, -7)}}).Count(); err != nil {
 		return 0, err
 	} else {
