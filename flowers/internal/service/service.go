@@ -125,8 +125,8 @@ func (s *Service) GrowFlower(req flowersdata.GrowFlowerReq) (resp flowersdata.Gr
 
 	// add extra grow output for user
 	extraGrow := int(math.Round(float64(req.MsgCount) * cfg.Message_multiplyer))
-	if extraGrow > 20 {
-		extraGrow = 20
+	if extraGrow > cfg.MaxExtraGrow {
+		extraGrow = cfg.MaxExtraGrow
 	}
 
 	grew := rand.Intn(31) + 1

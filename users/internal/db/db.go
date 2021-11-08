@@ -106,11 +106,12 @@ func (d *DbStruct) WriteMessage(userMsg, botMsg telebot.Message) error {
 	return d.messageCollection.Insert(msg)
 }
 
-// getUserMsgCount - returns number of msgs user wrote to zhanna :p
+// GetUserMsgCount - returns number of messages user wrote to zhanna last week
 func (d *DbStruct) GetUserMsgCount(userID int) (int, error) {
-	if count, err := d.messageCollection.Find(defaultCfg.Obj{"userID": userID}).Count(); err != nil {
+	if count, err := d.messageCollection.Find(defaultCfg.Obj{"userID": userID, "time": defaultCfg.Obj{"$lte": time.Now(), "$gte": time.Now().AddDate(0, 0, -7)}}).Count(); err != nil {
 		return 0, err
 	} else {
+		d.logger.Debug("count", zap.Any("count", count))
 		return count, nil
 	}
 }
