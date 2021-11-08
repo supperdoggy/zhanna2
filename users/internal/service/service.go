@@ -301,7 +301,7 @@ func (s *Service) Flower(req usersdata.FlowerReq) (resp usersdata.FlowerResp, er
 		return resp, errors.New(resp.Err)
 	}
 
-	req.MsgCount, err = s.db.GetUserMsgCount(req.ID)
+	req.MsgCount, err = s.db.GetUserMsgCountFromLastWeek(req.ID)
 	if err != nil {
 		s.logger.Error("canUserMsgCount error", zap.Error(err), zap.Any("request", req))
 	}

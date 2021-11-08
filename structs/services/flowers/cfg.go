@@ -7,7 +7,8 @@ const (
 	ZhannaId           = 613256756
 	DyingChance        = 3
 	EdemID             = -1001419983908
-	Message_multiplyer = 0.05
+	Message_multiplyer = 0.5
+	MaxExtraGrow       = 30
 
 	UserFlowerDataCollection = "UserFlowerDataCollection"
 	FlowerCollection         = "FlowerCollection"
