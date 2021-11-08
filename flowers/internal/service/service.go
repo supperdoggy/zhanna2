@@ -35,6 +35,8 @@ type (
 	}
 )
 
+const AddUserFlowerLimit = 1000
+
 func NewService(db db.IDbStruct, l *zap.Logger) *Service {
 	return &Service{
 		db:     db,
@@ -354,6 +356,14 @@ func (s *Service) AddUserFlower(req flowersdata.AddUserFlowerReq) (resp flowersd
 		return resp, errors.New(resp.Error)
 	}
 
+	if req.Multiple && req.Count > AddUserFlowerLimit {
+		s.logger.Error("got too big count value",
+			zap.Any("req", req),
+			zap.Any("limit", AddUserFlowerLimit))
+		resp.Error = "too bit count value"
+		return resp, errors.New(resp.Error)
+	}
+
 	flowers := []structs.Flower{}
 	if req.Multiple { // if we have multiple option
 		for i := 0; i < req.Count; i++ {
@@ -391,7 +401,7 @@ func (s *Service) AddUserFlower(req flowersdata.AddUserFlowerReq) (resp flowersd
 		flowers = append(flowers, f)
 	}
 
-	if req.Multiple && req.Count != 0 && req.Count != len(flowers) {
+	if len(flowers) == 0 {
 		resp.Error = "could not generate and create any flowers for user"
 		return resp, errors.New(resp.Error)
 	}

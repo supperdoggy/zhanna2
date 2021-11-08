@@ -307,7 +307,7 @@ func (ah *AdminHandlers) AddUserFlowerByID(m *telebot.Message) {
 		return
 	}
 
-	if m.ReplyTo == nil {
+	if !m.IsReply() {
 		ah.botReplyAndSave(m, localization.GetLoc("need_reply_add_flower", m.Sender.LanguageCode))
 		return
 	}
